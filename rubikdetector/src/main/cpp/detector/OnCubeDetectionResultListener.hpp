@@ -7,7 +7,7 @@
 
 class OnCubeDetectionResultListener {
 public:
-    virtual void onCubeDetectionResult(const int (&result)[9]) = 0;
+    virtual void onCubeDetectionResult(const int (&result)[3][3]) = 0;
 
 protected:
     OnCubeDetectionResultListener() {};

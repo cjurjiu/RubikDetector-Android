@@ -16,20 +16,21 @@ OnCubeDetectionJniBridgeListener::~OnCubeDetectionJniBridgeListener() {
     jobj = 0;
 }
 
-void OnCubeDetectionJniBridgeListener::onCubeDetectionResult(const int (&result)[9]) {
-    //setup the data to be sent to the java part
-    jint buffer[9];
+void OnCubeDetectionJniBridgeListener::onCubeDetectionResult(const int (&result)[3][3]) {
+    //flatten the 2D color array, in order to send it over JNI
+    jint flattenedResult[9];
     size_t data_size = 9;
-    for (int i = 0; i < data_size; i++) {
-        buffer[i] = (jint) result[i]; // put whatever logic you want to populate the values here.
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            flattenedResult[i * 3 + j] = (jint) result[i][j];
+        }
     }
 
-    jclass localClass = env->FindClass(
-            "com/catalinjurjiu/rubikdetector/RubikDetector");
+    jclass localClass = env->FindClass("com/catalinjurjiu/rubikdetector/RubikDetector");
     jclass clazz = reinterpret_cast<jclass>(env->NewGlobalRef(localClass));
     jmethodID messageMe = env->GetMethodID(clazz, "onFacetColorsDetected", "([I)V");
     jintArray retArray = env->NewIntArray(data_size);
-    env->SetIntArrayRegion(retArray, 0, data_size, (jint *) buffer);
+    env->SetIntArrayRegion(retArray, 0, data_size, (jint *) flattenedResult);
     env->CallVoidMethod(jobj, messageMe, retArray);
 }
 

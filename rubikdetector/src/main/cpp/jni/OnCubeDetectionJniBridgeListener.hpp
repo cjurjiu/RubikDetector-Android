@@ -16,7 +16,7 @@ public:
 
     ~OnCubeDetectionJniBridgeListener();
 
-    void onCubeDetectionResult(const int (&result)[9]);
+    void onCubeDetectionResult(const int (&result)[3][3]);
 
 private:
     JNIEnv *env;

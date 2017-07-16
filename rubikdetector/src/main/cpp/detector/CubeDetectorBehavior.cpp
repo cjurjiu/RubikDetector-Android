@@ -31,17 +31,11 @@ CubeDetectorBehavior::setOnCubeDetectionResultListener(OnCubeDetectionResultList
 
 void CubeDetectorBehavior::findCube(cv::Mat &mat) {
     performCannyProcessing(mat);
-//    int result[9];
-//    if (onCubeDetectionResultListener != nullptr) {
-//        onCubeDetectionResultListener->onCubeDetectionResult(result);
-//    }
 }
 
-double CubeDetectorBehavior::pointsDistance(Point firstPoint, Point secondPoint) {
-    return sqrt(
-            (firstPoint.x - secondPoint.x) * (firstPoint.x - secondPoint.x)
-            + (firstPoint.y - secondPoint.y)
-              * (firstPoint.y - secondPoint.y));
+float CubeDetectorBehavior::pointsDistance(Point firstPoint, Point secondPoint) {
+    return sqrt((float) ((firstPoint.x - secondPoint.x) * (firstPoint.x - secondPoint.x)
+                         + (firstPoint.y - secondPoint.y) * (firstPoint.y - secondPoint.y)));
 }
 
 void CubeDetectorBehavior::saveImage(cv::Mat mat, int frameNumber, int lineNumber) {
@@ -97,8 +91,9 @@ int CubeDetectorBehavior::getColorInSticker(Mat stickerRoi, int row, int column,
     totalNrOfColorPixels = 0;
     for (int i = 0; i < stickerRows; i++) {
         for (int j = 0; j < stickerCols; j++) {
-            double distance = pointsDistance(Point(j, i),
-                                             Point(stickerRoi.rows / 2, stickerRoi.rows / 2));
+            float distance = pointsDistance(Point(j, i),
+                                            Point(stickerRoi.rows / 2,
+                                                  stickerRoi.rows / 2));
             if (round(distance) < stickerRoi.rows / 2 || mode) {
                 //if point is in circle
                 saturationVal = hsvChannels[SATURATION].at<uchar>(i, j);
@@ -142,8 +137,9 @@ int CubeDetectorBehavior::getColorInSticker(Mat stickerRoi, int row, int column,
         }
         for (int i = 0; i < stickerRows; i++) {
             for (int j = 0; j < stickerCols; j++) {
-                double distance = pointsDistance(Point(j, i),
-                                                 Point(stickerRoi.rows / 2, stickerRoi.rows / 2));
+                float distance = pointsDistance(Point(j, i),
+                                                Point(stickerRoi.rows / 2,
+                                                      stickerRoi.rows / 2));
                 if (distance < stickerRoi.rows / 2 || mode) {
                     //if point is in circle
                     hueVal = hsvChannels[HUE].at<uchar>(i, j);
@@ -173,7 +169,6 @@ int CubeDetectorBehavior::getColorInSticker(Mat stickerRoi, int row, int column,
             }
         }
 
-//        std::sort(colorEvidence, colorEvidence + 5, sortByColorEvidenceDesc);
         std::sort(colorEvidence, colorEvidence + 5,
                   [](const HueColorEvidence &firstItem, const HueColorEvidence &secondItem) {
                       return firstItem.evidence > secondItem.evidence;
@@ -199,8 +194,9 @@ int CubeDetectorBehavior::getSmallestMargin(Circle circle, vector<Circle> validC
             //if the current rectangle is just a double of the current one, or is either to far from the current rectangle (either to the left or to the right, then just skip it
             continue;
         }
-        int currentMargin = pointsDistance(circle.center, testedCircle.center)
-                            - circle.radius - testedCircle.radius;
+        int currentMargin =
+                (int) pointsDistance(circle.center, testedCircle.center) - circle.radius -
+                testedCircle.radius;
         if (currentMargin < margin && currentMargin > 0) {
             margin = currentMargin;
         }
@@ -237,6 +233,7 @@ int CubeDetectorBehavior::getPositionInVector(int i, int j) {
             return 7;
         }
     }
+    return -1;
 }
 
 Scalar CubeDetectorBehavior::getColorAsScalar(int color) {
@@ -259,37 +256,27 @@ Scalar CubeDetectorBehavior::getColorAsScalar(int color) {
     }
 }
 
-void CubeDetectorBehavior::performCannyProcessing(Mat &mat) {
+void CubeDetectorBehavior::performCannyProcessing(Mat &currentFrame) {
     double startTime = getCurrentTimeMillis();
-    Mat &currentFrame = mat;
-    Mat &currentFrameGray = *new Mat();
-    Mat &currentFrameHSV = *new Mat();
-    Mat &dst = *new Mat();
-    Mat &cannyResultFrame = *new Mat();
+    Mat processingFrame;
     int lowThreshold = 10;
-    int ratio = 2;
+    int thresholdRatio = 2;
     int kernel_size = 3;
 
-    cvtColor(currentFrame, currentFrame, CV_RGBA2RGB);
     // Convert the image to grayscale
-    cvtColor(currentFrame, currentFrameGray, CV_RGB2GRAY);
-
-    // Convert the image to HSV
-    cvtColor(currentFrame, currentFrameHSV, CV_RGB2HSV);
-
+    cvtColor(currentFrame, processingFrame, CV_RGB2GRAY);
     /// Reduce noise with a kernel 5x5
-    GaussianBlur(currentFrameGray, cannyResultFrame, Size(5, 5), 0, 0);
-
+    GaussianBlur(processingFrame, processingFrame, Size(5, 5), 0, 0);
     // Canny detector
-    Canny(cannyResultFrame, cannyResultFrame, lowThreshold,
-          lowThreshold * ratio, kernel_size);
-    currentFrameGray.copyTo(dst, cannyResultFrame);
+    Canny(processingFrame, processingFrame, lowThreshold, lowThreshold * thresholdRatio,
+          kernel_size);
 
     //BOUNDARY
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
     /// Find contours
-    findContours(dst, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+    findContours(processingFrame, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE,
+                 Point(0, 0));
     vector<vector<Point> > contours_poly(contours.size());
     vector<RotatedRect> minimumContainingRectangle;
     vector<Circle> innerCircles;
@@ -302,7 +289,7 @@ void CubeDetectorBehavior::performCannyProcessing(Mat &mat) {
         RotatedRect currentRect = minAreaRect(Mat(contours_poly[i]));
         //calculate aspect aspectRatio
         float maxDimensionValue = (float) max(currentRect.size.height, currentRect.size.width);
-        int minDimensionValue = min(currentRect.size.height, currentRect.size.width);
+        float minDimensionValue = min(currentRect.size.height, currentRect.size.width);
         float aspectRatio = maxDimensionValue / minDimensionValue;
         //verify contour aspect ratio, size and area.
         if (aspectRatio < 1.2f &&
@@ -327,13 +314,12 @@ void CubeDetectorBehavior::performCannyProcessing(Mat &mat) {
             } else {
                 continue;
             }
-            float maxArea = (float) max(referenceCircle.area,
-                                        testedCircle.area);
+            float maxArea = (float) max(referenceCircle.area, testedCircle.area);
             int minArea = min(referenceCircle.area, testedCircle.area);
             float ratio = maxArea / minArea;
-            int angleDifference = abs(
+            float angleDifference = (float) abs(
                     (referenceCircle.angle - testedCircle.angle) * 180 / CV_PI);
-            if (ratio < 1.35f && angleDifference < 15) {
+            if (ratio < 1.35f && angleDifference < 15.0f) {
                 validCircles.push_back(testedCircle);
             }
         }
@@ -352,8 +338,8 @@ void CubeDetectorBehavior::performCannyProcessing(Mat &mat) {
         float angle = referenceCircle.angle;
         float xOffset = diameterWithMargin * cos(angle);
         float yOffset = diameterWithMargin * sin(angle);
-        float xOffset2 = diameterWithMargin * cos(angle + CV_PI / 2);
-        float yOffset2 = diameterWithMargin * sin(angle + CV_PI / 2);
+        float xOffset2 = diameterWithMargin * (float) cos(angle + CV_PI / 2);
+        float yOffset2 = diameterWithMargin * (float) sin(angle + CV_PI / 2);
         Circle secondRowFirstCircle = Circle(
                 Point2f(referenceCircle.center.x + xOffset2,
                         referenceCircle.center.y + yOffset2),
@@ -403,25 +389,19 @@ void CubeDetectorBehavior::performCannyProcessing(Mat &mat) {
         }
 
         for (int j = 0; j < 8; j++) {
-            Circle testedCircle = newCircles[j];
-            float r = testedCircle.radius;
+            Circle circleUnderTest = newCircles[j];
             for (int k = 0; k < validCircles.size(); k++) {
                 Circle actualCircle = validCircles[k];
-                if (actualCircle.contains(testedCircle.center)) {
+                if (actualCircle.contains(circleUnderTest.center)) {
 
-                    float R = max(testedCircle.radius, actualCircle.radius);
-                    float r = min(testedCircle.radius, actualCircle.radius);
-                    float d = pointsDistance(testedCircle.center,
-                                             actualCircle.center);
+                    float R = max(circleUnderTest.radius, actualCircle.radius);
+                    float r = min(circleUnderTest.radius, actualCircle.radius);
+                    float d = pointsDistance(circleUnderTest.center, actualCircle.center);
 
-                    float part1 = r * r
-                                  * acos((d * d + r * r - R * R) / (2 * d * r));
-                    float part2 = R * R
-                                  * acos((d * d + R * R - r * r) / (2 * d * R));
-                    float part3 = 0.5
-                                  * sqrt(
-                            (-d + r + R) * (d + r - R) * (d - r + R)
-                            * (d + r + R));
+                    float part1 = r * r * acos((d * d + r * r - R * R) / (2 * d * r));
+                    float part2 = R * R * acos((d * d + R * R - r * r) / (2 * d * R));
+                    float part3 =
+                            0.5f * sqrt((-d + r + R) * (d + r - R) * (d - r + R) * (d + r + R));
                     float intersectionArea = part1 + part2 - part3;
 
                     float areasRatio = actualCircle.area / intersectionArea;
@@ -462,44 +442,43 @@ void CubeDetectorBehavior::performCannyProcessing(Mat &mat) {
                             default:
                                 break;
                         }
-                        commonAreaCirclesFound.push_back(testedCircle);
+                        commonAreaCirclesFound.push_back(circleUnderTest);
                         //already found a matching rectangle, we are not interested in others. just continue
                         continue;
                     }
                 }
             }
         }
-        //	commonAreaCirclesFound.shrink_to_fit();
 
-        //here to continue
         //verify if valid cube model
         //top left element is always considered to be 1. if any of these is 0, then it means no sticker was detected on the specific row
-        int topRow = 100 + 10 * confirmedCirclesFlags[0][1]
-                     + confirmedCirclesFlags[0][2];
-        int middleRow = 100 * confirmedCirclesFlags[1][0]
-                        + 10 * confirmedCirclesFlags[1][1]
-                        + confirmedCirclesFlags[1][2];
-        int bottomRow = 100 * confirmedCirclesFlags[2][0]
-                        + 10 * confirmedCirclesFlags[2][1]
-                        + confirmedCirclesFlags[2][2];
+        int topRow = 100 + 10 * confirmedCirclesFlags[0][1] + confirmedCirclesFlags[0][2];
+        int middleRow = 100 * confirmedCirclesFlags[1][0] + 10 * confirmedCirclesFlags[1][1] +
+                        confirmedCirclesFlags[1][2];
+        int bottomRow = 100 * confirmedCirclesFlags[2][0] + 10 * confirmedCirclesFlags[2][1] +
+                        confirmedCirclesFlags[2][2];
 
         bool cubeFound = false;
         switch (topRow) {
             case 101:
             case 111:
                 //these two cases can be treated in the same manner
-                if (middleRow != 0 && bottomRow != 100 && bottomRow != 10
-                    && bottomRow != 1 && bottomRow != 0) {
+                if (middleRow != 0 && bottomRow != 100 &&
+                    bottomRow != 10 &&
+                    bottomRow != 1 &&
+                    bottomRow != 0) {
                     cubeFound = true;
                 }
                 break;
             case 110:
-                if ((middleRow == 1 || middleRow == 11 || middleRow == 101
-                     || middleRow == 111) && bottomRow != 100 && bottomRow != 10
-                    && bottomRow != 1 && bottomRow != 0) {
+                if ((middleRow == 1 || middleRow == 11 || middleRow == 101 || middleRow == 111) &&
+                    bottomRow != 100 &&
+                    bottomRow != 10 &&
+                    bottomRow != 1 &&
+                    bottomRow != 0) {
                     cubeFound = true;
-                } else if ((middleRow == 10 || middleRow == 100 || middleRow == 110)
-                           && (bottomRow == 11 || bottomRow == 101 || bottomRow == 111)) {
+                } else if ((middleRow == 10 || middleRow == 100 || middleRow == 110) &&
+                           (bottomRow == 11 || bottomRow == 101 || bottomRow == 111)) {
                     cubeFound = true;
                 }
                 break;
@@ -513,8 +492,7 @@ void CubeDetectorBehavior::performCannyProcessing(Mat &mat) {
             for (int j = 0; j < 3; j++) {
                 for (int k = 0; k < 3; k++) {
                     if (confirmedCirclesFlags[j][k] == 0) {
-                        confirmedDetectedCircles[j][k] =
-                                newCircles[getPositionInVector(j, k)];
+                        confirmedDetectedCircles[j][k] = newCircles[getPositionInVector(j, k)];
                     }
                 }
             }
@@ -522,29 +500,21 @@ void CubeDetectorBehavior::performCannyProcessing(Mat &mat) {
             for (int j = 0; j < 3; j++) {
                 for (int k = 0; k < 3; k++) {
                     Circle detectedCircle = confirmedDetectedCircles[j][k];
-                    if (0 <= (detectedCircle.center.x - detectedCircle.radius)
-                        && 0 <= (2 * detectedCircle.radius)
-                        && (detectedCircle.center.x + detectedCircle.radius)
-                           <= currentFrame.cols
-                        && 0
-                           <= (detectedCircle.center.y
-                               - detectedCircle.radius)
-                        && (detectedCircle.center.y + detectedCircle.radius)
-                           <= currentFrame.rows) {
+                    if (0 <= (detectedCircle.center.x - detectedCircle.radius) &&
+                        0 <= (2 * detectedCircle.radius) &&
+                        (detectedCircle.center.x + detectedCircle.radius) <= currentFrame.cols &&
+                        0 <= (detectedCircle.center.y - detectedCircle.radius) &&
+                        (detectedCircle.center.y + detectedCircle.radius) <= currentFrame.rows) {
                         Rect roi = Rect(
-                                Point(
-                                        detectedCircle.center.x
-                                        - detectedCircle.radius,
-                                        detectedCircle.center.y
-                                        - detectedCircle.radius),
-                                Point(
-                                        detectedCircle.center.x
-                                        + detectedCircle.radius,
-                                        detectedCircle.center.y
-                                        + detectedCircle.radius));
-                        Mat stickerRoiHSV = currentFrameHSV(roi);
-                        colors[j][k] = getColorInSticker(stickerRoiHSV,
-                                                         j, k, 1);
+                                Point(detectedCircle.center.x - detectedCircle.radius,
+                                      detectedCircle.center.y - detectedCircle.radius),
+                                Point(detectedCircle.center.x + detectedCircle.radius,
+                                      detectedCircle.center.y + detectedCircle.radius)
+                        );
+                        Mat stickerRoiHSV = currentFrame(roi).clone();
+                        // Convert the image to HSV
+                        cvtColor(stickerRoiHSV, stickerRoiHSV, CV_RGB2HSV);
+                        colors[j][k] = getColorInSticker(stickerRoiHSV, j, k, 1);
                     } else {
                         colors[j][k] = WHITE;
                         __android_log_print(ANDROID_LOG_DEBUG,
@@ -556,38 +526,27 @@ void CubeDetectorBehavior::performCannyProcessing(Mat &mat) {
             }
 
             if (saveDebugData) {
-                saveDebugDataM(currentFrame, dst, minimumContainingRectangle, referenceCircle,
-                               validCircles, newCircles, commonAreaCirclesFound, colors);
-            }
-            //store the colors as a 1D array, instead of a 2D array
-            int colorsAs1DArray[9];
-            for (int i = 0; i < 3; i++) {
-                for (int j = 0; j < 3; j++) {
-                    colorsAs1DArray[i * 3 + j] = colors[i][j];
-                }
+                saveDebugDataM(currentFrame, processingFrame, minimumContainingRectangle,
+                               referenceCircle, validCircles, newCircles, commonAreaCirclesFound,
+                               colors);
             }
 
             for (int j = 0; j < 3; j++) {
                 for (int k = 0; k < 3; k++) {
                     Circle detectedCircle = confirmedDetectedCircles[j][k];
+                    //draw the found circles on screen
                     circle(currentFrame, detectedCircle.center, detectedCircle.radius,
                            getColorAsScalar(colors[j][k]), 4, 8, 0);
                 }
             }
 
-            onCubeDetectionResultListener->onCubeDetectionResult(colorsAs1DArray);
-
+            onCubeDetectionResultListener->onCubeDetectionResult(colors);
             //break from iteration, cube was found in current frame. no need to continue
             break;
         }
     }
 
-    delete &currentFrameGray;
-    delete &currentFrameHSV;
-    delete &dst;
-    delete &cannyResultFrame;
     //BASICALLY DONE
-
     double endTime = getCurrentTimeMillis();
     double delta = endTime - startTime;
     double fps = 1000 / delta;
@@ -620,53 +579,42 @@ void CubeDetectorBehavior::saveDebugDataM(const Mat &currentFrame, const Mat &ds
         Point2f rect_points[4];
         minimumContainingRectangle[i].points(rect_points);
         for (int j = 0; j < 4; j++)
-            line(drawing, rect_points[j], rect_points[(j + 1) % 4],
-                 Scalar(0, 255, 0), 1, 8);
+            line(drawing, rect_points[j], rect_points[(j + 1) % 4], Scalar(0, 255, 0), 1, 8);
     }
     ///3
     saveImage(drawing, frameNumber, 3);
 
     drawing = Mat::zeros(dst.size(), CV_8UC3);
     for (int j = 0; j < validCircles.size(); j++) {
-        Scalar color = Scalar(90, 255, 90);
         circle(drawing, validCircles[j].center,
-               (int) validCircles[j].radius, Scalar(255, 0, 0), 2,
-               8, 0);
+               validCircles[j].radius, Scalar(255, 0, 0), 2, 8, 0);
     }
     circle(drawing, referenceCircle.center,
-           (int) referenceCircle.radius, Scalar(0, 0, 255), 2, 8,
-           0);
+           referenceCircle.radius, Scalar(0, 0, 255), 2, 8, 0);
     ///4
     saveImage(drawing, frameNumber, 4);
     drawing = Mat::zeros(dst.size(), CV_8UC3);
     for (int j = 0; j < newCircles.size(); j++) {
-        Scalar color = Scalar(90, 255, 90);
         circle(drawing, newCircles[j].center,
-               (int) newCircles[j].radius, Scalar(0, 255, 80), 2,
-               8, 0);
+               newCircles[j].radius, Scalar(0, 255, 80), 2, 8, 0);
     }
     circle(drawing, referenceCircle.center,
-           (int) referenceCircle.radius, Scalar(0, 0, 255), 2, 8,
-           0);
+           referenceCircle.radius, Scalar(0, 0, 255), 2, 8, 0);
     ///5
     saveImage(drawing, frameNumber, 5);
 
     drawing = Mat::zeros(dst.size(), CV_8UC3);
     for (int j = 0; j < newCircles.size(); j++) {
-        Scalar color = Scalar(90, 255, 90);
         circle(drawing, newCircles[j].center,
-               (int) newCircles[j].radius, Scalar(0, 255, 80), 2,
-               8, 0);
+               newCircles[j].radius, Scalar(0, 255, 80), 2, 8, 0);
     }
     for (int k = 0; k < commonAreaCirclesFound.size(); k++) {
         Circle rect = commonAreaCirclesFound[k];
         Scalar color = Scalar(255, 0, 0);
-        circle(drawing, rect.center, (int) rect.radius - 3, color,
-               -1, 8, 0);
+        circle(drawing, rect.center, rect.radius - 3, color, -1, 8, 0);
     }
     circle(drawing, referenceCircle.center,
-           (int) referenceCircle.radius, Scalar(0, 0, 255), 2, 8,
-           0);
+           referenceCircle.radius, Scalar(0, 0, 255), 2, 8, 0);
     ///6
     saveImage(drawing, frameNumber, 6);
 
@@ -674,12 +622,10 @@ void CubeDetectorBehavior::saveDebugDataM(const Mat &currentFrame, const Mat &ds
     for (int k = 0; k < commonAreaCirclesFound.size(); k++) {
         Circle rect = commonAreaCirclesFound[k];
         Scalar color = Scalar(0, 255, 0);
-        circle(drawing, rect.center, (int) rect.radius, color, 2, 8,
-               0);
+        circle(drawing, rect.center, rect.radius, color, 2, 8, 0);
     }
     circle(drawing, referenceCircle.center,
-           (int) referenceCircle.radius, Scalar(0, 0, 255), 2, 8,
-           0);
+           referenceCircle.radius, Scalar(0, 0, 255), 2, 8, 0);
     ///7
     saveImage(drawing, frameNumber, 7);
 

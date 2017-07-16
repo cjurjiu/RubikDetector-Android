@@ -94,7 +94,7 @@ private:
     double frameRateSum = 0;
     double frameRateAverage = 0;
 
-    double pointsDistance(cv::Point firstPoint, cv::Point secondPoint);
+    float pointsDistance(cv::Point firstPoint, cv::Point secondPoint);
 
     void saveImage(cv::Mat mat, int frameNumber, int lineNumber);
 
@@ -108,7 +108,7 @@ private:
 
     cv::Scalar getColorAsScalar(int color);
 
-    void performCannyProcessing(cv::Mat &mat);
+    void performCannyProcessing(cv::Mat &currentFrame);
 
     void saveDebugDataM(const cv::Mat &currentFrame, const cv::Mat &dst,
                         const std::vector<cv::RotatedRect> &minimumContainingRectangle,
