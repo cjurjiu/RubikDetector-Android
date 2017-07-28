@@ -10,7 +10,7 @@ CubeDetector::CubeDetector() {
 }
 
 CubeDetector::~CubeDetector() {
-    delete &behavior;
+    delete behavior;
 }
 
 void CubeDetector::setOnCubeDetectionResultListener(OnCubeDetectionResultListener &listener) {
@@ -19,4 +19,9 @@ void CubeDetector::setOnCubeDetectionResultListener(OnCubeDetectionResultListene
 
 void CubeDetector::findCube(cv::Mat &mat) {
     behavior->findCube(mat);
+}
+
+std::vector<uchar>
+CubeDetector::findCube2(const std::vector<uint8_t> &imageData, int width, int height) {
+    return behavior->findCube2(imageData, width, height);
 }

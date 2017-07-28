@@ -7,7 +7,8 @@
 
 
 #include <jni.h>
-#include "../detector/OnCubeDetectionResultListener.hpp"
+#include <vector>
+#include "../detectors/cubedetector/OnCubeDetectionResultListener.hpp"
 
 class OnCubeDetectionJniBridgeListener : public OnCubeDetectionResultListener {
 
@@ -16,7 +17,7 @@ public:
 
     ~OnCubeDetectionJniBridgeListener();
 
-    void onCubeDetectionResult(const int (&result)[3][3]);
+    void onCubeDetectionResult(const std::vector<std::vector<int>> result);
 
 private:
     JNIEnv *env;

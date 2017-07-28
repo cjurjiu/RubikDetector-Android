@@ -23,9 +23,11 @@ public:
 
     Circle(const cv::RotatedRect &rect);
 
-    bool contains(cv::Point2f point);
+    bool contains(cv::Point2f point) const;
 
-    bool contains(cv::Point2i point);
+    bool contains(cv::Point2i point) const;
+
+    bool isEmpty() const;
 };
 
 

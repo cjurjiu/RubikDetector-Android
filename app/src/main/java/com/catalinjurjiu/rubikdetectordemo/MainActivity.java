@@ -19,13 +19,9 @@ import android.view.SurfaceView;
 
 import com.catalinjurjiu.rubikdetector.RubikDetector;
 
-import org.opencv.android.Utils;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
@@ -162,13 +158,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         }
 
         private Bitmap getOpenCVBitmap(byte[] data) {
-            Mat mat = new Mat((int) (camera.getParameters().getPreviewSize().height * 1.5f), camera.getParameters().getPreviewSize().width, CvType.CV_8UC1);
-            mat.put(0, 0, data);
-            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_YUV2RGB_NV21);
-            rubikDetector.findCube(mat);
-            Bitmap image = Bitmap.createBitmap(camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height, Bitmap.Config.ARGB_8888);
-            Utils.matToBitmap(mat, image);
-            return image;
+            byte[] processedData = rubikDetector.findCube2(data, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height);
+            Bitmap bitmap = Bitmap.createBitmap(camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height, Bitmap.Config.ARGB_8888);
+            bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(processedData));
+            return bitmap;
         }
 
         private Bitmap getAndroidBitmap(byte[] data) {
@@ -186,7 +179,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 return;
             }
             Rect srcRect = new Rect(0, 0, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height);
-            Rect destRect = new Rect(0, 0, surfaceView.getWidth(), surfaceView.getHeight());
+            Rect destRect = new Rect(0, 0, surfaceView.getWidth(), (int) (surfaceView.getWidth() * (camera.getParameters().getPreviewSize().height / (float) camera.getParameters().getPreviewSize().width)));
             Bitmap image = getOpenCVBitmap(data);
             try {
                 canvas.drawBitmap(image, srcRect, destRect, null);

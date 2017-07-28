@@ -16,7 +16,8 @@ OnCubeDetectionJniBridgeListener::~OnCubeDetectionJniBridgeListener() {
     jobj = 0;
 }
 
-void OnCubeDetectionJniBridgeListener::onCubeDetectionResult(const int (&result)[3][3]) {
+void OnCubeDetectionJniBridgeListener::onCubeDetectionResult(
+        const std::vector<std::vector<int>> result) {
     //flatten the 2D color array, in order to send it over JNI
     jint flattenedResult[9];
     size_t data_size = 9;

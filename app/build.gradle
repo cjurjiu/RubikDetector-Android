@@ -16,6 +16,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+
+        debug {
+            jniDebuggable true
+        }
     }
 }
 
@@ -26,5 +30,5 @@ dependencies {
     })
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
-    compile project(path: ':rubikdetector')
+    compile project(path: ':rubikdetector', configuration: 'debug')
 }
