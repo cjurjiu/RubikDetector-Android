@@ -21,12 +21,12 @@ add_library( # Sets the name of the library.
              # Provides a relative path to your source file(s).
              ${JNI_SOURCES} )
 
-include_directories( /media/catalin/SSD/DevUtils/OpenCV-2.4.9-android-sdk/sdk/native/jni/include )
-add_library( opencv_2_4_9
+include_directories( /media/catalin/SSD/DevUtils/OpenCV-2.4.13.2-android-sdk/sdk/native/jni/include/ )
+add_library( opencv_2_4_13_2
             SHARED
             IMPORTED
             )
-set_target_properties( opencv_2_4_9
+set_target_properties( opencv_2_4_13_2
             PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libopencv_java.so
             )
 
@@ -57,4 +57,4 @@ target_link_libraries( # Specifies the target library.
                        ${log-lib}
 
                        #open-cv
-                       opencv_2_4_9 )
+                       opencv_2_4_13_2 )

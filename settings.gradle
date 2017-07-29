@@ -1,2 +1,2 @@
 include ':app', ':rubikdetector'
-include ':openCVLibrary249'
+include ':openCVLibrary24132'

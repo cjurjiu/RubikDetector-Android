@@ -4,7 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/RubikDetectorDemo.iml" filepath="$PROJECT_DIR$/RubikDetectorDemo.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/openCVLibrary249/openCVLibrary249.iml" filepath="$PROJECT_DIR$/openCVLibrary249/openCVLibrary249.iml" />
+      <module fileurl="file://$PROJECT_DIR$/openCVLibrary24132/openCVLibrary24132.iml" filepath="$PROJECT_DIR$/openCVLibrary24132/openCVLibrary24132.iml" />
       <module fileurl="file://$PROJECT_DIR$/rubikdetector/rubikdetector.iml" filepath="$PROJECT_DIR$/rubikdetector/rubikdetector.iml" />
     </modules>
   </component>
