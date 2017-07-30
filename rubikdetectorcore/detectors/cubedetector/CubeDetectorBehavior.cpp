@@ -8,14 +8,15 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/types_c.h"
 #include "opencv2/imgproc/imgproc.hpp"
-#include "../utils/Utils.hpp"
-#include <android/log.h>
+#include "../../utils/Utils.hpp"
+#include "../../utils/CrossLog.hpp"
 
 /* return current time in milliseconds */
 static double getCurrentTimeMillis(void);
 
 CubeDetectorBehavior::CubeDetectorBehavior() {
     //empty default constructor
+//    colorDetector.setDebuggable(true);
 }
 
 CubeDetectorBehavior::~CubeDetectorBehavior() {
@@ -132,11 +133,11 @@ void CubeDetectorBehavior::performCannyProcessing(cv::Mat &currentFrame) {
     double delta = endTime - startTime;
     double fps = 1000 / delta;
     frameRateSum += fps;
+    frameNumber++;
     frameRateAverage = frameRateSum / frameNumber;
-
-    __android_log_print(ANDROID_LOG_DEBUG, "RUBIK_JNI_PART.cpp",
-                        "\frameNumber: %d, frameRate current frame: %.2f, frameRateAverage: %.2f, frameRate: %.2f",
-                        frameNumber, fps, frameRateAverage, fps);
+    LOG_DEBUG("RUBIK_JNI_PART.cpp",
+              "frameNumber: %d, frameRate current frame: %.2f, frameRateAverage: %.2f, frameRate: %.2f",
+              frameNumber, fps, frameRateAverage, fps);
     //end
 }
 
@@ -419,33 +420,21 @@ void CubeDetectorBehavior::saveDebugDataM(const cv::Mat &currentFrame, const cv:
     ///7
     utils::saveImage(drawing, frameNumber, 7);
 
-    __android_log_print(ANDROID_LOG_DEBUG, "RUBIK_JNI_PART.cpp",
-                        "\nCOLORS: [1]:{ %d %d %d } [2]:{ %d %d %d } [3]:{ %d %d %d }",
-                        colors[0][0], colors[0][1], colors[0][2], colors[1][0],
-                        colors[1][1], colors[1][2], colors[2][0], colors[2][1],
-                        colors[2][2]);
+    LOG_DEBUG("RUBIK_JNI_PART.cpp",
+              "COLORS: [1]:{ %d %d %d } [2]:{ %d %d %d } [3]:{ %d %d %d }",
+              colors[0][0], colors[0][1], colors[0][2], colors[1][0],
+              colors[1][1], colors[1][2], colors[2][0], colors[2][1],
+              colors[2][2]);
     //end debug data saving
 }
 
 std::vector<uchar>
-CubeDetectorBehavior::findCube2(const std::vector<uint8_t> &imageData, int width, int height) {
+CubeDetectorBehavior::findCube(const std::vector<uint8_t> &imageData, int width, int height) {
     cv::Mat &currentFrame = *new cv::Mat((int) (height * 1.5f), width, CV_8UC1,
                                          (uchar *) imageData.data());
-    __android_log_print(ANDROID_LOG_DEBUG,
-                        "Cata",
-                        "cv::cvtColor1");
     cv::cvtColor(currentFrame, currentFrame, cv::COLOR_YUV2RGB_NV21);
-    __android_log_print(ANDROID_LOG_DEBUG,
-                        "Cata",
-                        "after cv::cvtColor1");
     findCube(currentFrame);
-    __android_log_print(ANDROID_LOG_DEBUG,
-                        "Cata",
-                        "cv::cvtColor2");
     cv::cvtColor(currentFrame, currentFrame, cv::COLOR_RGB2RGBA);
-    __android_log_print(ANDROID_LOG_DEBUG,
-                        "Cata",
-                        "after cv::cvtColor2");
     std::vector<uchar> array;
     if (currentFrame.isContinuous()) {
         array.assign(currentFrame.datastart, currentFrame.dataend);
@@ -502,14 +491,17 @@ CubeDetectorBehavior::detectFacetColors(const cv::Mat &currentFrame,
                                                          i * 10 + j);
             } else {
                 colors[i][j] = WHITE;
-                __android_log_print(ANDROID_LOG_DEBUG,
-                                    "RUBIK_JNI_PART.cpp",
-                                    "\nframeNumberOld: %d FOUND INVALID RECT WHEN DETECTING COLORS",
-                                    frameNumber);
+                LOG_DEBUG("RUBIK_JNI_PART.cpp",
+                          "frameNumberOld: %d FOUND INVALID RECT WHEN DETECTING COLORS",
+                          frameNumber);
             }
         }
     }
     return colors;
+}
+
+void CubeDetectorBehavior::setDebuggable(const bool isDebuggable) {
+    debuggable = isDebuggable;
 }
 
 /* return current time in milliseconds */

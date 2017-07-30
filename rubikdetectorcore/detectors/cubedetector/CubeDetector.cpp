@@ -22,6 +22,10 @@ void CubeDetector::findCube(cv::Mat &mat) {
 }
 
 std::vector<uchar>
-CubeDetector::findCube2(const std::vector<uint8_t> &imageData, int width, int height) {
-    return behavior->findCube2(imageData, width, height);
+CubeDetector::findCube(const std::vector<uint8_t> &imageData, int width, int height) {
+    return behavior->findCube(imageData, width, height);
+}
+
+void CubeDetector::setDebuggable(const bool debuggable) {
+    behavior->setDebuggable(debuggable);
 }

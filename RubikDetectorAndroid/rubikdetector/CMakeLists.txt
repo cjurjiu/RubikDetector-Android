@@ -10,7 +10,7 @@ cmake_minimum_required(VERSION 3.4.1)
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
-file(GLOB_RECURSE JNI_SOURCES "src/main/cpp/*")
+file(GLOB_RECURSE JNI_SOURCES FOLLOW_SYMLINKS "src/main/cpp/*")
 
 add_library( # Sets the name of the library.
              native_processing

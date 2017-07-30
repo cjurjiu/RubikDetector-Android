@@ -60,7 +60,9 @@ public:
 
     void findCube(cv::Mat &mat);
 
-    std::vector<uchar> findCube2(const std::vector<uint8_t> &imageData, int width, int height);
+    std::vector<uchar> findCube(const std::vector<uint8_t> &imageData, int width, int height);
+
+    void setDebuggable(const bool isDebuggable);
 
 private:
     OnCubeDetectionResultListener *onCubeDetectionResultListener;
@@ -72,6 +74,8 @@ private:
 
     double frameRateSum = 0;
     double frameRateAverage = 0;
+
+    bool debuggable = false;
 
     int getSmallestMargin(Circle referenceCircle, std::vector<Circle> validCircles);
 

@@ -4,8 +4,8 @@
 #include <jni.h>
 #include <vector>
 #include <assert.h>
+#include "../rubikdetectorcore/detectors/cubedetector/CubeDetector.hpp"
 #include "RubikDetectorJni.hpp"
-#include "../detectors/cubedetector/CubeDetector.hpp"
 #include "OnCubeDetectionJniBridgeListener.hpp"
 #include <memory>
 #include <limits>
@@ -73,7 +73,7 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNative2(JNIEnv *env, 
 
     std::vector<uint8_t> image = ::Binary::toCpp(env, imageData_);
 
-    std::vector<uint8_t> abc = cubeDetector.findCube2(image, (int) width, (int) height);
+    std::vector<uint8_t> abc = cubeDetector.findCube(image, (int) width, (int) height);
 
     jbyteArray arr = env->NewByteArray(abc.size());
     env->SetByteArrayRegion(arr, 0, abc.size(), (jbyte *) abc.data());

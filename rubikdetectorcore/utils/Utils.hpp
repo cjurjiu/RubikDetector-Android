@@ -9,5 +9,7 @@ namespace utils {
     float pointsDistance(const cv::Point &firstPoint, const cv::Point &secondPoint);
 
     bool saveImage(const cv::Mat &mat, const int frameNumber, const int regionId);
+
+    char colorIntToChar(int colorInt);
 }
 #endif //RUBIKDETECTORDEMO_UTILS_HPP

@@ -8,7 +8,7 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "../cubedetector/CubeDetector.hpp"
 #include "../../data/HueColorEvidence.hpp"
-#include "../utils/Utils.hpp"
+#include "../../utils/Utils.hpp"
 
 #ifndef  HUE
 #define HUE 0

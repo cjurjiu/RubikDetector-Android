@@ -15,7 +15,7 @@ ColorDetector::~ColorDetector() {
 
 int ColorDetector::detectColor(const cv::Mat &image, const float whiteRatio,
                                const int frameNr, const int regionId) {
-    return colorDetectorBehavior->detectColor(image);
+    return colorDetectorBehavior->detectColor(image, whiteRatio, frameNr, regionId);
 }
 
 void ColorDetector::setDebuggable(const bool debuggable) const {

@@ -8,7 +8,7 @@
 
 #include <jni.h>
 #include <vector>
-#include "../detectors/cubedetector/OnCubeDetectionResultListener.hpp"
+#include "../rubikdetectorcore/detectors/cubedetector/OnCubeDetectionResultListener.hpp"
 
 class OnCubeDetectionJniBridgeListener : public OnCubeDetectionResultListener {
 

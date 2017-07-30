@@ -33,7 +33,9 @@ public:
     void findCube(cv::Mat &mat);
 
     std::vector<unsigned char>
-    findCube2(const std::vector<uint8_t> &imageData, int width, int height);
+    findCube(const std::vector<uint8_t> &imageData, int width, int height);
+
+    void setDebuggable(const bool debuggable);
 
 private:
     CubeDetectorBehavior *behavior;
