@@ -14,10 +14,13 @@
 /* return current time in milliseconds */
 static double getCurrentTimeMillis(void);
 
-CubeDetectorBehavior::CubeDetectorBehavior() {
+CubeDetectorBehavior::CubeDetectorBehavior() : CubeDetectorBehavior(nullptr) {
     //empty default constructor
-//    colorDetector.setDebuggable(true);
 }
+
+CubeDetectorBehavior::CubeDetectorBehavior(ImageSaver *imageSaver) :
+        imageSaver(imageSaver),
+        colorDetector(ColorDetector(imageSaver)) {}
 
 CubeDetectorBehavior::~CubeDetectorBehavior() {
     delete &onCubeDetectionResultListener;
@@ -78,25 +81,25 @@ cv::Scalar CubeDetectorBehavior::getColorAsScalar(int color) {
             return cv::Scalar(255, 0, 0);
         default:
             return cv::Scalar(-1, -1, -1);
-            break;
     }
 }
 
 void CubeDetectorBehavior::performCannyProcessing(cv::Mat &currentFrame) {
     double startTime = getCurrentTimeMillis();
-    std::vector<cv::RotatedRect> minimumContainingRectangle;
-    std::vector<Circle> innerCircles;
-    std::vector<std::vector<cv::Point>> contours;
+    std::vector<std::vector<cv::Point>> contours = detectContours(currentFrame);
 
-    contours = detectContours(currentFrame);
-    filterContours(currentFrame, contours, minimumContainingRectangle, innerCircles);
+    std::vector<cv::RotatedRect> filteredRectangles;
+    std::vector<Circle> filteredRectanglesInnerCircles;
+
+    filterContours(currentFrame, contours, filteredRectangles, filteredRectanglesInnerCircles);
 
     Circle referenceCircle;
-    for (int i = 0; i < innerCircles.size(); i++) {
-        referenceCircle = innerCircles[i];
+    for (int i = 0; i < filteredRectanglesInnerCircles.size(); i++) {
+        referenceCircle = filteredRectanglesInnerCircles[i];
         //test each and every rectangle
         std::vector<Circle> potentialFacelets = findPotentialFacelets(referenceCircle,
-                                                                      innerCircles, i);
+                                                                      filteredRectanglesInnerCircles,
+                                                                      i);
         if (potentialFacelets.size() < 3) {
             //if we have at most 2 other rectangles that have an area similar to the initial one, just continue, can't be a cube facet
             continue;
@@ -117,11 +120,14 @@ void CubeDetectorBehavior::performCannyProcessing(cv::Mat &currentFrame) {
             fillMissingFacelets(estimatedFacelets, facetModel);
             std::vector<std::vector<int>> colors = detectFacetColors(currentFrame, facetModel);
             drawFoundFacelets(currentFrame, facetModel, colors);
-//            if (saveDebugData) {
-//                saveDebugDataM(currentFrame, processingFrame, minimumContainingRectangle,
-//                               referenceCircle, potentialFacelets, estimatedFacelets, matchingCircles,
-//                               colors);
-//            }
+            if (debuggable) {
+                saveDebugData(currentFrame,
+                              filteredRectangles,
+                              referenceCircle,
+                              potentialFacelets,
+                              estimatedFacelets,
+                              colors);
+            }
             onCubeDetectionResultListener->onCubeDetectionResult(colors);
             //break from iteration, cube was found in current frame. no need to continue
             break;
@@ -300,8 +306,8 @@ std::vector<Circle> CubeDetectorBehavior::findPotentialFacelets(const Circle &re
 
 void CubeDetectorBehavior::filterContours(const cv::Mat &currentFrame,
                                           const std::vector<std::vector<cv::Point>> &contours,
-                                          std::vector<cv::RotatedRect> &minimumContainingRectangle,
-                                          std::vector<Circle> &innerCircles) const {
+                                          std::vector<cv::RotatedRect> &possibleFacelets,
+                                          std::vector<Circle> &possibleFaceletsInnerCircles) const {
     std::vector<std::vector<cv::Point> > contoursPoly(contours.size());
     int totalImageArea = currentFrame.cols * currentFrame.rows;
     /// Approximate contours to polygons + get bounding rects and circles
@@ -321,8 +327,8 @@ void CubeDetectorBehavior::filterContours(const cv::Mat &currentFrame,
             currentRect.size.width < currentFrame.cols * 0.25f) {
             //if based on the above conditions it is considered as being a valid contour,
             //then save it for later processing
-            minimumContainingRectangle.push_back(currentRect);
-            innerCircles.push_back(Circle(currentRect));
+            possibleFacelets.push_back(currentRect);
+            possibleFaceletsInnerCircles.push_back(Circle(currentRect));
         }
     }
 }
@@ -350,76 +356,62 @@ CubeDetectorBehavior::detectContours(const cv::Mat &currentFrame) const {
     return contours;
 }
 
-void CubeDetectorBehavior::saveDebugDataM(const cv::Mat &currentFrame, const cv::Mat &dst,
-                                          const std::vector<cv::RotatedRect> &minimumContainingRectangle,
-                                          const Circle &referenceCircle,
-                                          const std::vector<Circle> &validCircles,
-                                          const std::vector<Circle> &newCircles,
-                                          const std::vector<Circle> &commonAreaCirclesFound,
-                                          const int (&colors)[3][3]) {///BEGIN PRINT
-    ///1
-    cvtColor(currentFrame, currentFrame, CV_RGB2BGR);
-    utils::saveImage(currentFrame, frameNumber, 1);
-    cvtColor(currentFrame, currentFrame, CV_BGR2RGB);
-    ///2
-    utils::saveImage(dst, frameNumber, 2);
+void CubeDetectorBehavior::saveDebugData(const cv::Mat &currentFrame,
+                                         const std::vector<cv::RotatedRect> &filteredRectangles,
+                                         const Circle &referenceCircle,
+                                         const std::vector<Circle> &potentialFacelets,
+                                         const std::vector<Circle> &estimatedFacelets,
+                                         const std::vector<std::vector<int>> colors) {
+    ///BEGIN PRINT
+    if (imageSaver != nullptr) {
+        ///save whole frame
+        cv::cvtColor(currentFrame, currentFrame, CV_RGB2BGR);
+        imageSaver->saveImage(currentFrame, frameNumber, "full_frame");
+        cv::cvtColor(currentFrame, currentFrame, CV_BGR2RGB);
 
-    cv::Mat drawing = (cv::Mat) cv::Mat::zeros(dst.size(), CV_8UC3);
-    for (int i = 0; i < minimumContainingRectangle.size(); i++) {
-        // rotated rectangle
-        cv::Point2f rect_points[4];
-        minimumContainingRectangle[i].points(rect_points);
-        for (int j = 0; j < 4; j++)
-            line(drawing, rect_points[j], rect_points[(j + 1) % 4], cv::Scalar(0, 255, 0), 1, 8);
-    }
-    ///3
-    utils::saveImage(drawing, frameNumber, 3);
+        ///save filtered rectangles
+        cv::Mat drawing = (cv::Mat) cv::Mat::zeros(currentFrame.size(), CV_8UC3);
+        for (int i = 0; i < filteredRectangles.size(); i++) {
+            // rotated rectangle
+            cv::Point2f rect_points[4];
+            filteredRectangles[i].points(rect_points);
+            for (int j = 0; j < 4; j++)
+                cv::line(drawing, rect_points[j], rect_points[(j + 1) % 4],
+                         cv::Scalar(0, 255, 0), 1, CV_AA);
+        }
+        imageSaver->saveImage(drawing, frameNumber, "filtered_rectangles");
 
-    drawing = cv::Mat::zeros(dst.size(), CV_8UC3);
-    for (int j = 0; j < validCircles.size(); j++) {
-        circle(drawing, validCircles[j].center,
-               validCircles[j].radius, cv::Scalar(255, 0, 0), 2, 8, 0);
-    }
-    circle(drawing, referenceCircle.center,
-           referenceCircle.radius, cv::Scalar(0, 0, 255), 2, 8, 0);
-    ///4
-    utils::saveImage(drawing, frameNumber, 4);
-    drawing = cv::Mat::zeros(dst.size(), CV_8UC3);
-    for (int j = 0; j < newCircles.size(); j++) {
-        circle(drawing, newCircles[j].center,
-               newCircles[j].radius, cv::Scalar(0, 255, 80), 2, 8, 0);
-    }
-    circle(drawing, referenceCircle.center,
-           referenceCircle.radius, cv::Scalar(0, 0, 255), 2, 8, 0);
-    ///5
-    utils::saveImage(drawing, frameNumber, 5);
+        ///save potential facelets
+        drawing = cv::Mat::zeros(currentFrame.size(), CV_8UC3);
+        utils::drawCircles(drawing, potentialFacelets, cv::Scalar(255, 0, 0));
+        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255));
+        imageSaver->saveImage(drawing, frameNumber, "potential_facelets");
 
-    drawing = cv::Mat::zeros(dst.size(), CV_8UC3);
-    for (int j = 0; j < newCircles.size(); j++) {
-        circle(drawing, newCircles[j].center,
-               newCircles[j].radius, cv::Scalar(0, 255, 80), 2, 8, 0);
-    }
-    for (int k = 0; k < commonAreaCirclesFound.size(); k++) {
-        Circle rect = commonAreaCirclesFound[k];
-        cv::Scalar color = cv::Scalar(255, 0, 0);
-        circle(drawing, rect.center, rect.radius - 3, color, -1, 8, 0);
-    }
-    circle(drawing, referenceCircle.center,
-           referenceCircle.radius, cv::Scalar(0, 0, 255), 2, 8, 0);
-    ///6
-    utils::saveImage(drawing, frameNumber, 6);
+        ///save estimated facelets
+        drawing = cv::Mat::zeros(currentFrame.size(), CV_8UC3);
+        utils::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80));
+        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255));
+        imageSaver->saveImage(drawing, frameNumber, "estimated_facelets");
 
-    drawing = cv::Mat::zeros(dst.size(), CV_8UC3);
-    for (int k = 0; k < commonAreaCirclesFound.size(); k++) {
-        Circle rect = commonAreaCirclesFound[k];
-        cv::Scalar color = cv::Scalar(0, 255, 0);
-        circle(drawing, rect.center, rect.radius, color, 2, 8, 0);
-    }
-    circle(drawing, referenceCircle.center,
-           referenceCircle.radius, cv::Scalar(0, 0, 255), 2, 8, 0);
-    ///7
-    utils::saveImage(drawing, frameNumber, 7);
+        ///save potential & estimated facelets which match
+        ///recompute the incomplete facelet model, in order to print only the facelets which passed through all the filtering steps
+        ///it's a waste indeed to compute them once more...but then again, this is for debugging so..
+        std::vector<std::vector<Circle>> faceletIncompleteModel = matchEstimatedWithPotentialFacelets(
+                potentialFacelets, estimatedFacelets);
 
+        drawing = cv::Mat::zeros(currentFrame.size(), CV_8UC3);
+        utils::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80));
+        utils::drawCircles(drawing, faceletIncompleteModel, cv::Scalar(255, 0, 0), 3, true);
+        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255));
+        utils::drawCircle(drawing, referenceCircle, cv::Scalar(255, 0, 0), 3, true);
+        imageSaver->saveImage(drawing, frameNumber, "matched_pot_est_facelets");
+
+        ///save just the facelets which matched with the estimated ones
+        drawing = cv::Mat::zeros(currentFrame.size(), CV_8UC3);
+        utils::drawCircles(drawing, faceletIncompleteModel, cv::Scalar(0, 255, 0), 3);
+        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255));
+        imageSaver->saveImage(drawing, frameNumber, "matched_potential_facelets");
+    }
     LOG_DEBUG("RUBIK_JNI_PART.cpp",
               "COLORS: [1]:{ %d %d %d } [2]:{ %d %d %d } [3]:{ %d %d %d }",
               colors[0][0], colors[0][1], colors[0][2], colors[1][0],
@@ -487,7 +479,8 @@ CubeDetectorBehavior::detectFacetColors(const cv::Mat &currentFrame,
                 } else {
                     whiteMinRatio = 0.5f;
                 }
-                colors[i][j] = colorDetector.detectColor(stickerRoiHSV, whiteMinRatio, frameNumber,
+                colors[i][j] = colorDetector.detectColor(stickerRoiHSV, whiteMinRatio,
+                                                         frameNumber,
                                                          i * 10 + j);
             } else {
                 colors[i][j] = WHITE;
@@ -502,6 +495,7 @@ CubeDetectorBehavior::detectFacetColors(const cv::Mat &currentFrame,
 
 void CubeDetectorBehavior::setDebuggable(const bool isDebuggable) {
     debuggable = isDebuggable;
+    colorDetector.setDebuggable(isDebuggable);
 }
 
 /* return current time in milliseconds */

@@ -5,9 +5,11 @@
 #include "CubeDetector.hpp"
 #include "CubeDetectorBehavior.hpp"
 
-CubeDetector::CubeDetector() {
-    behavior = new CubeDetectorBehavior();
-}
+CubeDetector::CubeDetector() : CubeDetector(nullptr) {}
+
+CubeDetector::CubeDetector(ImageSaver *imageSaver)
+        : behavior(new CubeDetectorBehavior(imageSaver)) {}
+
 
 CubeDetector::~CubeDetector() {
     delete behavior;

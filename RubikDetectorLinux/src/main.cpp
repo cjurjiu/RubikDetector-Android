@@ -6,6 +6,7 @@
 #include "rubikdetectorcore/detectors/cubedetector/OnCubeDetectionResultListener.hpp"
 #include "rubikdetectorcore/utils/Utils.hpp"
 #include "rubikdetectorcore/utils/CrossLog.hpp"
+#include "rubikdetectorcore/helpers/ImageSaver.hpp"
 
 void performProcessingOnVideo();
 
@@ -39,15 +40,17 @@ int main() {
 void performProcessingOnVideo() {
     cv::VideoCapture cap;
     cap.open(
-            "/media/catalin/Data1/Projects/Android/RubikSolver-All/GithubVersion/RubikSolverCmake/RubikDetectorDemo/RubikDetectorLinux/Videos/cube1.mp4");
-
+            "/media/catalin/Data1/Projects/Android/RubikSolver-All/GithubVersion/RubikSolverCmake/RubikDetectorDemo/RubikDetectorLinux/videos/cube1.mp4");
     if (!cap.isOpened()) {
         std::cout << "Caption not opened, return." << std::endl;
         return;
     }
     cv::Mat frame;
     ResultListener resultListener;
-    CubeDetector rubikDetector;
+    ImageSaver *imageSaver = new ImageSaver(
+            std::string("/media/catalin/Data1/Projects/Android/RubikSolver-All/GithubVersion/RubikSolverCmake/RubikDetectorDemo/RubikDetectorLinux/debug_images"));
+    CubeDetector rubikDetector(imageSaver);
+    rubikDetector.setDebuggable(true);
     rubikDetector.setOnCubeDetectionResultListener(resultListener);
 
     while (cap.read(frame)) {
@@ -60,5 +63,6 @@ void performProcessingOnVideo() {
 //            break;
 //        }
     }
+    delete imageSaver;
     std::cout << "Finished processing." << std::endl;
 }

@@ -7,6 +7,7 @@
 
 
 #include <vector>
+#include "../../helpers/ImageSaver.hpp"
 
 namespace cv {
     class Mat;
@@ -16,6 +17,8 @@ class ColorDetectorBehavior {
 
 public:
     ColorDetectorBehavior();
+
+    ColorDetectorBehavior(ImageSaver *imageSaver);
 
     ~ColorDetectorBehavior();
 
@@ -29,7 +32,7 @@ private:
 
     bool debuggable = false;
 
-private:
+    ImageSaver *imageSaver;
 
     void printOwnHistogram(const int hist[], const int histogramSize,
                            const int frameNumber, const int regionId) const;

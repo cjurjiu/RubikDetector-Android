@@ -15,6 +15,8 @@ class OnCubeDetectionResultListener;
 
 class CubeDetectorBehavior;
 
+class ImageSaver;
+
 static const int RED = 0;
 static const int ORANGE = 1;
 static const int YELLOW = 2;
@@ -25,6 +27,8 @@ static const int WHITE = 5;
 class CubeDetector {
 public:
     CubeDetector();
+
+    CubeDetector(ImageSaver *imageSaver);
 
     ~CubeDetector();
 

@@ -5,9 +5,10 @@
 #include "ColorDetector.hpp"
 #include "ColorDetectorBehavior.hpp"
 
-ColorDetector::ColorDetector() {
-    colorDetectorBehavior = new ColorDetectorBehavior();
-}
+ColorDetector::ColorDetector() : ColorDetector(nullptr) {}
+
+ColorDetector::ColorDetector(ImageSaver *imageSaver) : colorDetectorBehavior(
+        new ColorDetectorBehavior(imageSaver)) {}
 
 ColorDetector::~ColorDetector() {
     delete colorDetectorBehavior;

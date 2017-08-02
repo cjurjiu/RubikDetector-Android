@@ -9,6 +9,7 @@
 #include "../../data/Circle.hpp"
 #include "../../data/HueColorEvidence.hpp"
 #include "../colordetector/ColorDetector.hpp"
+#include "../../helpers/ImageSaver.hpp"
 #include <iostream>
 
 
@@ -54,6 +55,8 @@ class CubeDetectorBehavior {
 public:
     CubeDetectorBehavior();
 
+    CubeDetectorBehavior(ImageSaver *imageSaver);
+
     ~CubeDetectorBehavior();
 
     void setOnCubeDetectionResultListener(OnCubeDetectionResultListener &listener);
@@ -69,7 +72,8 @@ private:
 
     ColorDetector colorDetector;
 
-    int scale = 1;
+    ImageSaver* imageSaver;
+
     int frameNumber = 0;
 
     double frameRateSum = 0;
@@ -85,19 +89,18 @@ private:
 
     void performCannyProcessing(cv::Mat &currentFrame);
 
-    void saveDebugDataM(const cv::Mat &currentFrame, const cv::Mat &dst,
-                        const std::vector<cv::RotatedRect> &minimumContainingRectangle,
-                        const Circle &referenceCircle, const std::vector<Circle> &validCircles,
-                        const std::vector<Circle> &newCircles,
-                        const std::vector<Circle> &commonAreaCirclesFound,
-                        const int (&colors)[3][3]);
+    void saveDebugData(const cv::Mat &currentFrame,
+                       const std::vector<cv::RotatedRect> &filteredRectangles,
+                       const Circle &referenceCircle, const std::vector<Circle> &potentialFacelets,
+                       const std::vector<Circle> &estimatedFacelets,
+                       const std::vector<std::vector<int>> colors);
 
     std::vector<std::vector<cv::Point>> detectContours(const cv::Mat &currentFrame) const;
 
     void filterContours(const cv::Mat &currentFrame,
                         const std::vector<std::vector<cv::Point>> &contours,
-                        std::vector<cv::RotatedRect> &minimumContainingRectangle,
-                        std::vector<Circle> &innerCircles) const;
+                        std::vector<cv::RotatedRect> &possibleFacelets,
+                        std::vector<Circle> &possibleFaceletsInnerCircles) const;
 
     std::vector<Circle>
     findPotentialFacelets(const Circle &referenceCircle,

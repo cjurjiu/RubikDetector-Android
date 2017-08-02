@@ -4,6 +4,7 @@
 #include <jni.h>
 #include <vector>
 #include <assert.h>
+#include "../rubikdetectorcore/helpers/ImageSaver.hpp"
 #include "../rubikdetectorcore/detectors/cubedetector/CubeDetector.hpp"
 #include "RubikDetectorJni.hpp"
 #include "OnCubeDetectionJniBridgeListener.hpp"
@@ -55,10 +56,13 @@ JNIEXPORT void JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNative(JNIEnv *env, jobject instance,
                                                                   jlong addrRgba) {
 
-    CubeDetector &cubeDetector = *new CubeDetector();
-
+    //TODO handle leaks
+    std::string storagePath("/storage/emulated/0/RubikResults");
+    ImageSaver *imageSaver = new ImageSaver(storagePath);
+    CubeDetector &cubeDetector = *new CubeDetector(imageSaver);
     cubeDetector.setOnCubeDetectionResultListener(
             *new OnCubeDetectionJniBridgeListener(env, instance));
+    cubeDetector.setDebuggable(true);
     cubeDetector.findCube(*(cv::Mat *) addrRgba);
 }
 
@@ -66,10 +70,13 @@ JNIEXPORT jbyteArray JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNative2(JNIEnv *env, jobject instance,
                                                                    jbyteArray imageData_,
                                                                    jint width, jint height) {
-    CubeDetector &cubeDetector = *new CubeDetector();
-
+    //TODO handle leaks
+    std::string storagePath("/storage/emulated/0/RubikResults");
+    ImageSaver *imageSaver = new ImageSaver(storagePath);
+    CubeDetector &cubeDetector = *new CubeDetector(imageSaver);
     cubeDetector.setOnCubeDetectionResultListener(
             *new OnCubeDetectionJniBridgeListener(env, instance));
+    cubeDetector.setDebuggable(true);
 
     std::vector<uint8_t> image = ::Binary::toCpp(env, imageData_);
 
@@ -78,5 +85,4 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNative2(JNIEnv *env, 
     jbyteArray arr = env->NewByteArray(abc.size());
     env->SetByteArrayRegion(arr, 0, abc.size(), (jbyte *) abc.data());
     return arr;
-
 }

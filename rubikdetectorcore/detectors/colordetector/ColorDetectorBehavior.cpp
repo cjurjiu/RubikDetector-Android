@@ -8,7 +8,6 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "../cubedetector/CubeDetector.hpp"
 #include "../../data/HueColorEvidence.hpp"
-#include "../../utils/Utils.hpp"
 
 #ifndef  HUE
 #define HUE 0
@@ -38,13 +37,15 @@
 #define HUE_HISTOGRAM_SIZE 180
 #endif
 
-ColorDetectorBehavior::ColorDetectorBehavior() {
+ColorDetectorBehavior::ColorDetectorBehavior() : ColorDetectorBehavior(nullptr) {
 
 }
 
-ColorDetectorBehavior::~ColorDetectorBehavior() {
+ColorDetectorBehavior::ColorDetectorBehavior(ImageSaver *imageSaver) : imageSaver(imageSaver) {
 
 }
+
+ColorDetectorBehavior::~ColorDetectorBehavior() {}
 
 int ColorDetectorBehavior::detectColor(const cv::Mat &image, const float whiteRatio,
                                        const int frameNr, const int regionId) {
@@ -65,11 +66,11 @@ int ColorDetectorBehavior::detectColor(const cv::Mat &image, const float whiteRa
 
     if (whitePixelRatio > whiteRatio) {
         //if the majority of the saturation values are in the "almost white" range of the saturation domain, then assume color is white
-        if (debuggable) {
+        if (debuggable && imageSaver != nullptr) {
             //print saturation histogram, if in debug mode
             printOwnHistogram(saturationHistogram, 256, frameNr, regionId);
             cv::cvtColor(image, image, cv::COLOR_HSV2BGR);
-            utils::saveImage(image, frameNr, regionId);
+            imageSaver->saveImage(image, frameNr, regionId);
         }
         return WHITE;
     } else {
@@ -112,10 +113,10 @@ int ColorDetectorBehavior::detectColor(const cv::Mat &image, const float whiteRa
                   [](const HueColorEvidence &firstItem, const HueColorEvidence &secondItem) {
                       return firstItem.evidence > secondItem.evidence;
                   });
-        if (debuggable) {
+        if (debuggable && imageSaver != nullptr) {
             printOwnHistogram(hueHistogram, 180, frameNr, regionId);
             cv::cvtColor(image, image, cv::COLOR_HSV2BGR);
-            utils::saveImage(image, frameNr, regionId);
+            imageSaver->saveImage(image, frameNr, regionId);
         }
         //return the color with most evidence
         return colorEvidence[0].color;
@@ -151,6 +152,10 @@ Print the histogram and also specify the row & column of the printed sticker
 */
 void ColorDetectorBehavior::printOwnHistogram(const int hist[], const int histogramSize,
                                               const int frameNumber, const int regionId) const {
+    if (imageSaver == nullptr) {
+        //do nothing
+        return;
+    }
     int hist_w = histogramSize * 4;
     int hist_h = 2300;
     cv::Mat histImage(hist_h, hist_w, CV_8UC3, cv::Scalar(255, 255, 255));
@@ -164,7 +169,7 @@ void ColorDetectorBehavior::printOwnHistogram(const int hist[], const int histog
                  0);
         }
     }
-    utils::saveImage(histImage, frameNumber, regionId);
+    imageSaver->saveImage(histImage, frameNumber, regionId);
 }
 
 void ColorDetectorBehavior::setDebuggable(bool debuggable) {
