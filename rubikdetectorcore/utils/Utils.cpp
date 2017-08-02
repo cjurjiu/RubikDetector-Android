@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include "Utils.hpp"
 #include "../detectors/cubedetector/CubeDetector.hpp"
 

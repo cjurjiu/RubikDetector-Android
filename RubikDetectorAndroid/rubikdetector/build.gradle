@@ -15,7 +15,6 @@ android {
             cmake {
                 cppFlags "-frtti -fexceptions -std=c++11 -Wc++11-extensions"
                 abiFilters 'armeabi-v7a'
-//                abiFilters 'x86', 'armeabi', 'armeabi-v7a'
             }
         }
     }
@@ -51,5 +50,5 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:25.3.1'
     testCompile 'junit:junit:4.12'
-    compile project(':openCVLibrary24132')
+    compile project(':openCVLibrary320')
 }

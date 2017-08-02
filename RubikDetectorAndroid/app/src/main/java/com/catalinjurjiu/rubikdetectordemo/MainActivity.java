@@ -26,7 +26,7 @@ import java.nio.ByteBuffer;
 public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     static {
-        System.loadLibrary("opencv_java");
+        System.loadLibrary("opencv_java3");
     }
 
     private RubikDetector rubikDetector;
