@@ -8,6 +8,7 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "../cubedetector/CubeDetector.hpp"
 #include "../../data/HueColorEvidence.hpp"
+#include "../../utils/CrossLog.hpp"
 
 #ifndef  HUE
 #define HUE 0
@@ -41,11 +42,16 @@ ColorDetectorBehavior::ColorDetectorBehavior() : ColorDetectorBehavior(nullptr) 
 
 }
 
-ColorDetectorBehavior::ColorDetectorBehavior(std::shared_ptr<ImageSaver> imageSaver) : imageSaver(imageSaver) {
+ColorDetectorBehavior::ColorDetectorBehavior(std::shared_ptr<ImageSaver> imageSaver) : imageSaver(
+        imageSaver) {
 
 }
 
-ColorDetectorBehavior::~ColorDetectorBehavior() {}
+ColorDetectorBehavior::~ColorDetectorBehavior() {
+    if (debuggable) {
+        LOG_DEBUG("RubikJniPart.cpp", "ColorDetectorBehavior - destructor.");
+    }
+}
 
 int ColorDetectorBehavior::detectColor(const cv::Mat &image, const float whiteRatio,
                                        const int frameNr, const int regionId) {
@@ -174,4 +180,8 @@ void ColorDetectorBehavior::printOwnHistogram(const int hist[], const int histog
 
 void ColorDetectorBehavior::setDebuggable(bool debuggable) {
     ColorDetectorBehavior::debuggable = debuggable;
+}
+
+bool ColorDetectorBehavior::isDebuggable() {
+    return debuggable;
 }

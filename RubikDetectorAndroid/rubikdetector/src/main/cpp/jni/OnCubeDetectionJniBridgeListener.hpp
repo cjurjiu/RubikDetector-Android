@@ -23,7 +23,6 @@ private:
     JavaVM *javaVM;
     jobject globalJobj;
     jmethodID javaCallbackMethodId;
-
 };
 
 

@@ -29,7 +29,7 @@ public:
     void setDebuggable(const bool debuggable) const;
 
 private:
-    ColorDetectorBehavior *colorDetectorBehavior;
+    std::unique_ptr<ColorDetectorBehavior> colorDetectorBehavior;
 };
 
 

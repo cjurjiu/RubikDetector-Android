@@ -36,7 +36,9 @@ public class RubikDetector {
     }
 
     public void releaseResources() {
+        Log.d("CATAMEM", "RubikDetector#releaseResources.");
         if (cubeDetectorHandle != -1) {
+            Log.d("CATAMEM", "RubikDetector#releaseResources - handle not -1, calling native release.");
             nativeReleaseCubeDetector(cubeDetectorHandle);
             //TODO cleanup native part
             cubeDetectorHandle = -1;

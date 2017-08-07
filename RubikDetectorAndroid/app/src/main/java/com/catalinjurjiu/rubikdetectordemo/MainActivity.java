@@ -39,8 +39,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        rubikDetector = new RubikDetector();
-        rubikDetector.setDebuggable(true);
+        rubikDetector = new RubikDetector("/storage/emulated/0/RubikResults");
+//        rubikDetector.setDebuggable(true);
         processingThread = new ProcessingThread("RubikProcessingThread");
         processingThread.start();
         surfaceView = (SurfaceView) findViewById(R.id.camera_surface_view);
@@ -68,6 +68,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     @Override
     protected void onDestroy() {
+        Log.d("CATAMEM", "onDestroy - cleanup.");
         surfaceHolder.removeCallback(this);
         processingThread.quit();
         rubikDetector.releaseResources();

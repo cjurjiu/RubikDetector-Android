@@ -65,10 +65,9 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_createNativeObject(JNIEnv *en
         imageSaver = nullptr;
     }
 
-    //TODO check leaks
     CubeDetector &cubeDetector = *new CubeDetector(imageSaver);
     cubeDetector.setOnCubeDetectionResultListener(
-            *new OnCubeDetectionJniBridgeListener(env, instance));
+            new OnCubeDetectionJniBridgeListener(env, instance));
     return reinterpret_cast<jlong>(&cubeDetector);
 
 }
@@ -77,11 +76,12 @@ JNIEXPORT void JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeReleaseCubeDetector(JNIEnv *env,
                                                                              jobject instance,
                                                                              jlong cubeDetectorHandle) {
-    LOG_DEBUG("RUBIK_JNI_PART.cpp", "nativeReleaseCube");
+
     CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
-    LOG_DEBUG("RUBIK_JNI_PART.cpp", "before delete");
+    if (cubeDetector.isDebuggable()) {
+        LOG_DEBUG("RUBIK_JNI_PART.cpp", "nativeReleaseCube");
+    }
     delete &cubeDetector;
-    LOG_DEBUG("RUBIK_JNI_PART.cpp", "after delete");
 }
 
 JNIEXPORT void JNICALL

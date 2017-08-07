@@ -60,7 +60,7 @@ public:
 
     ~CubeDetectorBehavior();
 
-    void setOnCubeDetectionResultListener(const OnCubeDetectionResultListener &listener);
+    void setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener);
 
     void findCube(cv::Mat &mat);
 
@@ -68,10 +68,12 @@ public:
 
     void setDebuggable(const bool isDebuggable);
 
-private:
-    const OnCubeDetectionResultListener *onCubeDetectionResultListener;
+    bool isDebuggable();
 
-    ColorDetector colorDetector;
+private:
+    std::unique_ptr<OnCubeDetectionResultListener> onCubeDetectionResultListener;
+
+    std::unique_ptr<ColorDetector> colorDetector;
 
     std::shared_ptr<ImageSaver> imageSaver;
 

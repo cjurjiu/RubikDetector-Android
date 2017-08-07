@@ -28,6 +28,8 @@ public:
 
     void setDebuggable(bool debuggable);
 
+    bool isDebuggable();
+
 private:
     int saturationThreshold = 100;
 

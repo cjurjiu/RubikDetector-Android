@@ -5,10 +5,15 @@
 #include <sstream>
 #include <opencv2/highgui/highgui.hpp>
 #include "ImageSaver.hpp"
+#include "../utils/CrossLog.hpp"
 
 ImageSaver::ImageSaver(const std::string saveLocation) : path(saveLocation) {}
 
-ImageSaver::~ImageSaver() {}
+ImageSaver::~ImageSaver() {
+//    if (debuggable) {
+    LOG_DEBUG("RubikJniPart.cpp", "ImageSaver - destructor.");
+//    }
+}
 
 bool ImageSaver::saveImage(const cv::Mat &mat, const int frameNumber, const int regionId) {
     std::stringstream regionIdStringStream;

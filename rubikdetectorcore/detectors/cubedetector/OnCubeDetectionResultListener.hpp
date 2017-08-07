@@ -7,12 +7,12 @@
 
 class OnCubeDetectionResultListener {
 public:
-    virtual void onCubeDetectionResult(const std::vector<std::vector<int>> result) const = 0;
 
-protected:
     OnCubeDetectionResultListener() {};
 
     virtual ~OnCubeDetectionResultListener() {};
+
+    virtual void onCubeDetectionResult(const std::vector<std::vector<int>> result) const = 0;
 };
 
 #endif //RUBIKDETECTORDEMO_ONCUBEDETECTIONRESULTLISTENER_HPP

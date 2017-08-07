@@ -4,14 +4,17 @@
 
 #include "ColorDetector.hpp"
 #include "ColorDetectorBehavior.hpp"
+#include "../../utils/CrossLog.hpp"
 
 ColorDetector::ColorDetector() : ColorDetector(nullptr) {}
 
 ColorDetector::ColorDetector(std::shared_ptr<ImageSaver> imageSaver) : colorDetectorBehavior(
-        new ColorDetectorBehavior(imageSaver)) {}
+        std::unique_ptr<ColorDetectorBehavior>(new ColorDetectorBehavior(imageSaver))) {}
 
 ColorDetector::~ColorDetector() {
-    delete colorDetectorBehavior;
+    if (colorDetectorBehavior->isDebuggable()) {
+        LOG_DEBUG("RubikJniPart.cpp", "ColorDetector - destructor.");
+    }
 }
 
 int ColorDetector::detectColor(const cv::Mat &image, const float whiteRatio,

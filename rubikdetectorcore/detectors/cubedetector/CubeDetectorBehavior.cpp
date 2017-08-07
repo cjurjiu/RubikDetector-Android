@@ -19,16 +19,17 @@ CubeDetectorBehavior::CubeDetectorBehavior() : CubeDetectorBehavior(nullptr) {
 
 CubeDetectorBehavior::CubeDetectorBehavior(std::shared_ptr<ImageSaver> imageSaver) :
         imageSaver(imageSaver),
-        colorDetector(ColorDetector(imageSaver)) {}
+        colorDetector(std::unique_ptr<ColorDetector>(new ColorDetector(imageSaver))) {}
 
 CubeDetectorBehavior::~CubeDetectorBehavior() {
-    delete &onCubeDetectionResultListener;
+    if (debuggable) {
+        LOG_DEBUG("RubikJniPart.cpp", "CubeDetectorBehavior - destructor.");
+    }
 }
 
 void
-CubeDetectorBehavior::setOnCubeDetectionResultListener(
-        const OnCubeDetectionResultListener &listener) {
-    onCubeDetectionResultListener = &listener;
+CubeDetectorBehavior::setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener) {
+    onCubeDetectionResultListener = std::unique_ptr<OnCubeDetectionResultListener>(listener);
 }
 
 void CubeDetectorBehavior::findCube(cv::Mat &mat) {
@@ -482,9 +483,9 @@ CubeDetectorBehavior::detectFacetColors(const cv::Mat &currentFrame,
                 } else {
                     whiteMinRatio = 0.5f;
                 }
-                colors[i][j] = colorDetector.detectColor(stickerRoiHSV, whiteMinRatio,
-                                                         frameNumber,
-                                                         i * 10 + j);
+                colors[i][j] = colorDetector->detectColor(stickerRoiHSV, whiteMinRatio,
+                                                          frameNumber,
+                                                          i * 10 + j);
             } else {
                 colors[i][j] = WHITE;
                 if (debuggable) {
@@ -505,7 +506,11 @@ void CubeDetectorBehavior::setDebuggable(const bool isDebuggable) {
     }
     frameNumber++;
     debuggable = isDebuggable;
-    colorDetector.setDebuggable(isDebuggable);
+    colorDetector->setDebuggable(isDebuggable);
+}
+
+bool CubeDetectorBehavior::isDebuggable() {
+    return debuggable;
 }
 
 /* return current time in milliseconds */
