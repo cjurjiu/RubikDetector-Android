@@ -11,13 +11,34 @@
 extern "C" {
 #endif
 
+JNIEXPORT jlong JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_createNativeObject(JNIEnv *env,
+                                                                      jobject instance,
+                                                                      jstring storagePath);
+
 JNIEXPORT void JNICALL
-Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNative(JNIEnv *env, jobject instance,
-                                                                  jlong addrRgba);
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeReleaseCubeDetector(JNIEnv *env,
+                                                                             jobject instance,
+                                                                             jlong cubeDetectorHandle);
+
+JNIEXPORT void JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetDebuggable(JNIEnv *env,
+                                                                       jobject instance,
+                                                                       jlong cubeDetectorHandle,
+                                                                       jboolean debuggable);
+
+JNIEXPORT void JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNativeMatAddr(JNIEnv *env,
+                                                                         jobject instance,
+                                                                         jlong cubeDetectorHandle,
+                                                                         jlong addrRgba);
 JNIEXPORT jbyteArray JNICALL
-Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNative2(JNIEnv *env, jobject instance,
-                                                                   jbyteArray imageData_,
-                                                                   jint width, jint height);
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNativeImageData(JNIEnv *env,
+                                                                           jobject instance,
+                                                                           jlong cubeDetectorHandle,
+                                                                           jbyteArray imageByteData,
+                                                                           jint width,
+                                                                           jint height);
 
 #ifdef __cplusplus
 }

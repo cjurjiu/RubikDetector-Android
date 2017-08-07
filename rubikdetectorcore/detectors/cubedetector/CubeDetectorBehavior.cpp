@@ -6,7 +6,6 @@
 #include "OnCubeDetectionResultListener.hpp"
 
 #include "opencv2/highgui/highgui.hpp"
-#include "opencv2/imgproc/types_c.h"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "../../utils/Utils.hpp"
 #include "../../utils/CrossLog.hpp"
@@ -18,7 +17,7 @@ CubeDetectorBehavior::CubeDetectorBehavior() : CubeDetectorBehavior(nullptr) {
     //empty default constructor
 }
 
-CubeDetectorBehavior::CubeDetectorBehavior(ImageSaver *imageSaver) :
+CubeDetectorBehavior::CubeDetectorBehavior(std::shared_ptr<ImageSaver> imageSaver) :
         imageSaver(imageSaver),
         colorDetector(ColorDetector(imageSaver)) {}
 
@@ -27,7 +26,8 @@ CubeDetectorBehavior::~CubeDetectorBehavior() {
 }
 
 void
-CubeDetectorBehavior::setOnCubeDetectionResultListener(OnCubeDetectionResultListener &listener) {
+CubeDetectorBehavior::setOnCubeDetectionResultListener(
+        const OnCubeDetectionResultListener &listener) {
     onCubeDetectionResultListener = &listener;
 }
 
@@ -128,6 +128,7 @@ void CubeDetectorBehavior::performCannyProcessing(cv::Mat &currentFrame) {
                               estimatedFacelets,
                               colors);
             }
+            LOG_DEBUG("CATALNER", "notifying listener!");
             onCubeDetectionResultListener->onCubeDetectionResult(colors);
             //break from iteration, cube was found in current frame. no need to continue
             break;
@@ -140,10 +141,12 @@ void CubeDetectorBehavior::performCannyProcessing(cv::Mat &currentFrame) {
     double fps = 1000 / delta;
     frameRateSum += fps;
     frameNumber++;
-    frameRateAverage = frameRateSum / frameNumber;
-    LOG_DEBUG("RUBIK_JNI_PART.cpp",
-              "frameNumber: %d, frameRate current frame: %.2f, frameRateAverage: %.2f, frameRate: %.2f",
-              frameNumber, fps, frameRateAverage, fps);
+    if (debuggable) {
+        float frameRateAverage = (float) frameRateSum / frameNumber;
+        LOG_DEBUG("RUBIK_JNI_PART.cpp",
+                  "frameNumber: %d, frameRate current frame: %.2f, frameRateAverage: %.2f, frameRate: %.2f",
+                  frameNumber, fps, frameRateAverage, fps);
+    }
     //end
 }
 
@@ -484,9 +487,11 @@ CubeDetectorBehavior::detectFacetColors(const cv::Mat &currentFrame,
                                                          i * 10 + j);
             } else {
                 colors[i][j] = WHITE;
-                LOG_DEBUG("RUBIK_JNI_PART.cpp",
-                          "frameNumberOld: %d FOUND INVALID RECT WHEN DETECTING COLORS",
-                          frameNumber);
+                if (debuggable) {
+                    LOG_DEBUG("RUBIK_JNI_PART.cpp",
+                              "frameNumberOld: %d FOUND INVALID RECT WHEN DETECTING COLORS",
+                              frameNumber);
+                }
             }
         }
     }
@@ -494,6 +499,11 @@ CubeDetectorBehavior::detectFacetColors(const cv::Mat &currentFrame,
 }
 
 void CubeDetectorBehavior::setDebuggable(const bool isDebuggable) {
+    if (debuggable) {
+        LOG_DEBUG("RUBIK_JNI_PART.cpp", "setDebuggable. current:%d, new: %d, frameNumber: %d",
+                  debuggable, isDebuggable, frameNumber);
+    }
+    frameNumber++;
     debuggable = isDebuggable;
     colorDetector.setDebuggable(isDebuggable);
 }

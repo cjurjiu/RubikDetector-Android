@@ -7,15 +7,14 @@
 
 CubeDetector::CubeDetector() : CubeDetector(nullptr) {}
 
-CubeDetector::CubeDetector(ImageSaver *imageSaver)
+CubeDetector::CubeDetector(const std::shared_ptr<ImageSaver> imageSaver)
         : behavior(new CubeDetectorBehavior(imageSaver)) {}
 
-
 CubeDetector::~CubeDetector() {
-    delete behavior;
+//    delete behavior;
 }
 
-void CubeDetector::setOnCubeDetectionResultListener(OnCubeDetectionResultListener &listener) {
+void CubeDetector::setOnCubeDetectionResultListener(const OnCubeDetectionResultListener &listener) {
     behavior->setOnCubeDetectionResultListener(listener);
 }
 

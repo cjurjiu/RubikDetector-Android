@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <memory>
 
 namespace cv {
     class Mat;
@@ -28,11 +29,11 @@ class CubeDetector {
 public:
     CubeDetector();
 
-    CubeDetector(ImageSaver *imageSaver);
+    CubeDetector(std::shared_ptr<ImageSaver> imageSaver);
 
     ~CubeDetector();
 
-    void setOnCubeDetectionResultListener(OnCubeDetectionResultListener &listener);
+    void setOnCubeDetectionResultListener(const OnCubeDetectionResultListener &listener);
 
     void findCube(cv::Mat &mat);
 

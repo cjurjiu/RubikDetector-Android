@@ -4,6 +4,7 @@
 /.idea/workspace.xml
 /.idea/misc.xml
 /.idea/libraries
+/rubikdetector/nativeStacktraces/*
 .DS_Store
 **/build
 /captures

@@ -41,7 +41,7 @@ ColorDetectorBehavior::ColorDetectorBehavior() : ColorDetectorBehavior(nullptr) 
 
 }
 
-ColorDetectorBehavior::ColorDetectorBehavior(ImageSaver *imageSaver) : imageSaver(imageSaver) {
+ColorDetectorBehavior::ColorDetectorBehavior(std::shared_ptr<ImageSaver> imageSaver) : imageSaver(imageSaver) {
 
 }
 

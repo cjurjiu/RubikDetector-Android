@@ -7,7 +7,7 @@
 
 class OnCubeDetectionResultListener {
 public:
-    virtual void onCubeDetectionResult(const std::vector<std::vector<int>> result) = 0;
+    virtual void onCubeDetectionResult(const std::vector<std::vector<int>> result) const = 0;
 
 protected:
     OnCubeDetectionResultListener() {};

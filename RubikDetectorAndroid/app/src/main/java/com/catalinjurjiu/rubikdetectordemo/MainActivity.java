@@ -25,10 +25,6 @@ import java.nio.ByteBuffer;
 
 public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
-    static {
-        System.loadLibrary("opencv_java3");
-    }
-
     private RubikDetector rubikDetector;
 
     private Camera camera;
@@ -44,6 +40,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         rubikDetector = new RubikDetector();
+        rubikDetector.setDebuggable(true);
         processingThread = new ProcessingThread("RubikProcessingThread");
         processingThread.start();
         surfaceView = (SurfaceView) findViewById(R.id.camera_surface_view);
@@ -73,6 +70,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     protected void onDestroy() {
         surfaceHolder.removeCallback(this);
         processingThread.quit();
+        rubikDetector.releaseResources();
         super.onDestroy();
     }
 
@@ -158,10 +156,13 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         }
 
         private Bitmap getOpenCVBitmap(byte[] data) {
-            byte[] processedData = rubikDetector.findCube2(data, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height);
-            Bitmap bitmap = Bitmap.createBitmap(camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height, Bitmap.Config.ARGB_8888);
-            bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(processedData));
-            return bitmap;
+            byte[] processedData = rubikDetector.findCube(data, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height);
+            if (processedData != null) {
+                Bitmap bitmap = Bitmap.createBitmap(camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height, Bitmap.Config.ARGB_8888);
+                bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(processedData));
+                return bitmap;
+            }
+            return null;
         }
 
         private Bitmap getAndroidBitmap(byte[] data) {

@@ -7,6 +7,7 @@
 
 
 #include <vector>
+#include <memory>
 #include "../../helpers/ImageSaver.hpp"
 
 namespace cv {
@@ -18,7 +19,7 @@ class ColorDetectorBehavior {
 public:
     ColorDetectorBehavior();
 
-    ColorDetectorBehavior(ImageSaver *imageSaver);
+    ColorDetectorBehavior(std::shared_ptr<ImageSaver> imageSaver);
 
     ~ColorDetectorBehavior();
 
@@ -32,7 +33,7 @@ private:
 
     bool debuggable = false;
 
-    ImageSaver *imageSaver;
+    std::shared_ptr<ImageSaver> imageSaver;
 
     void printOwnHistogram(const int hist[], const int histogramSize,
                            const int frameNumber, const int regionId) const;

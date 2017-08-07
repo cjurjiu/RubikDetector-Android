@@ -5,6 +5,7 @@
 #ifndef RUBIKDETECTORDEMO_COLORDETECTOR_HPP
 #define RUBIKDETECTORDEMO_COLORDETECTOR_HPP
 
+#include <memory>
 
 namespace cv {
     class Mat;
@@ -18,7 +19,7 @@ class ColorDetector {
 public:
     ColorDetector();
 
-    ColorDetector(ImageSaver *imageSaver);
+    ColorDetector(std::shared_ptr<ImageSaver> imageSaver);
 
     ~ColorDetector();
 

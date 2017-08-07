@@ -17,11 +17,13 @@ public:
 
     ~OnCubeDetectionJniBridgeListener();
 
-    void onCubeDetectionResult(const std::vector<std::vector<int>> result);
+    void onCubeDetectionResult(const std::vector<std::vector<int>> result) const override;
 
 private:
-    JNIEnv *env;
-    jobject jobj;
+    JavaVM *javaVM;
+    jobject globalJobj;
+    jmethodID javaCallbackMethodId;
+
 };
 
 

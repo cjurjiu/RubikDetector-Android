@@ -8,7 +8,7 @@
 #include "../rubikdetectorcore/detectors/cubedetector/CubeDetector.hpp"
 #include "RubikDetectorJni.hpp"
 #include "OnCubeDetectionJniBridgeListener.hpp"
-#include <memory>
+#include "../rubikdetectorcore/utils/CrossLog.hpp"
 #include <limits>
 
 struct Binary {
@@ -52,36 +52,69 @@ struct Binary {
     }
 };
 
-JNIEXPORT void JNICALL
-Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNative(JNIEnv *env, jobject instance,
-                                                                  jlong addrRgba) {
+JNIEXPORT jlong JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_createNativeObject(JNIEnv *env,
+                                                                      jobject instance,
+                                                                      jstring storagePath) {
+    std::shared_ptr<ImageSaver> imageSaver;
+    if (storagePath != NULL) {
+        const char *cppStoragePath = env->GetStringUTFChars(storagePath, 0);
+        imageSaver = std::make_shared<ImageSaver>(cppStoragePath);
+        env->ReleaseStringUTFChars(storagePath, cppStoragePath);
+    } else {
+        imageSaver = nullptr;
+    }
 
-    //TODO handle leaks
-    std::string storagePath("/storage/emulated/0/RubikResults");
-    ImageSaver *imageSaver = new ImageSaver(storagePath);
+    //TODO check leaks
     CubeDetector &cubeDetector = *new CubeDetector(imageSaver);
     cubeDetector.setOnCubeDetectionResultListener(
             *new OnCubeDetectionJniBridgeListener(env, instance));
-    cubeDetector.setDebuggable(true);
+    return reinterpret_cast<jlong>(&cubeDetector);
+
+}
+
+JNIEXPORT void JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeReleaseCubeDetector(JNIEnv *env,
+                                                                             jobject instance,
+                                                                             jlong cubeDetectorHandle) {
+    LOG_DEBUG("RUBIK_JNI_PART.cpp", "nativeReleaseCube");
+    CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
+    LOG_DEBUG("RUBIK_JNI_PART.cpp", "before delete");
+    delete &cubeDetector;
+    LOG_DEBUG("RUBIK_JNI_PART.cpp", "after delete");
+}
+
+JNIEXPORT void JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetDebuggable(JNIEnv *env,
+                                                                       jobject instance,
+                                                                       jlong cubeDetectorHandle,
+                                                                       jboolean debuggable) {
+    CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
+    cubeDetector.setDebuggable(static_cast<bool>(debuggable));
+}
+
+JNIEXPORT void JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNativeMatAddr(JNIEnv *env,
+                                                                         jobject instance,
+                                                                         jlong cubeDetectorHandle,
+                                                                         jlong addrRgba) {
+
+    CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
     cubeDetector.findCube(*(cv::Mat *) addrRgba);
 }
 
 JNIEXPORT jbyteArray JNICALL
-Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNative2(JNIEnv *env, jobject instance,
-                                                                   jbyteArray imageData_,
-                                                                   jint width, jint height) {
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNativeImageData(JNIEnv *env,
+                                                                           jobject instance,
+                                                                           jlong cubeDetectorHandle,
+                                                                           jbyteArray imageByteData,
+                                                                           jint width,
+                                                                           jint height) {
     //TODO handle leaks
-    std::string storagePath("/storage/emulated/0/RubikResults");
-    ImageSaver *imageSaver = new ImageSaver(storagePath);
-    CubeDetector &cubeDetector = *new CubeDetector(imageSaver);
-    cubeDetector.setOnCubeDetectionResultListener(
-            *new OnCubeDetectionJniBridgeListener(env, instance));
-    cubeDetector.setDebuggable(true);
+    CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
 
-    std::vector<uint8_t> image = ::Binary::toCpp(env, imageData_);
-
+    std::vector<uint8_t> image = ::Binary::toCpp(env, imageByteData);
     std::vector<uint8_t> abc = cubeDetector.findCube(image, (int) width, (int) height);
-
     jbyteArray arr = env->NewByteArray(abc.size());
     env->SetByteArrayRegion(arr, 0, abc.size(), (jbyte *) abc.data());
     return arr;

@@ -11,6 +11,7 @@
 #include "../colordetector/ColorDetector.hpp"
 #include "../../helpers/ImageSaver.hpp"
 #include <iostream>
+#include <memory>
 
 
 #ifndef  X1
@@ -55,11 +56,11 @@ class CubeDetectorBehavior {
 public:
     CubeDetectorBehavior();
 
-    CubeDetectorBehavior(ImageSaver *imageSaver);
+    CubeDetectorBehavior(std::shared_ptr<ImageSaver> imageSaver);
 
     ~CubeDetectorBehavior();
 
-    void setOnCubeDetectionResultListener(OnCubeDetectionResultListener &listener);
+    void setOnCubeDetectionResultListener(const OnCubeDetectionResultListener &listener);
 
     void findCube(cv::Mat &mat);
 
@@ -68,16 +69,15 @@ public:
     void setDebuggable(const bool isDebuggable);
 
 private:
-    OnCubeDetectionResultListener *onCubeDetectionResultListener;
+    const OnCubeDetectionResultListener *onCubeDetectionResultListener;
 
     ColorDetector colorDetector;
 
-    ImageSaver* imageSaver;
+    std::shared_ptr<ImageSaver> imageSaver;
 
     int frameNumber = 0;
 
-    double frameRateSum = 0;
-    double frameRateAverage = 0;
+    int frameRateSum = 0;
 
     bool debuggable = false;
 
