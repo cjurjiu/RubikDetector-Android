@@ -34,6 +34,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     private SurfaceHolder surfaceHolder;
 
     private ProcessingThread processingThread;
+    private int frameNumber = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -209,7 +210,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {
-            renderFrameInternal(data);
+            if (rubikDetector.isActive()) {
+                renderFrameInternal(data);
+            }
         }
     }
 }

@@ -426,8 +426,8 @@ void CubeDetectorBehavior::saveDebugData(const cv::Mat &currentFrame,
 
 std::vector<uchar>
 CubeDetectorBehavior::findCube(const std::vector<uint8_t> &imageData, int width, int height) {
-    cv::Mat &currentFrame = *new cv::Mat((int) (height * 1.5f), width, CV_8UC1,
-                                         (uchar *) imageData.data());
+    cv::Mat currentFrame((int) (height * 1.5f), width, CV_8UC1,
+                         (uchar *) imageData.data());
     cv::cvtColor(currentFrame, currentFrame, cv::COLOR_YUV2RGB_NV21);
     findCube(currentFrame);
     cv::cvtColor(currentFrame, currentFrame, cv::COLOR_RGB2RGBA);

@@ -13,9 +13,11 @@ void performProcessingOnVideo();
 class ResultListener : public OnCubeDetectionResultListener {
 public:
 
+    ResultListener() {};
+
     ~ResultListener() {}
 
-    void onCubeDetectionResult(const std::vector<std::vector<int>> result) {
+    void onCubeDetectionResult(const std::vector<std::vector<int>> result) const {
         LOG_DEBUG("RUBIK_JNI_PART.cpp",
                   "COLORS: [1]:{ %c %c %c } [2]:{ %c %c %c } [3]:{ %c %c %c }",
                   utils::colorIntToChar(result[0][0]),
@@ -46,12 +48,14 @@ void performProcessingOnVideo() {
         return;
     }
     cv::Mat frame;
+
     ResultListener resultListener;
-    ImageSaver *imageSaver = new ImageSaver(
-            std::string("/media/catalin/Data1/Projects/Android/RubikSolver-All/GithubVersion/RubikSolverCmake/RubikDetectorDemo/RubikDetectorLinux/debug_images"));
+    std::shared_ptr<ImageSaver> imageSaver = std::make_shared<ImageSaver>(
+            ImageSaver(std::string(
+                    "/media/catalin/Data1/Projects/Android/RubikSolver-All/GithubVersion/RubikSolverCmake/RubikDetectorDemo/RubikDetectorLinux/debug_images")));
     CubeDetector rubikDetector(imageSaver);
-    rubikDetector.setDebuggable(true);
-    rubikDetector.setOnCubeDetectionResultListener(resultListener);
+    rubikDetector.setDebuggable(false);
+    rubikDetector.setOnCubeDetectionResultListener(&resultListener);
 
     while (cap.read(frame)) {
         cv::cvtColor(frame, frame, CV_BGR2RGB);
@@ -63,6 +67,5 @@ void performProcessingOnVideo() {
 //            break;
 //        }
     }
-    delete imageSaver;
     std::cout << "Finished processing." << std::endl;
 }

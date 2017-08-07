@@ -100,6 +100,10 @@ public class RubikDetector {
         return result;
     }
 
+    public boolean isActive() {
+        return cubeDetectorHandle != -1;
+    }
+
     @IntDef
     public @interface CubeColors {
         int RED = 0,
