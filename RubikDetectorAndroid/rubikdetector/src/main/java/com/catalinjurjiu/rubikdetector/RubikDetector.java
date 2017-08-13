@@ -51,33 +51,20 @@ public class RubikDetector {
         this.listener = onCubeDetectionResultListener;
     }
 
-    public void findCube(long addrRgba) {
-        if (cubeDetectorHandle != -1) {
-            findCubeNativeMatAddr(cubeDetectorHandle, addrRgba);
-        }
-    }
-
-    public void findCube(Mat mat) {
-        if (cubeDetectorHandle != -1) {
-            findCubeNativeMatAddr(cubeDetectorHandle, mat.getNativeObjAddr());
-        }
-    }
-
     //TODO async processing w listener
-    public byte[] findCube(byte[] imageData, int width, int height) {
+    public void findCube(byte[] imageData, int width, int height) {
+        Mat mats = new Mat();
+        mats.put(height, width, imageData);
         if (cubeDetectorHandle != -1) {
-            return findCubeNativeImageData(cubeDetectorHandle, imageData, width, height);
+            findCubeNativeImageData(cubeDetectorHandle, imageData, width, height);
         }
-        return null;
     }
 
     private native long createNativeObject(String storagePath);
 
     private native void nativeSetDebuggable(long nativeDetectorRef, boolean debuggable);
 
-    private native void findCubeNativeMatAddr(long nativeDetectorRef, long addrRgba);
-
-    private native byte[] findCubeNativeImageData(long nativeDetectorRef, byte[] imageData, int width, int height);
+    private native void findCubeNativeImageData(long nativeDetectorRef, byte[] imageData, int width, int height);
 
     /**
      * Called from c++

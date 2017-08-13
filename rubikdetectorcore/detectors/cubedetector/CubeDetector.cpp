@@ -13,6 +13,7 @@ CubeDetector::CubeDetector(const std::shared_ptr<ImageSaver> imageSaver)
 
 CubeDetector::~CubeDetector() {
     if (behavior->isDebuggable()) {
+        LOG_DEBUG("CATAMEM", "CubeDetector - destructor.");
         LOG_DEBUG("RubikJniPart.cpp", "CubeDetector - destructor.");
     }
 }
@@ -21,13 +22,9 @@ void CubeDetector::setOnCubeDetectionResultListener(OnCubeDetectionResultListene
     behavior->setOnCubeDetectionResultListener(listener);
 }
 
-void CubeDetector::findCube(cv::Mat &mat) {
-    behavior->findCube(mat);
-}
-
-std::vector<uchar>
-CubeDetector::findCube(const std::vector<uint8_t> &imageData, int width, int height) {
-    return behavior->findCube(imageData, width, height);
+void
+CubeDetector::findCube(const uint8_t *imageData, const int dataLength, int width, int height) {
+    behavior->findCube(imageData, dataLength, width, height);
 }
 
 void CubeDetector::setDebuggable(const bool debuggable) {

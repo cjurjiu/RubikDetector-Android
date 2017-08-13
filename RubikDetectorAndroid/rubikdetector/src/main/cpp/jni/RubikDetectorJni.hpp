@@ -28,11 +28,6 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetDebuggable(JNIEnv *e
                                                                        jboolean debuggable);
 
 JNIEXPORT void JNICALL
-Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNativeMatAddr(JNIEnv *env,
-                                                                         jobject instance,
-                                                                         jlong cubeDetectorHandle,
-                                                                         jlong addrRgba);
-JNIEXPORT jbyteArray JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNativeImageData(JNIEnv *env,
                                                                            jobject instance,
                                                                            jlong cubeDetectorHandle,

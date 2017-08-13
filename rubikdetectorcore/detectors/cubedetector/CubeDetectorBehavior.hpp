@@ -62,9 +62,8 @@ public:
 
     void setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener);
 
-    void findCube(cv::Mat &mat);
-
-    std::vector<uchar> findCube(const std::vector<uint8_t> &imageData, int width, int height);
+    void
+    findCube(const uint8_t *imageData, const int dataLength, int width, int height);
 
     void setDebuggable(const bool isDebuggable);
 
@@ -89,7 +88,7 @@ private:
 
     cv::Scalar getColorAsScalar(int color);
 
-    void performCannyProcessing(cv::Mat &currentFrame);
+    void performCannyProcessing(cv::Mat &frameRgba, cv::Mat &frameGray);
 
     void saveDebugData(const cv::Mat &currentFrame,
                        const std::vector<cv::RotatedRect> &filteredRectangles,
@@ -97,7 +96,7 @@ private:
                        const std::vector<Circle> &estimatedFacelets,
                        const std::vector<std::vector<int>> colors);
 
-    std::vector<std::vector<cv::Point>> detectContours(const cv::Mat &currentFrame) const;
+    std::vector<std::vector<cv::Point>> detectContours(const cv::Mat &frameGray) const;
 
     void filterContours(const cv::Mat &currentFrame,
                         const std::vector<std::vector<cv::Point>> &contours,

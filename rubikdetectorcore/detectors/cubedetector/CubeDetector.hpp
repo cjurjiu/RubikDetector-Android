@@ -33,12 +33,10 @@ public:
 
     ~CubeDetector();
 
+    void
+    findCube(const uint8_t *imageData, const int dataLength, int width, int height);
+
     void setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener);
-
-    void findCube(cv::Mat &mat);
-
-    std::vector<unsigned char>
-    findCube(const std::vector<uint8_t> &imageData, int width, int height);
 
     void setDebuggable(const bool debuggable);
 
@@ -46,6 +44,7 @@ public:
 
 private:
     std::unique_ptr<CubeDetectorBehavior> behavior;
+
 };
 
 #endif //RUBIKDETECTORDEMO_CUBEDETECTOR_HPP

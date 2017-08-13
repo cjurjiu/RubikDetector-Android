@@ -3,54 +3,12 @@
 //
 #include <jni.h>
 #include <vector>
-#include <assert.h>
 #include "../rubikdetectorcore/helpers/ImageSaver.hpp"
 #include "../rubikdetectorcore/detectors/cubedetector/CubeDetector.hpp"
 #include "RubikDetectorJni.hpp"
 #include "OnCubeDetectionJniBridgeListener.hpp"
 #include "../rubikdetectorcore/utils/CrossLog.hpp"
 #include <limits>
-
-struct Binary {
-    using CppType = std::vector<uint8_t>;
-    using JniType = jbyteArray;
-
-    using Boxed = Binary;
-
-    static CppType toCpp(JNIEnv *jniEnv, JniType j) {
-        assert(j != nullptr);
-
-        std::vector<uint8_t> ret;
-        jsize length = jniEnv->GetArrayLength(j);
-
-        if (!length) {
-            return ret;
-        }
-
-        {
-            auto deleter = [jniEnv, j](void *c) {
-                if (c) {
-                    jniEnv->ReleasePrimitiveArrayCritical(j, c, JNI_ABORT);
-                }
-            };
-
-            std::unique_ptr<uint8_t, decltype(deleter)> ptr(
-                    reinterpret_cast<uint8_t *>(jniEnv->GetPrimitiveArrayCritical(j, nullptr)),
-                    deleter
-            );
-
-            if (ptr) {
-                // Construct and then move-assign. This copies the elements only once,
-                // and avoids having to initialize before filling (as with resize())
-                ret = std::vector<uint8_t>{ptr.get(), ptr.get() + length};
-            } else {
-                // Something failed...
-            }
-        }
-
-        return ret;
-    }
-};
 
 JNIEXPORT jlong JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_createNativeObject(JNIEnv *env,
@@ -94,28 +52,24 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetDebuggable(JNIEnv *e
 }
 
 JNIEXPORT void JNICALL
-Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNativeMatAddr(JNIEnv *env,
-                                                                         jobject instance,
-                                                                         jlong cubeDetectorHandle,
-                                                                         jlong addrRgba) {
-
-    CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
-    cubeDetector.findCube(*(cv::Mat *) addrRgba);
-}
-
-JNIEXPORT jbyteArray JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNativeImageData(JNIEnv *env,
                                                                            jobject instance,
                                                                            jlong cubeDetectorHandle,
                                                                            jbyteArray imageByteData,
                                                                            jint width,
                                                                            jint height) {
-    //TODO handle leaks
     CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
 
-    std::vector<uint8_t> image = ::Binary::toCpp(env, imageByteData);
-    std::vector<uint8_t> abc = cubeDetector.findCube(image, (int) width, (int) height);
-    jbyteArray arr = env->NewByteArray(abc.size());
-    env->SetByteArrayRegion(arr, 0, abc.size(), (jbyte *) abc.data());
-    return arr;
+    jsize length = env->GetArrayLength(imageByteData);
+    jboolean isCopy = 3;
+    void *ptr = env->GetPrimitiveArrayCritical(imageByteData, &isCopy);
+
+    if (ptr) {
+        uint8_t *ptrAsInt = reinterpret_cast<uint8_t *>(ptr);
+        env->ReleasePrimitiveArrayCritical(imageByteData, ptr, JNI_ABORT);
+        cubeDetector.findCube(ptrAsInt, length, (int) width, (int) height);
+    } else {
+        LOG_WARN("RUBIK_JNI_PART.cpp",
+                 "Could not obtain image byte array. No processing performed.");
+    }
 }

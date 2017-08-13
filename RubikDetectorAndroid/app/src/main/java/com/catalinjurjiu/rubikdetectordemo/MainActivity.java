@@ -40,8 +40,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        rubikDetector = new RubikDetector("/storage/emulated/0/RubikResults");
-//        rubikDetector.setDebuggable(true);
+//        rubikDetector = new RubikDetector("/storage/emulated/0/RubikResults");
+        rubikDetector = new RubikDetector(null);
+        rubikDetector.setDebuggable(true);
         processingThread = new ProcessingThread("RubikProcessingThread");
         processingThread.start();
         surfaceView = (SurfaceView) findViewById(R.id.camera_surface_view);
@@ -148,7 +149,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             cameraParameters.setPreviewSize(320, 240);
             cameraParameters.setPreviewFormat(ImageFormat.NV21);
             camera.setParameters(cameraParameters);
-            camera.setPreviewCallback(this);
+            camera.addCallbackBuffer(ByteBuffer.allocateDirect(307200 + 115200).array());
+            camera.addCallbackBuffer(ByteBuffer.allocateDirect(307200 + 115200).array());
+            camera.addCallbackBuffer(ByteBuffer.allocateDirect(307200 + 115200).array());
+            camera.setPreviewCallbackWithBuffer(this);
             try {
                 surfaceTexture = new SurfaceTexture(13242);
                 camera.setPreviewTexture(surfaceTexture);
@@ -157,17 +161,18 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
         }
 
-        private Bitmap getOpenCVBitmap(byte[] data) {
-            byte[] processedData = rubikDetector.findCube(data, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height);
-            if (processedData != null) {
-                Bitmap bitmap = Bitmap.createBitmap(camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height, Bitmap.Config.ARGB_8888);
-                bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(processedData));
-                return bitmap;
-            }
-            return null;
+        private Bitmap getBitmap(byte[] data) {
+            Bitmap bitmap = Bitmap.createBitmap(camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height, Bitmap.Config.ARGB_8888);
+            ByteBuffer byteBuffer = ByteBuffer.allocate(320 * 240 * 4);
+            byteBuffer.put(data, 115200, 307200);
+            byteBuffer.rewind();
+            Log.d("RubikMemoryInfo", "byteBuffer capacity: " + byteBuffer.capacity() + " buffer is direct: " + byteBuffer.isDirect() + " remaining:" + byteBuffer.remaining());
+            bitmap.copyPixelsFromBuffer(byteBuffer);
+            return bitmap;
+//            return null;
         }
 
-        private Bitmap getAndroidBitmap(byte[] data) {
+        private Bitmap getAndroidBitmapFromNV21(byte[] data) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             YuvImage yuvImage = new YuvImage(data, ImageFormat.NV21, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height, null);
             yuvImage.compressToJpeg(new Rect(0, 0, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height), 50, out);
@@ -183,14 +188,15 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
             Rect srcRect = new Rect(0, 0, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height);
             Rect destRect = new Rect(0, 0, surfaceView.getWidth(), (int) (surfaceView.getWidth() * (camera.getParameters().getPreviewSize().height / (float) camera.getParameters().getPreviewSize().width)));
-            Bitmap image = getOpenCVBitmap(data);
+            rubikDetector.findCube(data, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height);
+            Bitmap image = getBitmap(data);
             try {
                 canvas.drawBitmap(image, srcRect, destRect, null);
+                image.recycle();
             } catch (Exception e) {
                 Log.w("Cata", "Exception while rendering", e);
             } finally {
                 surfaceHolder.unlockCanvasAndPost(canvas);
-//                image.recycle();
             }
         }
 
@@ -213,6 +219,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             if (rubikDetector.isActive()) {
                 renderFrameInternal(data);
             }
+            camera.addCallbackBuffer(data);
         }
     }
 }
