@@ -2,12 +2,9 @@ package com.catalinjurjiu.rubikdetectordemo;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
-import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,11 +16,16 @@ import android.view.SurfaceView;
 
 import com.catalinjurjiu.rubikdetector.RubikDetector;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class MainActivity extends Activity implements SurfaceHolder.Callback {
+
+//    public static final int PREVIEW_WIDTH = 320;
+//    public static final int PREVIEW_HEIGHT = 240;
+
+    public static final int PREVIEW_WIDTH = 1280;
+    public static final int PREVIEW_HEIGHT = 960;
 
     private RubikDetector rubikDetector;
 
@@ -34,15 +36,22 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     private SurfaceHolder surfaceHolder;
 
     private ProcessingThread processingThread;
-    private int frameNumber = 0;
+    private ByteBuffer preallocatedBuffer;
+    private Bitmap preallocatedBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 //        rubikDetector = new RubikDetector("/storage/emulated/0/RubikResults");
+
         rubikDetector = new RubikDetector(null);
         rubikDetector.setDebuggable(true);
+        rubikDetector.setImageDimensions(PREVIEW_WIDTH, PREVIEW_HEIGHT);
+
+        preallocatedBuffer = ByteBuffer.allocate(rubikDetector.getRgbaImageSize());
+        preallocatedBitmap = Bitmap.createBitmap(PREVIEW_WIDTH, PREVIEW_HEIGHT, Bitmap.Config.ARGB_8888);
+
         processingThread = new ProcessingThread("RubikProcessingThread");
         processingThread.start();
         surfaceView = (SurfaceView) findViewById(R.id.camera_surface_view);
@@ -144,14 +153,12 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         private void openCameraInternal() {
             camera = Camera.open(0);
             Camera.Parameters cameraParameters = camera.getParameters();
-//            Camera.Size size = cameraParameters.getSupportedPreviewSizes().get(10);
-//            cameraParameters.setPreviewSize(size.width, size.height);
-            cameraParameters.setPreviewSize(320, 240);
-            cameraParameters.setPreviewFormat(ImageFormat.NV21);
+            cameraParameters.setPreviewSize(PREVIEW_WIDTH, PREVIEW_HEIGHT);
             camera.setParameters(cameraParameters);
-            camera.addCallbackBuffer(ByteBuffer.allocateDirect(307200 + 115200).array());
-            camera.addCallbackBuffer(ByteBuffer.allocateDirect(307200 + 115200).array());
-            camera.addCallbackBuffer(ByteBuffer.allocateDirect(307200 + 115200).array());
+
+            camera.addCallbackBuffer(ByteBuffer.allocateDirect(rubikDetector.getTotalRequiredMemory()).array());
+            camera.addCallbackBuffer(ByteBuffer.allocateDirect(rubikDetector.getTotalRequiredMemory()).array());
+            camera.addCallbackBuffer(ByteBuffer.allocateDirect(rubikDetector.getTotalRequiredMemory()).array());
             camera.setPreviewCallbackWithBuffer(this);
             try {
                 surfaceTexture = new SurfaceTexture(13242);
@@ -161,44 +168,38 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
         }
 
-        private Bitmap getBitmap(byte[] data) {
-            Bitmap bitmap = Bitmap.createBitmap(camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height, Bitmap.Config.ARGB_8888);
-            ByteBuffer byteBuffer = ByteBuffer.allocate(320 * 240 * 4);
-            byteBuffer.put(data, 115200, 307200);
-            byteBuffer.rewind();
-            Log.d("RubikMemoryInfo", "byteBuffer capacity: " + byteBuffer.capacity() + " buffer is direct: " + byteBuffer.isDirect() + " remaining:" + byteBuffer.remaining());
-            bitmap.copyPixelsFromBuffer(byteBuffer);
-            return bitmap;
-//            return null;
-        }
-
-        private Bitmap getAndroidBitmapFromNV21(byte[] data) {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            YuvImage yuvImage = new YuvImage(data, ImageFormat.NV21, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height, null);
-            yuvImage.compressToJpeg(new Rect(0, 0, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height), 50, out);
-            byte[] imageBytes = out.toByteArray();
-            return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-        }
-
         private void renderFrameInternal(byte[] data) {
             Log.w("Cata", "renderFrameInternal");
             Canvas canvas = surfaceHolder.lockCanvas();
             if (canvas == null) {
                 return;
             }
-            Rect srcRect = new Rect(0, 0, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height);
-            Rect destRect = new Rect(0, 0, surfaceView.getWidth(), (int) (surfaceView.getWidth() * (camera.getParameters().getPreviewSize().height / (float) camera.getParameters().getPreviewSize().width)));
-            rubikDetector.findCube(data, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height);
-            Bitmap image = getBitmap(data);
+            Rect srcRect = new Rect(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT);
+            Rect destRect = new Rect(0, 0, surfaceView.getWidth(), (int) (surfaceView.getWidth() * (PREVIEW_HEIGHT / (float) PREVIEW_WIDTH)));
+            rubikDetector.findCube(data);
+
+            preallocatedBuffer.rewind();
+            preallocatedBuffer.put(data, rubikDetector.getRgbaImageOffset(), rubikDetector.getRgbaImageSize());
+            preallocatedBuffer.rewind();
+            Log.d("RubikMemoryInfo", "preallocatedBuffer capacity: " + preallocatedBuffer.capacity() + " buffer is direct: " + preallocatedBuffer.isDirect() + " remaining:" + preallocatedBuffer.remaining());
+            preallocatedBitmap.copyPixelsFromBuffer(preallocatedBuffer);
+
             try {
-                canvas.drawBitmap(image, srcRect, destRect, null);
-                image.recycle();
+                canvas.drawBitmap(preallocatedBitmap, srcRect, destRect, null);
             } catch (Exception e) {
                 Log.w("Cata", "Exception while rendering", e);
             } finally {
                 surfaceHolder.unlockCanvasAndPost(canvas);
             }
         }
+
+//        private Bitmap getAndroidBitmapFromNV21(byte[] data) {
+//            ByteArrayOutputStream out = new ByteArrayOutputStream();
+//            YuvImage yuvImage = new YuvImage(data, ImageFormat.NV21, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height, null);
+//            yuvImage.compressToJpeg(new Rect(0, 0, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height), 50, out);
+//            byte[] imageBytes = out.toByteArray();
+//            return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+//        }
 
         private void startCameraInternal() {
             camera.startPreview();

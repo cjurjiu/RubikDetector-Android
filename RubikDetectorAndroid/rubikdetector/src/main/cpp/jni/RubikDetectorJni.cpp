@@ -55,9 +55,7 @@ JNIEXPORT void JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNativeImageData(JNIEnv *env,
                                                                            jobject instance,
                                                                            jlong cubeDetectorHandle,
-                                                                           jbyteArray imageByteData,
-                                                                           jint width,
-                                                                           jint height) {
+                                                                           jbyteArray imageByteData) {
     CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
 
     jsize length = env->GetArrayLength(imageByteData);
@@ -67,9 +65,21 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNativeImageData(JNIEn
     if (ptr) {
         uint8_t *ptrAsInt = reinterpret_cast<uint8_t *>(ptr);
         env->ReleasePrimitiveArrayCritical(imageByteData, ptr, JNI_ABORT);
-        cubeDetector.findCube(ptrAsInt, length, (int) width, (int) height);
+        cubeDetector.findCube(ptrAsInt, length);
     } else {
         LOG_WARN("RUBIK_JNI_PART.cpp",
                  "Could not obtain image byte array. No processing performed.");
     }
+}
+
+JNIEXPORT void JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetImageDimensions(JNIEnv *env,
+                                                                            jobject instance,
+                                                                            jlong cubeDetectorHandle,
+                                                                            jint width,
+                                                                            jint height) {
+
+    CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
+    cubeDetector.setImageDimensions((int) width, (int) height);
+
 }

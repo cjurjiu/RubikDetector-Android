@@ -18,13 +18,17 @@ CubeDetector::~CubeDetector() {
     }
 }
 
-void CubeDetector::setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener) {
-    behavior->setOnCubeDetectionResultListener(listener);
+void
+CubeDetector::findCube(const uint8_t *imageData, const int dataLength) {
+    behavior->findCube(imageData, dataLength);
 }
 
-void
-CubeDetector::findCube(const uint8_t *imageData, const int dataLength, int width, int height) {
-    behavior->findCube(imageData, dataLength, width, height);
+void CubeDetector::setImageDimensions(int width, int height) {
+    behavior->setImageDimensions(width, height);
+}
+
+void CubeDetector::setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener) {
+    behavior->setOnCubeDetectionResultListener(listener);
 }
 
 void CubeDetector::setDebuggable(const bool debuggable) {

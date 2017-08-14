@@ -60,10 +60,12 @@ public:
 
     ~CubeDetectorBehavior();
 
-    void setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener);
+    void setImageDimensions(int width, int height);
 
     void
-    findCube(const uint8_t *imageData, const int dataLength, int width, int height);
+    findCube(const uint8_t *imageData, const int dataLength);
+
+    void setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener);
 
     void setDebuggable(const bool isDebuggable);
 
@@ -81,6 +83,13 @@ private:
     int frameRateSum = 0;
 
     bool debuggable = false;
+
+    int imageHeight;
+    int imageWidth;
+    int totalRequiredMemory;
+    int rgbaImageOffset;
+    int rgbaImageSize;
+    int nv21ImageSize;
 
     int getSmallestMargin(Circle referenceCircle, std::vector<Circle> validCircles);
 

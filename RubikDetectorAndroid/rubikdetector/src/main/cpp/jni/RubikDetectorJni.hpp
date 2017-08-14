@@ -31,10 +31,14 @@ JNIEXPORT void JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNativeImageData(JNIEnv *env,
                                                                            jobject instance,
                                                                            jlong cubeDetectorHandle,
-                                                                           jbyteArray imageByteData,
-                                                                           jint width,
-                                                                           jint height);
+                                                                           jbyteArray imageByteData);
 
+JNIEXPORT void JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetImageDimensions(JNIEnv *env,
+                                                                            jobject instance,
+                                                                            jlong cubeDetectorHandle,
+                                                                            jint width,
+                                                                            jint height);
 #ifdef __cplusplus
 }
 #endif

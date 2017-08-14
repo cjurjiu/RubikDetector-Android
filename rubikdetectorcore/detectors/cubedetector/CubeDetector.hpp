@@ -34,7 +34,9 @@ public:
     ~CubeDetector();
 
     void
-    findCube(const uint8_t *imageData, const int dataLength, int width, int height);
+    findCube(const uint8_t *imageData, const int dataLength);
+
+    void setImageDimensions(int width, int height);
 
     void setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener);
 

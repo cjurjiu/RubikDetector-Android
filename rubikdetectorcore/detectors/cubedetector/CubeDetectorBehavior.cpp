@@ -27,22 +27,25 @@ CubeDetectorBehavior::~CubeDetectorBehavior() {
     }
 }
 
-void
-CubeDetectorBehavior::setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener) {
-    onCubeDetectionResultListener = std::unique_ptr<OnCubeDetectionResultListener>(listener);
+void CubeDetectorBehavior::setImageDimensions(int width, int height) {
+    imageWidth = width;
+    imageHeight = height;
+    totalRequiredMemory = width * height * 4 + width * (height + height / 2);
+    rgbaImageOffset = width * (height + height / 2);
+    rgbaImageSize = width * height * 4;
+    nv21ImageSize = width * (height + height / 2);
 }
 
 void
-CubeDetectorBehavior::findCube(const uint8_t *imageData, const int dataLength, int width,
-                               int height) {
+CubeDetectorBehavior::findCube(const uint8_t *imageData, const int dataLength) {
 
-    cv::Mat frameNV21((int) (height * 1.5f), width, CV_8UC1,
+    cv::Mat frameNV21(imageHeight + imageHeight / 2, imageWidth, CV_8UC1,
                       (uchar *) imageData);
 
-    cv::Mat frameRgba(height, width, CV_8UC4,
-                      (uchar *) imageData + 115200);
+    cv::Mat frameRgba(imageHeight, imageWidth, CV_8UC4,
+                      (uchar *) imageData + rgbaImageOffset);
 
-    cv::Mat frameGrey = frameNV21(cv::Rect(0, 0, width, height));
+    cv::Mat frameGrey = frameNV21(cv::Rect(0, 0, imageWidth, imageHeight));
 
     LOG_DEBUG("RubikMemoryInfo",
               "frameGrey: chanels: %d,\n"
@@ -139,6 +142,25 @@ CubeDetectorBehavior::findCube(const uint8_t *imageData, const int dataLength, i
               frameRgba.total() * frameRgba.elemSize());
 
     performCannyProcessing(frameRgba, frameGrey);
+}
+
+void
+CubeDetectorBehavior::setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener) {
+    onCubeDetectionResultListener = std::unique_ptr<OnCubeDetectionResultListener>(listener);
+}
+
+void CubeDetectorBehavior::setDebuggable(const bool isDebuggable) {
+    if (debuggable) {
+        LOG_DEBUG("RUBIK_JNI_PART.cpp", "setDebuggable. current:%d, new: %d, frameNumber: %d",
+                  debuggable, isDebuggable, frameNumber);
+    }
+    frameNumber++;
+    debuggable = isDebuggable;
+    colorDetector->setDebuggable(isDebuggable);
+}
+
+bool CubeDetectorBehavior::isDebuggable() {
+    return debuggable;
 }
 
 int
@@ -581,20 +603,6 @@ CubeDetectorBehavior::detectFacetColors(const cv::Mat &currentFrame,
         }
     }
     return colors;
-}
-
-void CubeDetectorBehavior::setDebuggable(const bool isDebuggable) {
-    if (debuggable) {
-        LOG_DEBUG("RUBIK_JNI_PART.cpp", "setDebuggable. current:%d, new: %d, frameNumber: %d",
-                  debuggable, isDebuggable, frameNumber);
-    }
-    frameNumber++;
-    debuggable = isDebuggable;
-    colorDetector->setDebuggable(isDebuggable);
-}
-
-bool CubeDetectorBehavior::isDebuggable() {
-    return debuggable;
 }
 
 /* return current time in milliseconds */
