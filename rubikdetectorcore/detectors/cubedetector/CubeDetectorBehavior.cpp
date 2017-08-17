@@ -1,10 +1,10 @@
 //// Created by catalin on 12.07.2017.
 //
 
+#include <math.h>
 #include "CubeDetectorBehavior.hpp"
 #include "CubeDetector.hpp"
 #include "OnCubeDetectionResultListener.hpp"
-
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "../../utils/Utils.hpp"
@@ -19,7 +19,8 @@ CubeDetectorBehavior::CubeDetectorBehavior() : CubeDetectorBehavior(nullptr) {
 
 CubeDetectorBehavior::CubeDetectorBehavior(std::shared_ptr<ImageSaver> imageSaver) :
         imageSaver(imageSaver),
-        colorDetector(std::unique_ptr<ColorDetector>(new ColorDetector(imageSaver))) {}
+        colorDetector(std::unique_ptr<ColorDetector>(new ColorDetector(imageSaver))),
+        morphOpStructuringElement(cv::getStructuringElement(CV_SHAPE_CROSS, cv::Size(3, 3))) {}
 
 CubeDetectorBehavior::~CubeDetectorBehavior() {
     if (debuggable) {
@@ -34,6 +35,37 @@ void CubeDetectorBehavior::setImageDimensions(int width, int height) {
     rgbaImageOffset = width * (height + height / 2);
     rgbaImageSize = width * height * 4;
     nv21ImageSize = width * (height + height / 2);
+    largestDimension = width > height ? width : height;
+    if (largestDimension > DEFAULT_DIMENSION) {
+        upscalingRatio = (float) largestDimension / DEFAULT_DIMENSION;
+        downscalingRatio = (float) DEFAULT_DIMENSION / largestDimension;
+        if (largestDimension == imageHeight) {
+            processingHeight = round(imageHeight * downscalingRatio);
+            processingWidth = round(imageHeight * downscalingRatio *
+                                    ((float) imageWidth / imageHeight));
+        } else {
+            processingWidth = round(imageWidth * downscalingRatio);
+            processingHeight = round(imageWidth * downscalingRatio *
+                                     ((float) imageHeight / imageWidth));
+        }
+    } else {
+        upscalingRatio = 1.0f;
+        downscalingRatio = 1.0f;
+        processingHeight = imageHeight;
+        processingWidth = imageWidth;
+    }
+    minValidShapeArea = (int) (processingWidth * processingHeight *
+                               MIN_VALID_SHAPE_TO_IMAGE_AREA_RATIO);
+    maxShapeSideSize = (int) (std::max(processingWidth, processingHeight) *
+                              MIN_VALID_SHAPE_TO_IMAGE_SIDE_SIZE_RATIO);
+}
+
+void
+CubeDetectorBehavior::findCube(cv::Mat &rgbaMat) {
+    cv::Mat greyMat;
+    cv::cvtColor(rgbaMat, greyMat, CV_RGBA2GRAY);
+    cv::Mat resultFrame = rgbaMat.clone();
+    performCannyProcessing(rgbaMat, greyMat, resultFrame);
 }
 
 void
@@ -45,103 +77,142 @@ CubeDetectorBehavior::findCube(const uint8_t *imageData, const int dataLength) {
     cv::Mat frameRgba(imageHeight, imageWidth, CV_8UC4,
                       (uchar *) imageData + rgbaImageOffset);
 
-    cv::Mat frameGrey = frameNV21(cv::Rect(0, 0, imageWidth, imageHeight));
+//
+//    LOG_DEBUG("RubikMemoryInfo",
+//              "frameGrey: chanels: %d,\n"
+//                      "width: %d,\n"
+//                      "height: %d,\n"
+//                      "depth: %d,\n"
+//                      "dataStart: %p,\n"
+//                      "dataEnd: %p,\n"
+//                      "dataLimit: %p,\n"
+//                      "sizeWEnd: %d\n"
+//                      "sizeWLimit: %d\n"
+//                      "computedSize: %d\n"
+//                      "imageData: %p",
+//              frameGrey.channels(),
+//              frameGrey.cols,
+//              frameGrey.rows,
+//              frameGrey.depth(),
+//              (void *) frameGrey.datastart,
+//              (void *) frameGrey.dataend,
+//              (void *) frameGrey.datalimit,
+//              frameGrey.dataend - frameGrey.datastart,
+//              frameGrey.datalimit - frameGrey.datastart,
+//              frameGrey.total() * frameGrey.elemSize(),
+//              imageData);
+//
+//    LOG_DEBUG("RubikMemoryInfo",
+//              "frameNV21: chanels: %d,\n"
+//                      "width: %d,\n"
+//                      "height: %d,\n"
+//                      "depth: %d,\n"
+//                      "dataStart: %p,\n"
+//                      "dataEnd: %p,\n"
+//                      "dataLimit: %p,\n"
+//                      "sizeWEnd: %d\n"
+//                      "sizeWLimit: %d\n"
+//                      "computedSize: %d\n"
+//                      "imageData: %p",
+//              frameNV21.channels(),
+//              frameNV21.cols,
+//              frameNV21.rows,
+//              frameNV21.depth(),
+//              (void *) frameNV21.datastart,
+//              (void *) frameNV21.dataend,
+//              (void *) frameNV21.datalimit,
+//              frameNV21.dataend - frameNV21.datastart,
+//              frameNV21.datalimit - frameNV21.datastart,
+//              frameNV21.total() * frameNV21.elemSize(),
+//              imageData);
+//
+//    LOG_DEBUG("RubikMemoryInfo",
+//              "frameRgba pseudo RGBA: chanels: %d,\n"
+//                      "width: %d,\n"
+//                      "height: %d,\n"
+//                      "depth: %d,\n"
+//                      "dataStart: %p,\n"
+//                      "dataEnd: %p,\n"
+//                      "dataLimit: %p,\n"
+//                      "sizeWEnd: %d\n"
+//                      "sizeWLimit: %d\n"
+//                      "computedSize: %d",
+//              frameRgba.channels(),
+//              frameRgba.cols,
+//              frameRgba.rows,
+//              frameRgba.depth(),
+//              (void *) frameRgba.datastart,
+//              (void *) frameRgba.dataend,
+//              (void *) frameRgba.datalimit,
+//              frameRgba.dataend - frameRgba.datastart,
+//              frameRgba.datalimit - frameRgba.datastart,
+//              frameRgba.total() * frameRgba.elemSize());
+
+    cv::cvtColor(frameNV21, frameRgba, cv::COLOR_YUV2RGBA_NV21);
+
+    cv::Mat procRgbaFrame;
+    cv::Mat frameGrey;
+    if (imageHeight != processingHeight || imageWidth != processingWidth) {
+        cv::resize(frameRgba, procRgbaFrame, cv::Size(processingWidth, processingHeight));
+        cv::cvtColor(procRgbaFrame, frameGrey, CV_RGBA2GRAY);
+    } else {
+        procRgbaFrame = cv::Mat(frameRgba);
+        frameGrey = frameNV21(cv::Rect(0, 0, imageWidth, imageHeight));
+    }
 
     LOG_DEBUG("RubikMemoryInfo",
-              "frameGrey: chanels: %d,\n"
-                      "width: %d,\n"
+              "afterResize. RGBA: width: %d,\n"
                       "height: %d,\n"
                       "depth: %d,\n"
                       "dataStart: %p,\n"
                       "dataEnd: %p,\n"
                       "dataLimit: %p,\n"
-                      "sizeWEnd: %d\n"
-                      "sizeWLimit: %d\n"
                       "computedSize: %d\n"
-                      "imageData: %p",
-              frameGrey.channels(),
+                      "GRAY: width: %d,\n"
+                      "height: %d,\n"
+                      "depth: %d,\n"
+                      "dataStart: %p,\n"
+                      "dataEnd: %p,\n"
+                      "dataLimit: %p,\n"
+                      "computedSize: %d",
+              procRgbaFrame.cols,
+              procRgbaFrame.rows,
+              procRgbaFrame.depth(),
+              (void *) procRgbaFrame.datastart,
+              (void *) procRgbaFrame.dataend,
+              (void *) procRgbaFrame.datalimit,
+              procRgbaFrame.total() * procRgbaFrame.elemSize(),
               frameGrey.cols,
               frameGrey.rows,
               frameGrey.depth(),
               (void *) frameGrey.datastart,
               (void *) frameGrey.dataend,
               (void *) frameGrey.datalimit,
-              frameGrey.dataend - frameGrey.datastart,
-              frameGrey.datalimit - frameGrey.datastart,
-              frameGrey.total() * frameGrey.elemSize(),
-              imageData);
+              frameGrey.total() * frameGrey.elemSize());
 
-    LOG_DEBUG("RubikMemoryInfo",
-              "frameNV21: chanels: %d,\n"
-                      "width: %d,\n"
-                      "height: %d,\n"
-                      "depth: %d,\n"
-                      "dataStart: %p,\n"
-                      "dataEnd: %p,\n"
-                      "dataLimit: %p,\n"
-                      "sizeWEnd: %d\n"
-                      "sizeWLimit: %d\n"
-                      "computedSize: %d\n"
-                      "imageData: %p",
-              frameNV21.channels(),
-              frameNV21.cols,
-              frameNV21.rows,
-              frameNV21.depth(),
-              (void *) frameNV21.datastart,
-              (void *) frameNV21.dataend,
-              (void *) frameNV21.datalimit,
-              frameNV21.dataend - frameNV21.datastart,
-              frameNV21.datalimit - frameNV21.datastart,
-              frameNV21.total() * frameNV21.elemSize(),
-              imageData);
+//    LOG_DEBUG("RubikMemoryInfo",
+//              "frameRgba real RGBA: chanels: %d,\n"
+//                      "width: %d,\n"
+//                      "height: %d,\n"
+//                      "depth: %d,\n"
+//                      "dataStart: %p,\n"
+//                      "dataEnd: %p,\n"
+//                      "dataLimit: %p,\n"
+//                      "sizeWEnd: %d\n"
+//                      "sizeWLimit: %d\n"
+//                      "computedSize: %d",
+//              frameRgba.channels(),
+//              frameRgba.cols,
+//              frameRgba.rows,
+//              frameRgba.depth(),
+//              (void *) frameRgba.datastart,
+//              (void *) frameRgba.dataend,
+//              (void *) frameRgba.datalimit,
+//              frameRgba.dataend - frameRgba.datastart,
+//              frameRgba.datalimit - frameRgba.datastart,
+//              frameRgba.total() * frameRgba.elemSize());
 
-    LOG_DEBUG("RubikMemoryInfo",
-              "frameRgba pseudo RGBA: chanels: %d,\n"
-                      "width: %d,\n"
-                      "height: %d,\n"
-                      "depth: %d,\n"
-                      "dataStart: %p,\n"
-                      "dataEnd: %p,\n"
-                      "dataLimit: %p,\n"
-                      "sizeWEnd: %d\n"
-                      "sizeWLimit: %d\n"
-                      "computedSize: %d",
-              frameRgba.channels(),
-              frameRgba.cols,
-              frameRgba.rows,
-              frameRgba.depth(),
-              (void *) frameRgba.datastart,
-              (void *) frameRgba.dataend,
-              (void *) frameRgba.datalimit,
-              frameRgba.dataend - frameRgba.datastart,
-              frameRgba.datalimit - frameRgba.datastart,
-              frameRgba.total() * frameRgba.elemSize());
-
-    cv::cvtColor(frameNV21, frameRgba, cv::COLOR_YUV2RGBA_NV21);
-
-    LOG_DEBUG("RubikMemoryInfo",
-              "frameRgba real RGBA: chanels: %d,\n"
-                      "width: %d,\n"
-                      "height: %d,\n"
-                      "depth: %d,\n"
-                      "dataStart: %p,\n"
-                      "dataEnd: %p,\n"
-                      "dataLimit: %p,\n"
-                      "sizeWEnd: %d\n"
-                      "sizeWLimit: %d\n"
-                      "computedSize: %d",
-              frameRgba.channels(),
-              frameRgba.cols,
-              frameRgba.rows,
-              frameRgba.depth(),
-              (void *) frameRgba.datastart,
-              (void *) frameRgba.dataend,
-              (void *) frameRgba.datalimit,
-              frameRgba.dataend - frameRgba.datastart,
-              frameRgba.datalimit - frameRgba.datastart,
-              frameRgba.total() * frameRgba.elemSize());
-
-    performCannyProcessing(frameRgba, frameGrey);
+    performCannyProcessing(procRgbaFrame, frameGrey, frameRgba);
 }
 
 void
@@ -154,7 +225,7 @@ void CubeDetectorBehavior::setDebuggable(const bool isDebuggable) {
         LOG_DEBUG("RUBIK_JNI_PART.cpp", "setDebuggable. current:%d, new: %d, frameNumber: %d",
                   debuggable, isDebuggable, frameNumber);
     }
-    frameNumber++;
+//    frameNumber++;
     debuggable = isDebuggable;
     colorDetector->setDebuggable(isDebuggable);
 }
@@ -175,7 +246,7 @@ CubeDetectorBehavior::getSmallestMargin(Circle referenceCircle, std::vector<Circ
              referenceCircle.center.y + 3 * referenceCircle.radius + 2 * 10)) {
             //if the center of the current rectangle/circle is  within the current reference, or is either too far from
             //the current rectangle (either to the left or to the right), then just skip it
-            //TODO replace magic number 2*10
+            //TODO replace magic number 2*10(pixels)
             continue;
         }
         int currentMargin =
@@ -213,7 +284,8 @@ cv::Scalar CubeDetectorBehavior::getColorAsScalar(int color) {
 }
 
 void
-CubeDetectorBehavior::performCannyProcessing(cv::Mat &frameRgba, cv::Mat &frameGray) {
+CubeDetectorBehavior::performCannyProcessing(cv::Mat &frameRgba, cv::Mat &frameGray,
+                                             cv::Mat &resultFrame) {
     double startTime = getCurrentTimeMillis();
     std::vector<std::vector<cv::Point>> contours = detectContours(frameGray);
 
@@ -221,7 +293,6 @@ CubeDetectorBehavior::performCannyProcessing(cv::Mat &frameRgba, cv::Mat &frameG
     std::vector<Circle> filteredRectanglesInnerCircles;
 
     filterContours(frameRgba, contours, filteredRectangles, filteredRectanglesInnerCircles);
-
     Circle referenceCircle;
     for (int i = 0; i < filteredRectanglesInnerCircles.size(); i++) {
         referenceCircle = filteredRectanglesInnerCircles[i];
@@ -235,7 +306,6 @@ CubeDetectorBehavior::performCannyProcessing(cv::Mat &frameRgba, cv::Mat &frameG
         }
 
         int margin = getSmallestMargin(referenceCircle, potentialFacelets);
-        //TODO should be margin * 2?
         int diameterWithMargin = referenceCircle.radius * 2 + margin;
         std::vector<Circle> estimatedFacelets = estimateRemainingFaceletsPos(referenceCircle,
                                                                              diameterWithMargin);
@@ -244,11 +314,17 @@ CubeDetectorBehavior::performCannyProcessing(cv::Mat &frameRgba, cv::Mat &frameG
                 potentialFacelets, estimatedFacelets);
         facetModel[0][0] = referenceCircle;
         bool cubeFound = verifyIfCubeFound(facetModel);
-
+        if (imageSaver != nullptr) {
+            saveWholeFrame(frameRgba);
+            saveFilteredRectangles(frameRgba, filteredRectangles);
+        }
         if (cubeFound) {
             fillMissingFacelets(estimatedFacelets, facetModel);
             std::vector<std::vector<int>> colors = detectFacetColors(frameRgba, facetModel);
-            drawFoundFacelets(frameRgba, facetModel, colors);
+            if (shouldDrawFoundFacelets) {
+                //we draw facelets in the result frame, not in the processing frame
+                drawFoundFacelets(resultFrame, facetModel, colors);
+            }
             if (debuggable) {
                 saveDebugData(frameRgba,
                               filteredRectangles,
@@ -257,7 +333,6 @@ CubeDetectorBehavior::performCannyProcessing(cv::Mat &frameRgba, cv::Mat &frameG
                               estimatedFacelets,
                               colors);
             }
-            LOG_DEBUG("CATALNER", "notifying listener!");
             onCubeDetectionResultListener->onCubeDetectionResult(colors);
             //break from iteration, cube was found in current frame. no need to continue
             break;
@@ -279,15 +354,24 @@ CubeDetectorBehavior::performCannyProcessing(cv::Mat &frameRgba, cv::Mat &frameG
     //end
 }
 
-void CubeDetectorBehavior::drawFoundFacelets(cv::Mat &currentFrame,
+void CubeDetectorBehavior::drawFoundFacelets(cv::Mat &procRgbaFrame,
                                              const std::vector<std::vector<Circle>> &facetModel,
                                              const std::vector<std::vector<int>> &colors) {
     for (int j = 0; j < 3; j++) {
         for (int k = 0; k < 3; k++) {
             Circle detectedCircle = facetModel[j][k];
-            //draw the found circles on screen
-            cv::circle(currentFrame, detectedCircle.center, detectedCircle.radius,
-                       getColorAsScalar(colors[j][k]), 1, CV_AA, 0);
+//            utils::drawCircle(currentFrame, detectedCircle, getColorAsScalar(colors[j][k]),
+//                              scalingRatio);
+
+            cv::circle(procRgbaFrame,
+                       cv::Point(round(detectedCircle.center.x *
+                                       ((float) imageWidth / processingWidth)),
+                                 round(detectedCircle.center.y *
+                                       ((float) imageHeight / processingHeight))),
+                       detectedCircle.radius * upscalingRatio,
+                       getColorAsScalar(colors[j][k]),
+                       (int) round(2 * upscalingRatio),
+                       CV_AA, 0);
         }
     }
 }
@@ -440,47 +524,47 @@ void CubeDetectorBehavior::filterContours(const cv::Mat &currentFrame,
                                           const std::vector<std::vector<cv::Point>> &contours,
                                           std::vector<cv::RotatedRect> &possibleFacelets,
                                           std::vector<Circle> &possibleFaceletsInnerCircles) const {
-    std::vector<std::vector<cv::Point> > contoursPoly(contours.size());
-    int totalImageArea = currentFrame.cols * currentFrame.rows;
+//    cv::Mat drawing = (cv::Mat) cv::Mat::zeros(currentFrame.size(), CV_8UC3);
     /// Approximate contours to polygons + get bounding rects and circles
     for (int i = 0; i < contours.size(); i++) {
         //approximate contour to a polygon, save it.
-        cv::approxPolyDP(cv::Mat(contours[i]), contoursPoly[i], 3, true);
-        //computer the minimum containing rectangle of the current contour
-        cv::RotatedRect currentRect = cv::minAreaRect(cv::Mat(contoursPoly[i]));
+        cv::RotatedRect currentRect = cv::minAreaRect(contours[i]);
+//        drawRectangleToMat(drawing, currentRect);
         //calculate aspect aspectRatio
         float maxDimensionValue = (float) std::max(currentRect.size.height, currentRect.size.width);
         float minDimensionValue = std::min(currentRect.size.height, currentRect.size.width);
         float aspectRatio = maxDimensionValue / minDimensionValue;
         //verify contour aspect ratio, size and area.
         if (aspectRatio < 1.2f &&
-            currentRect.size.area() > 0.0025f * totalImageArea &&
-            currentRect.size.height < currentFrame.rows * 0.25f &&
-            currentRect.size.width < currentFrame.cols * 0.25f) {
+            currentRect.size.area() > minValidShapeArea &&
+            currentRect.size.height < maxShapeSideSize &&
+            currentRect.size.width < maxShapeSideSize) {
             //if based on the above conditions it is considered as being a valid contour,
             //then save it for later processing
             possibleFacelets.push_back(currentRect);
             possibleFaceletsInnerCircles.push_back(Circle(currentRect));
         }
     }
+//    utils::quickSaveImage(drawing, "/storage/emulated/0/RubikResults", frameNumber, 1811);
 }
 
 std::vector<std::vector<cv::Point>>
 CubeDetectorBehavior::detectContours(const cv::Mat &frameGray) const {
-    std::vector<std::vector<cv::Point> > contours;
-    int lowThreshold = 10;
-    int thresholdRatio = 2;
-    int kernel_size = 3;
-    /// Reduce noise with a kernel 5x5
-    GaussianBlur(frameGray, frameGray, cv::Size(5, 5), 0, 0);
+//    utils::quickSaveImage(frameGray, "/storage/emulated/0/RubikResults", frameNumber, 1800);
+
+    /// Reduce noise with a kernel
+    cv::blur(frameGray, frameGray, cv::Size(BLUR_KERNEL_SIZE, BLUR_KERNEL_SIZE));
     // Canny detector
-    Canny(frameGray, frameGray, lowThreshold, lowThreshold * thresholdRatio,
-          kernel_size);
-    //BOUNDARY
+    cv::Canny(frameGray, frameGray, CANNY_LOW_THRESHOLD,
+              CANNY_LOW_THRESHOLD * CANNY_THRESHOLD_RATIO, CANNY_APERTURE_SIZE, true);
+//    cv::morphologyEx(frameGray, frameGray, CV_MOP_CLOSE, morphOpStructuringElement,
+//                     cv::Point(-1, -1), MORPH_OP_ITERATIONS);
+//    utils::quickSaveImage(frameGray, "/storage/emulated/0/RubikResults", frameNumber, 1801);
     std::vector<cv::Vec4i> hierarchy;
-    /// Find contours
-    findContours(frameGray, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE,
-                 cv::Point(0, 0));
+    std::vector<std::vector<cv::Point> > contours;
+    cv::findContours(frameGray, contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE,
+                     cv::Point(0, 0));
+//    LOG_DEBUG("CATA", "nr contours: %d", contours.size());
     return contours;
 }
 
@@ -493,32 +577,21 @@ void CubeDetectorBehavior::saveDebugData(const cv::Mat &currentFrame,
     ///BEGIN PRINT
     if (imageSaver != nullptr) {
         ///save whole frame
-        cv::Mat bgr;
-        cv::cvtColor(currentFrame, bgr, CV_RGBA2BGR);
-        imageSaver->saveImage(bgr, frameNumber, "full_frame");
+        saveWholeFrame(currentFrame);
 
         ///save filtered rectangles
-        cv::Mat drawing = (cv::Mat) cv::Mat::zeros(currentFrame.size(), CV_8UC3);
-        for (int i = 0; i < filteredRectangles.size(); i++) {
-            // rotated rectangle
-            cv::Point2f rect_points[4];
-            filteredRectangles[i].points(rect_points);
-            for (int j = 0; j < 4; j++)
-                cv::line(drawing, rect_points[j], rect_points[(j + 1) % 4],
-                         cv::Scalar(0, 255, 0), 1, CV_AA);
-        }
-        imageSaver->saveImage(drawing, frameNumber, "filtered_rectangles");
+        cv::Mat drawing = saveFilteredRectangles(currentFrame, filteredRectangles);
 
         ///save potential facelets
         drawing = cv::Mat::zeros(currentFrame.size(), CV_8UC3);
-        utils::drawCircles(drawing, potentialFacelets, cv::Scalar(255, 0, 0));
-        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255));
+        utils::drawCircles(drawing, potentialFacelets, cv::Scalar(255, 0, 0), upscalingRatio);
+        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), upscalingRatio);
         imageSaver->saveImage(drawing, frameNumber, "potential_facelets");
 
         ///save estimated facelets
         drawing = cv::Mat::zeros(currentFrame.size(), CV_8UC3);
-        utils::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80));
-        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255));
+        utils::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80), upscalingRatio);
+        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), upscalingRatio);
         imageSaver->saveImage(drawing, frameNumber, "estimated_facelets");
 
         ///save potential & estimated facelets which match
@@ -528,24 +601,61 @@ void CubeDetectorBehavior::saveDebugData(const cv::Mat &currentFrame,
                 potentialFacelets, estimatedFacelets);
 
         drawing = cv::Mat::zeros(currentFrame.size(), CV_8UC3);
-        utils::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80));
-        utils::drawCircles(drawing, faceletIncompleteModel, cv::Scalar(255, 0, 0), 3, true);
-        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255));
-        utils::drawCircle(drawing, referenceCircle, cv::Scalar(255, 0, 0), 3, true);
+        utils::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80), upscalingRatio);
+        utils::drawCircles(drawing, faceletIncompleteModel, cv::Scalar(255, 0, 0), upscalingRatio,
+                           3,
+                           true);
+        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), upscalingRatio);
+        utils::drawCircle(drawing, referenceCircle, cv::Scalar(255, 0, 0), upscalingRatio, 3, true);
         imageSaver->saveImage(drawing, frameNumber, "matched_pot_est_facelets");
 
         ///save just the facelets which matched with the estimated ones
         drawing = cv::Mat::zeros(currentFrame.size(), CV_8UC3);
-        utils::drawCircles(drawing, faceletIncompleteModel, cv::Scalar(0, 255, 0), 3);
-        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255));
+        utils::drawCircles(drawing, faceletIncompleteModel, cv::Scalar(0, 255, 0), upscalingRatio,
+                           3);
+        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), upscalingRatio);
         imageSaver->saveImage(drawing, frameNumber, "matched_potential_facelets");
     }
+
     LOG_DEBUG("RUBIK_JNI_PART.cpp",
               "COLORS: [1]:{ %d %d %d } [2]:{ %d %d %d } [3]:{ %d %d %d }",
               colors[0][0], colors[0][1], colors[0][2], colors[1][0],
               colors[1][1], colors[1][2], colors[2][0], colors[2][1],
               colors[2][2]);
-    //end debug data saving
+//    end debug data saving
+}
+
+void CubeDetectorBehavior::saveWholeFrame(const cv::Mat &currentFrame) const {
+    cv::Mat bgr;
+    cvtColor(currentFrame, bgr, CV_RGBA2BGR);
+    imageSaver->saveImage(bgr, frameNumber, "full_frame");
+}
+
+cv::Mat CubeDetectorBehavior::saveFilteredRectangles(const cv::Mat &currentFrame,
+                                                     const std::vector<cv::RotatedRect> &filteredRectangles) const {
+    cv::Mat drawing = (cv::Mat) cv::Mat::zeros(currentFrame.size(), CV_8UC3);
+    for (int i = 0; i < filteredRectangles.size(); i++) {
+        // rotated rectangle
+        cv::Point2f rect_points[4];
+        filteredRectangles[i].points(rect_points);
+        for (int j = 0; j < 4; j++)
+            line(drawing, rect_points[j], rect_points[(j + 1) % 4],
+                 cv::Scalar(0, 255, 0), 1, CV_AA);
+    }
+    imageSaver->saveImage(drawing, frameNumber, "filtered_rectangles");
+    return drawing;
+}
+
+
+void CubeDetectorBehavior::drawRectangleToMat(const cv::Mat &currentFrame,
+                                              const cv::RotatedRect &rotatedRect,
+                                              const cv::Scalar color) const {
+    // rotated rectangle
+    cv::Point2f rect_points[4];
+    rotatedRect.points(rect_points);
+    for (int j = 0; j < 4; j++)
+        line(currentFrame, rect_points[j], rect_points[(j + 1) % 4],
+             color, 1, CV_AA);
 }
 
 void CubeDetectorBehavior::fillMissingFacelets(const std::vector<Circle> &estimatedFacelets,
@@ -603,6 +713,30 @@ CubeDetectorBehavior::detectFacetColors(const cv::Mat &currentFrame,
         }
     }
     return colors;
+}
+
+int CubeDetectorBehavior::getTotalRequiredMemory() {
+    return totalRequiredMemory;
+}
+
+int CubeDetectorBehavior::getRgbaImageOffset() {
+    return rgbaImageOffset;
+}
+
+int CubeDetectorBehavior::getRgbaImageSize() {
+    return rgbaImageSize;
+}
+
+int CubeDetectorBehavior::getNv21ImageSize() {
+    return nv21ImageSize;
+}
+
+int CubeDetectorBehavior::getNv21ImageOffset() {
+    return rgbaImageOffset;
+}
+
+void CubeDetectorBehavior::setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets) {
+    CubeDetectorBehavior::shouldDrawFoundFacelets = shouldDrawFoundFacelets;
 }
 
 /* return current time in milliseconds */

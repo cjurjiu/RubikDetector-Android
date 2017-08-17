@@ -14,18 +14,21 @@ namespace cv {
 namespace utils {
     float pointsDistance(const cv::Point &firstPoint, const cv::Point &secondPoint);
 
-    bool quickSaveImage(const cv::Mat &mat, const int frameNumber, const int regionId);
+    bool quickSaveImage(const cv::Mat &mat, const std::string path, const int frameNumber,
+                        const int regionId);
 
     char colorIntToChar(const int colorInt);
 
     void drawCircle(cv::Mat &drawingCanvas, const Circle circle, const cv::Scalar color,
-                    const int radiusModifier = 0, const bool fillArea = false);
+                    const float scalingFactor = 1, const int radiusModifier = 0,
+                    const bool fillArea = false);
 
     void
-    drawCircles(cv::Mat &drawingCanvas, const std::vector<Circle> circles, const cv::Scalar color);
+    drawCircles(cv::Mat &drawingCanvas, const std::vector<Circle> circles, const cv::Scalar color,
+                const float scalingFactor = 1);
 
     void drawCircles(cv::Mat &drawingCanvas, const std::vector<std::vector<Circle>> circles,
-                     const cv::Scalar color, const int radiusModifier = 0,
-                     const bool fillArea = false);
+                     const cv::Scalar color, const float scalingFactor = 1,
+                     const int radiusModifier = 0, const bool fillArea = false);
 }
 #endif //RUBIKDETECTORDEMO_UTILS_HPP

@@ -23,9 +23,20 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
 //    public static final int PREVIEW_WIDTH = 320;
 //    public static final int PREVIEW_HEIGHT = 240;
+//
+//    public static final int PREVIEW_WIDTH = 640;
+//    public static final int PREVIEW_HEIGHT = 480;
+//    public static final int PREVIEW_WIDTH = 720;
+//    public static final int PREVIEW_HEIGHT = 480;
 
     public static final int PREVIEW_WIDTH = 1280;
     public static final int PREVIEW_HEIGHT = 960;
+
+//    public static final int PREVIEW_WIDTH = 1024;
+//    public static final int PREVIEW_HEIGHT = 768;
+
+//    public static final int PREVIEW_WIDTH = 800;
+//    public static final int PREVIEW_HEIGHT = 600;
 
     private RubikDetector rubikDetector;
 
@@ -44,9 +55,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 //        rubikDetector = new RubikDetector("/storage/emulated/0/RubikResults");
-
         rubikDetector = new RubikDetector(null);
         rubikDetector.setDebuggable(true);
+        rubikDetector.setDrawFoundFacelets(true);
         rubikDetector.setImageDimensions(PREVIEW_WIDTH, PREVIEW_HEIGHT);
 
         preallocatedBuffer = ByteBuffer.allocate(rubikDetector.getRgbaImageSize());

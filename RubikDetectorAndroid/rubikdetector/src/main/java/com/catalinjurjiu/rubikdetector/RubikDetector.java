@@ -56,6 +56,12 @@ public class RubikDetector {
         }
     }
 
+    public void setDrawFoundFacelets(boolean drawFoundFacelets) {
+        if (cubeDetectorHandle != NATIVE_DETECTOR_RELEASED) {
+            nativeSetDrawFoundFacelets(cubeDetectorHandle, drawFoundFacelets);
+        }
+    }
+
     public void releaseResources() {
         Log.d("CATAMEM", "RubikDetector#releaseResources.");
         if (cubeDetectorHandle != NATIVE_DETECTOR_RELEASED) {
@@ -126,6 +132,8 @@ public class RubikDetector {
     private native long createNativeObject(String storagePath);
 
     private native void nativeSetDebuggable(long nativeDetectorRef, boolean debuggable);
+
+    private native void nativeSetDrawFoundFacelets(long nativeDetectorRef, boolean shouldDrawFoundFacelets);
 
     private native void findCubeNativeImageData(long nativeDetectorRef, byte[] imageData);
 

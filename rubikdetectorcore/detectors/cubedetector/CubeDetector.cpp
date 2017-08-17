@@ -19,6 +19,11 @@ CubeDetector::~CubeDetector() {
 }
 
 void
+CubeDetector::findCube(cv::Mat &rgbaMat) {
+    behavior->findCube(rgbaMat);
+}
+
+void
 CubeDetector::findCube(const uint8_t *imageData, const int dataLength) {
     behavior->findCube(imageData, dataLength);
 }
@@ -37,4 +42,28 @@ void CubeDetector::setDebuggable(const bool debuggable) {
 
 bool CubeDetector::isDebuggable() {
     return behavior->isDebuggable();
+}
+
+int CubeDetector::getTotalRequiredMemory() {
+    return behavior->getTotalRequiredMemory();
+}
+
+int CubeDetector::getRgbaImageOffset() {
+    return behavior->getRgbaImageOffset();
+}
+
+int CubeDetector::getRgbaImageSize() {
+    return behavior->getRgbaImageSize();
+}
+
+int CubeDetector::getNv21ImageSize() {
+    return behavior->getNv21ImageSize();
+}
+
+int CubeDetector::getNv21ImageOffset() {
+    return behavior->getNv21ImageOffset();
+}
+
+void CubeDetector::setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets) {
+    behavior->setShouldDrawFoundFacelets(shouldDrawFoundFacelets);
 }

@@ -33,6 +33,8 @@ public:
 
     ~CubeDetector();
 
+    void findCube(cv::Mat &rgbaMat);
+
     void
     findCube(const uint8_t *imageData, const int dataLength);
 
@@ -43,6 +45,18 @@ public:
     void setDebuggable(const bool debuggable);
 
     bool isDebuggable();
+
+    void setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets);
+
+    int getTotalRequiredMemory();
+
+    int getRgbaImageOffset();
+
+    int getRgbaImageSize();
+
+    int getNv21ImageSize();
+
+    int getNv21ImageOffset();
 
 private:
     std::unique_ptr<CubeDetectorBehavior> behavior;

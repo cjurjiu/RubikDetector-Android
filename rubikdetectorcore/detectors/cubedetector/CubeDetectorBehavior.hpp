@@ -62,6 +62,8 @@ public:
 
     void setImageDimensions(int width, int height);
 
+    void findCube(cv::Mat &rgbaMat);
+
     void
     findCube(const uint8_t *imageData, const int dataLength);
 
@@ -71,12 +73,43 @@ public:
 
     bool isDebuggable();
 
+    int getTotalRequiredMemory();
+
+    int getRgbaImageOffset();
+
+    int getRgbaImageSize();
+
+    int getNv21ImageSize();
+
+    int getNv21ImageOffset();
+
+    void setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets);
+
 private:
+
+    static constexpr int DEFAULT_DIMENSION = 320;
+
+    static constexpr float MIN_VALID_SHAPE_TO_IMAGE_AREA_RATIO = 0.0025f;
+
+    static constexpr float MIN_VALID_SHAPE_TO_IMAGE_SIDE_SIZE_RATIO = 0.25f;
+
+    static constexpr int BLUR_KERNEL_SIZE = 5;
+
+    static constexpr int CANNY_LOW_THRESHOLD = 80;
+
+    static constexpr int CANNY_THRESHOLD_RATIO = 3;
+
+    static constexpr int CANNY_APERTURE_SIZE = 5;
+
+    static constexpr int MORPH_OP_ITERATIONS = 2;
+
     std::unique_ptr<OnCubeDetectionResultListener> onCubeDetectionResultListener;
 
     std::unique_ptr<ColorDetector> colorDetector;
 
     std::shared_ptr<ImageSaver> imageSaver;
+
+    const cv::Mat morphOpStructuringElement;
 
     int frameNumber = 0;
 
@@ -84,12 +117,17 @@ private:
 
     bool debuggable = false;
 
+    bool shouldDrawFoundFacelets = false;
+
     int imageHeight;
     int imageWidth;
     int totalRequiredMemory;
     int rgbaImageOffset;
     int rgbaImageSize;
     int nv21ImageSize;
+    float upscalingRatio;
+    int maxShapeSideSize;
+    int minValidShapeArea;
 
     int getSmallestMargin(Circle referenceCircle, std::vector<Circle> validCircles);
 
@@ -97,7 +135,7 @@ private:
 
     cv::Scalar getColorAsScalar(int color);
 
-    void performCannyProcessing(cv::Mat &frameRgba, cv::Mat &frameGray);
+    void performCannyProcessing(cv::Mat &frameRgba, cv::Mat &frameGray, cv::Mat &resultFrame);
 
     void saveDebugData(const cv::Mat &currentFrame,
                        const std::vector<cv::RotatedRect> &filteredRectangles,
@@ -134,8 +172,21 @@ private:
                       const std::vector<std::vector<Circle>> facetModel);
 
     void
-    drawFoundFacelets(cv::Mat &currentFrame, const std::vector<std::vector<Circle>> &facetModel,
+    drawFoundFacelets(cv::Mat &procRgbaFrame, const std::vector<std::vector<Circle>> &facetModel,
                       const std::vector<std::vector<int>> &colors);
+
+    cv::Mat saveFilteredRectangles(const cv::Mat &currentFrame,
+                                   const std::vector<cv::RotatedRect> &filteredRectangles) const;
+
+    void saveWholeFrame(const cv::Mat &currentFrame) const;
+
+    void drawRectangleToMat(const cv::Mat &currentFrame, const cv::RotatedRect &rotatedRect,
+                            const cv::Scalar color = cv::Scalar(0, 255, 0)) const;
+
+    int processingWidth;
+    int processingHeight;
+    int largestDimension;
+    float downscalingRatio;
 };
 
 #endif //RUBIKDETECTORDEMO_CUBEDETECTORBEHAVIOR_HPP

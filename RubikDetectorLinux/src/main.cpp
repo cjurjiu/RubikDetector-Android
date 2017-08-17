@@ -45,7 +45,7 @@ int main() {
 void performProcessingOnVideo() {
     cv::VideoCapture cap;
     cap.open(
-            "/media/catalin/Data1/Projects/Android/RubikSolver-All/GithubVersion/RubikSolverCmake/RubikDetectorDemo/RubikDetectorLinux/videos/cube1.mp4");
+            "../videos/720x480.mp4");
     if (!cap.isOpened()) {
         std::cout << "Caption not opened, return." << std::endl;
         return;
@@ -55,14 +55,56 @@ void performProcessingOnVideo() {
     ResultListener resultListener;
     std::shared_ptr<ImageSaver> imageSaver = std::make_shared<ImageSaver>(
             ImageSaver(std::string(
-                    "/media/catalin/Data1/Projects/Android/RubikSolver-All/GithubVersion/RubikSolverCmake/RubikDetectorDemo/RubikDetectorLinux/debug_images")));
+                    "../debug_images")));
     CubeDetector rubikDetector(imageSaver);
-    rubikDetector.setDebuggable(false);
+    rubikDetector.setImageDimensions(720, 480);
+    rubikDetector.setDebuggable(true);
     rubikDetector.setOnCubeDetectionResultListener(&resultListener);
 
     while (cap.read(frame)) {
-        cv::cvtColor(frame, frame, CV_BGR2RGB);
+        cv::cvtColor(frame, frame, CV_BGR2RGBA);
         rubikDetector.findCube(frame);
+//        cv::namedWindow("Contours", CV_WINDOW_AUTOSIZE);
+//        cv::imshow("Contours", frame);
+//        if (cv::waitKey(30) >= 0) {
+//            std::cout << "Got to end of video, break." << std::endl;
+//            break;
+//        }
+    }
+    std::cout << "Finished processing." << std::endl;
+}
+
+void performProcessingOnVideoSmart() {
+    cv::VideoCapture cap;
+    cap.open(
+            "../videos/720x480.mp4");
+    if (!cap.isOpened()) {
+        std::cout << "Caption not opened, return." << std::endl;
+        return;
+    }
+    cv::Mat frame;
+
+    ResultListener resultListener;
+    std::shared_ptr<ImageSaver> imageSaver = std::make_shared<ImageSaver>(
+            ImageSaver(std::string(
+                    "../debug_images")));
+    CubeDetector rubikDetector(imageSaver);
+    rubikDetector.setImageDimensions(720, 480);
+    rubikDetector.setDebuggable(true);
+    rubikDetector.setOnCubeDetectionResultListener(&resultListener);
+
+    uchar largeBuffer[rubikDetector.getTotalRequiredMemory()];
+
+    while (cap.read(frame)) {
+
+        cv::cvtColor(frame, frame, CV_BGR2YUV_I420);
+
+        const uchar *nv21Ptr = frame.ptr();
+        for (int i = 0; i < rubikDetector.getNv21ImageSize(); i++) {
+            largeBuffer[i] = *nv21Ptr++;
+        }
+
+        rubikDetector.findCube(largeBuffer, rubikDetector.getTotalRequiredMemory());
 //        cv::namedWindow("Contours", CV_WINDOW_AUTOSIZE);
 //        cv::imshow("Contours", frame);
 //        if (cv::waitKey(30) >= 0) {

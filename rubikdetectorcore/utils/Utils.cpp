@@ -7,6 +7,7 @@
 #include <opencv2/imgproc.hpp>
 #include "Utils.hpp"
 #include "../detectors/cubedetector/CubeDetector.hpp"
+#include "CrossLog.hpp"
 
 namespace utils {
     float pointsDistance(const cv::Point &firstPoint, const cv::Point &secondPoint) {
@@ -47,28 +48,33 @@ namespace utils {
     }
 
     void drawCircle(cv::Mat &drawingCanvas, const Circle circle,
-                    const cv::Scalar color, const int radiusModifier, const bool fillArea) {
+                    const cv::Scalar color, const float scalingFactor,
+                    const int radiusModifier, const bool fillArea) {
         cv::circle(drawingCanvas, circle.center,
                    (circle.radius - radiusModifier < 0) ?
-                   circle.radius : circle.radius - radiusModifier,
+                   circle.radius : circle.radius - (int) round(radiusModifier * scalingFactor),
                    color,
                 //-1 means the circle will be filled, otherwise draw it with a 2px stroke
-                   fillArea ? -1 : 2,
+                   fillArea ? -1 : (int) round(2 * scalingFactor),
                    CV_AA, 0);
     }
 
     void
-    drawCircles(cv::Mat &drawingCanvas, const std::vector<Circle> circles, const cv::Scalar color) {
+    drawCircles(cv::Mat &drawingCanvas, const std::vector<Circle> circles, const cv::Scalar color,
+                const float scalingFactor) {
         for (int i = 0; i < circles.size(); i++) {
-            drawCircle(drawingCanvas, circles[i], color);
+            drawCircle(drawingCanvas, circles[i], color, scalingFactor);
         }
     }
 
     void drawCircles(cv::Mat &drawingCanvas, const std::vector<std::vector<Circle>> circles,
-                     const cv::Scalar color, const int radiusModifier, const bool fillArea) {
+                     const cv::Scalar color, const float scalingFactor,
+                     const int radiusModifier, const bool fillArea) {
         for (int i = 0; i < circles.size(); i++) {
             for (int j = 0; j < circles.size(); j++) {
-                drawCircle(drawingCanvas, circles[i][j], color, radiusModifier, fillArea);
+                drawCircle(drawingCanvas, circles[i][j], color,
+                           scalingFactor, radiusModifier,
+                           fillArea);
             }
         }
     }

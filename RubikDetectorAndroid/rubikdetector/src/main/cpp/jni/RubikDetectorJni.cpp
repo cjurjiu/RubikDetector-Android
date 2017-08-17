@@ -52,6 +52,15 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetDebuggable(JNIEnv *e
 }
 
 JNIEXPORT void JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetDrawFoundFacelets(JNIEnv *env,
+                                                                              jobject instance,
+                                                                              jlong cubeDetectorHandle,
+                                                                              jboolean shouldDrawFoundFacelets) {
+    CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
+    cubeDetector.setShouldDrawFoundFacelets(static_cast<bool>(shouldDrawFoundFacelets));
+}
+
+JNIEXPORT void JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNativeImageData(JNIEnv *env,
                                                                            jobject instance,
                                                                            jlong cubeDetectorHandle,
