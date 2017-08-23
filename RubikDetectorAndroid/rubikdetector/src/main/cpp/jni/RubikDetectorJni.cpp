@@ -87,8 +87,46 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetImageDimensions(JNIE
                                                                             jlong cubeDetectorHandle,
                                                                             jint width,
                                                                             jint height) {
-
     CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
     cubeDetector.setImageDimensions((int) width, (int) height);
+}
 
+JNIEXPORT jint JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetTotalRequiredMemory(JNIEnv *env,
+                                                                                jobject instance,
+                                                                                jlong cubeDetectorHandle) {
+    CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
+    return cubeDetector.getTotalRequiredMemory();
+}
+
+JNIEXPORT jint JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetRgbaImageOffset(JNIEnv *env,
+                                                                            jobject instance,
+                                                                            jlong cubeDetectorHandle) {
+    CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
+    return cubeDetector.getRgbaImageOffset();
+}
+
+JNIEXPORT jint JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetRgbaImageSize(JNIEnv *env,
+                                                                          jobject instance,
+                                                                          jlong cubeDetectorHandle) {
+    CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
+    return cubeDetector.getRgbaImageSize();
+}
+
+JNIEXPORT jint JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetNv21ImageSize(JNIEnv *env,
+                                                                          jobject instance,
+                                                                          jlong cubeDetectorHandle) {
+    CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
+    return cubeDetector.getNv21ImageSize();
+}
+
+JNIEXPORT jint JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetNv21ImageOffset(JNIEnv *env,
+                                                                            jobject instance,
+                                                                            jlong cubeDetectorHandle) {
+    CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
+    return cubeDetector.getNv21ImageOffset();
 }

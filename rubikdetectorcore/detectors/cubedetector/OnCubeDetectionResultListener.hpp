@@ -5,6 +5,8 @@
 #ifndef RUBIKDETECTORDEMO_ONCUBEDETECTIONRESULTLISTENER_HPP
 #define RUBIKDETECTORDEMO_ONCUBEDETECTIONRESULTLISTENER_HPP
 
+class RubikFacelet;
+
 class OnCubeDetectionResultListener {
 public:
 
@@ -12,7 +14,8 @@ public:
 
     virtual ~OnCubeDetectionResultListener() {};
 
-    virtual void onCubeDetectionResult(const std::vector<std::vector<int>> result) const = 0;
+    virtual void
+    onCubeDetectionResult(const std::vector<std::vector<RubikFacelet>> result) const = 0;
 };
 
 #endif //RUBIKDETECTORDEMO_ONCUBEDETECTIONRESULTLISTENER_HPP

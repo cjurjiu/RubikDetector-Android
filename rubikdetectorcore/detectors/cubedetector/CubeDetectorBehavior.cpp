@@ -9,9 +9,8 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "../../utils/Utils.hpp"
 #include "../../utils/CrossLog.hpp"
-
-/* return current time in milliseconds */
-static double getCurrentTimeMillis(void);
+#include "../../data/Point2d.hpp"
+#include "../../data/RubikFacelet.hpp"
 
 CubeDetectorBehavior::CubeDetectorBehavior() : CubeDetectorBehavior(nullptr) {
     //empty default constructor
@@ -31,10 +30,6 @@ CubeDetectorBehavior::~CubeDetectorBehavior() {
 void CubeDetectorBehavior::setImageDimensions(int width, int height) {
     imageWidth = width;
     imageHeight = height;
-    totalRequiredMemory = width * height * 4 + width * (height + height / 2);
-    rgbaImageOffset = width * (height + height / 2);
-    rgbaImageSize = width * height * 4;
-    nv21ImageSize = width * (height + height / 2);
     largestDimension = width > height ? width : height;
     if (largestDimension > DEFAULT_DIMENSION) {
         upscalingRatio = (float) largestDimension / DEFAULT_DIMENSION;
@@ -54,6 +49,25 @@ void CubeDetectorBehavior::setImageDimensions(int width, int height) {
         processingHeight = imageHeight;
         processingWidth = imageWidth;
     }
+    needsResize = imageHeight != processingHeight || imageWidth != processingWidth;
+
+    rgbaImageSize = width * height * 4;
+    rgbaImageOffset = width * (height + height / 2);
+    nv21ImageSize = width * (height + height / 2);
+    nv21ImageOffset = 0;
+
+    if (needsResize) {
+        processingRgbaImageOffset = rgbaImageSize + nv21ImageSize;
+        processingRgbaImageSize = processingHeight * processingWidth * 4;
+        processingGrayImageOffset = rgbaImageSize + nv21ImageSize + processingRgbaImageSize;
+        processingGrayImageSize = processingHeight * processingWidth;
+
+        totalRequiredMemory = rgbaImageSize + nv21ImageSize +
+                              processingGrayImageSize + processingRgbaImageSize;
+    } else {
+        totalRequiredMemory = rgbaImageSize + nv21ImageSize;
+    }
+
     minValidShapeArea = (int) (processingWidth * processingHeight *
                                MIN_VALID_SHAPE_TO_IMAGE_AREA_RATIO);
     maxShapeSideSize = (int) (std::max(processingWidth, processingHeight) *
@@ -77,141 +91,22 @@ CubeDetectorBehavior::findCube(const uint8_t *imageData, const int dataLength) {
     cv::Mat frameRgba(imageHeight, imageWidth, CV_8UC4,
                       (uchar *) imageData + rgbaImageOffset);
 
-//
-//    LOG_DEBUG("RubikMemoryInfo",
-//              "frameGrey: chanels: %d,\n"
-//                      "width: %d,\n"
-//                      "height: %d,\n"
-//                      "depth: %d,\n"
-//                      "dataStart: %p,\n"
-//                      "dataEnd: %p,\n"
-//                      "dataLimit: %p,\n"
-//                      "sizeWEnd: %d\n"
-//                      "sizeWLimit: %d\n"
-//                      "computedSize: %d\n"
-//                      "imageData: %p",
-//              frameGrey.channels(),
-//              frameGrey.cols,
-//              frameGrey.rows,
-//              frameGrey.depth(),
-//              (void *) frameGrey.datastart,
-//              (void *) frameGrey.dataend,
-//              (void *) frameGrey.datalimit,
-//              frameGrey.dataend - frameGrey.datastart,
-//              frameGrey.datalimit - frameGrey.datastart,
-//              frameGrey.total() * frameGrey.elemSize(),
-//              imageData);
-//
-//    LOG_DEBUG("RubikMemoryInfo",
-//              "frameNV21: chanels: %d,\n"
-//                      "width: %d,\n"
-//                      "height: %d,\n"
-//                      "depth: %d,\n"
-//                      "dataStart: %p,\n"
-//                      "dataEnd: %p,\n"
-//                      "dataLimit: %p,\n"
-//                      "sizeWEnd: %d\n"
-//                      "sizeWLimit: %d\n"
-//                      "computedSize: %d\n"
-//                      "imageData: %p",
-//              frameNV21.channels(),
-//              frameNV21.cols,
-//              frameNV21.rows,
-//              frameNV21.depth(),
-//              (void *) frameNV21.datastart,
-//              (void *) frameNV21.dataend,
-//              (void *) frameNV21.datalimit,
-//              frameNV21.dataend - frameNV21.datastart,
-//              frameNV21.datalimit - frameNV21.datastart,
-//              frameNV21.total() * frameNV21.elemSize(),
-//              imageData);
-//
-//    LOG_DEBUG("RubikMemoryInfo",
-//              "frameRgba pseudo RGBA: chanels: %d,\n"
-//                      "width: %d,\n"
-//                      "height: %d,\n"
-//                      "depth: %d,\n"
-//                      "dataStart: %p,\n"
-//                      "dataEnd: %p,\n"
-//                      "dataLimit: %p,\n"
-//                      "sizeWEnd: %d\n"
-//                      "sizeWLimit: %d\n"
-//                      "computedSize: %d",
-//              frameRgba.channels(),
-//              frameRgba.cols,
-//              frameRgba.rows,
-//              frameRgba.depth(),
-//              (void *) frameRgba.datastart,
-//              (void *) frameRgba.dataend,
-//              (void *) frameRgba.datalimit,
-//              frameRgba.dataend - frameRgba.datastart,
-//              frameRgba.datalimit - frameRgba.datastart,
-//              frameRgba.total() * frameRgba.elemSize());
-
     cv::cvtColor(frameNV21, frameRgba, cv::COLOR_YUV2RGBA_NV21);
 
     cv::Mat procRgbaFrame;
     cv::Mat frameGrey;
-    if (imageHeight != processingHeight || imageWidth != processingWidth) {
+
+    if (needsResize) {
+        procRgbaFrame = cv::Mat(processingHeight, processingWidth, CV_8UC4,
+                                (uchar *) imageData + processingRgbaImageOffset);
+        frameGrey = cv::Mat(processingHeight, processingWidth, CV_8UC1,
+                            (uchar *) imageData + processingGrayImageOffset);
         cv::resize(frameRgba, procRgbaFrame, cv::Size(processingWidth, processingHeight));
         cv::cvtColor(procRgbaFrame, frameGrey, CV_RGBA2GRAY);
     } else {
         procRgbaFrame = cv::Mat(frameRgba);
         frameGrey = frameNV21(cv::Rect(0, 0, imageWidth, imageHeight));
     }
-
-    LOG_DEBUG("RubikMemoryInfo",
-              "afterResize. RGBA: width: %d,\n"
-                      "height: %d,\n"
-                      "depth: %d,\n"
-                      "dataStart: %p,\n"
-                      "dataEnd: %p,\n"
-                      "dataLimit: %p,\n"
-                      "computedSize: %d\n"
-                      "GRAY: width: %d,\n"
-                      "height: %d,\n"
-                      "depth: %d,\n"
-                      "dataStart: %p,\n"
-                      "dataEnd: %p,\n"
-                      "dataLimit: %p,\n"
-                      "computedSize: %d",
-              procRgbaFrame.cols,
-              procRgbaFrame.rows,
-              procRgbaFrame.depth(),
-              (void *) procRgbaFrame.datastart,
-              (void *) procRgbaFrame.dataend,
-              (void *) procRgbaFrame.datalimit,
-              procRgbaFrame.total() * procRgbaFrame.elemSize(),
-              frameGrey.cols,
-              frameGrey.rows,
-              frameGrey.depth(),
-              (void *) frameGrey.datastart,
-              (void *) frameGrey.dataend,
-              (void *) frameGrey.datalimit,
-              frameGrey.total() * frameGrey.elemSize());
-
-//    LOG_DEBUG("RubikMemoryInfo",
-//              "frameRgba real RGBA: chanels: %d,\n"
-//                      "width: %d,\n"
-//                      "height: %d,\n"
-//                      "depth: %d,\n"
-//                      "dataStart: %p,\n"
-//                      "dataEnd: %p,\n"
-//                      "dataLimit: %p,\n"
-//                      "sizeWEnd: %d\n"
-//                      "sizeWLimit: %d\n"
-//                      "computedSize: %d",
-//              frameRgba.channels(),
-//              frameRgba.cols,
-//              frameRgba.rows,
-//              frameRgba.depth(),
-//              (void *) frameRgba.datastart,
-//              (void *) frameRgba.dataend,
-//              (void *) frameRgba.datalimit,
-//              frameRgba.dataend - frameRgba.datastart,
-//              frameRgba.datalimit - frameRgba.datastart,
-//              frameRgba.total() * frameRgba.elemSize());
-
     performCannyProcessing(procRgbaFrame, frameGrey, frameRgba);
 }
 
@@ -225,7 +120,6 @@ void CubeDetectorBehavior::setDebuggable(const bool isDebuggable) {
         LOG_DEBUG("RUBIK_JNI_PART.cpp", "setDebuggable. current:%d, new: %d, frameNumber: %d",
                   debuggable, isDebuggable, frameNumber);
     }
-//    frameNumber++;
     debuggable = isDebuggable;
     colorDetector->setDebuggable(isDebuggable);
 }
@@ -234,9 +128,9 @@ bool CubeDetectorBehavior::isDebuggable() {
     return debuggable;
 }
 
-int
+float
 CubeDetectorBehavior::getSmallestMargin(Circle referenceCircle, std::vector<Circle> validCircles) {
-    int margin = 32768;
+    float margin = 320.0f;
     for (int i = 0; i < validCircles.size(); i++) {
         Circle testedCircle = validCircles[i];
         if (referenceCircle.contains(testedCircle.center) ||
@@ -249,7 +143,7 @@ CubeDetectorBehavior::getSmallestMargin(Circle referenceCircle, std::vector<Circ
             //TODO replace magic number 2*10(pixels)
             continue;
         }
-        int currentMargin =
+        float currentMargin =
                 (int) utils::pointsDistance(referenceCircle.center, testedCircle.center) -
                 referenceCircle.radius - testedCircle.radius;
         if (currentMargin < margin && currentMargin > 0) {
@@ -257,7 +151,7 @@ CubeDetectorBehavior::getSmallestMargin(Circle referenceCircle, std::vector<Circ
         }
     }
 
-    return (margin == 32768 || margin > referenceCircle.radius) ? 10 : margin;
+    return (margin >= 320.0f || margin >= referenceCircle.radius) ? 10.f : margin;
 }
 
 int CubeDetectorBehavior::getPositionInVector(int i, int j) {
@@ -286,7 +180,7 @@ cv::Scalar CubeDetectorBehavior::getColorAsScalar(int color) {
 void
 CubeDetectorBehavior::performCannyProcessing(cv::Mat &frameRgba, cv::Mat &frameGray,
                                              cv::Mat &resultFrame) {
-    double startTime = getCurrentTimeMillis();
+    double startTime = utils::getCurrentTimeMillis();
     std::vector<std::vector<cv::Point>> contours = detectContours(frameGray);
 
     std::vector<cv::RotatedRect> filteredRectangles;
@@ -305,25 +199,41 @@ CubeDetectorBehavior::performCannyProcessing(cv::Mat &frameRgba, cv::Mat &frameG
             continue;
         }
 
-        int margin = getSmallestMargin(referenceCircle, potentialFacelets);
-        int diameterWithMargin = referenceCircle.radius * 2 + margin;
+        float margin = getSmallestMargin(referenceCircle, potentialFacelets);
         std::vector<Circle> estimatedFacelets = estimateRemainingFaceletsPos(referenceCircle,
-                                                                             diameterWithMargin);
+                                                                             margin);
 
         std::vector<std::vector<Circle>> facetModel = matchEstimatedWithPotentialFacelets(
                 potentialFacelets, estimatedFacelets);
         facetModel[0][0] = referenceCircle;
         bool cubeFound = verifyIfCubeFound(facetModel);
-        if (imageSaver != nullptr) {
-            saveWholeFrame(frameRgba);
-            saveFilteredRectangles(frameRgba, filteredRectangles);
-        }
+
+//        if (debuggable && imageSaver != nullptr) {
+//            saveWholeFrame(frameRgba, frameNumber * 10 + i + 1);
+//            cv::Mat drawing = saveFilteredRectangles(frameRgba, filteredRectangles,
+//                                                     frameNumber * 10 + i + 1);
+//
+//            utils::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80));
+//            utils::drawCircles(drawing, facetModel, cv::Scalar(255, 0, 0));
+//            utils::drawCircle(drawing, referenceCircle, cv::Scalar(255, 0, 0));
+//            utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), 1, 2, true);
+//            imageSaver->saveImage(drawing, frameNumber * 10 + i + 1, "matched_pot_est_facelets1");
+//
+//            ///save just the facelets which matched with the estimated ones
+//            drawing = cv::Mat::zeros(frameRgba.size(), CV_8UC3);
+//            utils::drawCircles(drawing, facetModel, cv::Scalar(0, 255, 80));
+//            utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), 1, 2, true);
+//            imageSaver->saveImage(drawing, frameNumber * 10 + i + 1, "matched_potential_facelets1");
+//
+//        }
         if (cubeFound) {
             fillMissingFacelets(estimatedFacelets, facetModel);
             std::vector<std::vector<int>> colors = detectFacetColors(frameRgba, facetModel);
+            std::vector<std::vector<RubikFacelet>> facelets = createResult(colors, facetModel);
             if (shouldDrawFoundFacelets) {
                 //we draw facelets in the result frame, not in the processing frame
-                drawFoundFacelets(resultFrame, facetModel, colors);
+                drawFoundFaceletsCircles(resultFrame, facelets);
+//                drawFoundFaceletsRectangles(resultFrame, facelets);
             }
             if (debuggable) {
                 saveDebugData(frameRgba,
@@ -333,14 +243,14 @@ CubeDetectorBehavior::performCannyProcessing(cv::Mat &frameRgba, cv::Mat &frameG
                               estimatedFacelets,
                               colors);
             }
-            onCubeDetectionResultListener->onCubeDetectionResult(colors);
+            onCubeDetectionResultListener->onCubeDetectionResult(facelets);
             //break from iteration, cube was found in current frame. no need to continue
             break;
         }
     }
 
     //BASICALLY DONE
-    double endTime = getCurrentTimeMillis();
+    double endTime = utils::getCurrentTimeMillis();
     double delta = endTime - startTime;
     double fps = 1000 / delta;
     frameRateSum += fps;
@@ -354,24 +264,40 @@ CubeDetectorBehavior::performCannyProcessing(cv::Mat &frameRgba, cv::Mat &frameG
     //end
 }
 
-void CubeDetectorBehavior::drawFoundFacelets(cv::Mat &procRgbaFrame,
-                                             const std::vector<std::vector<Circle>> &facetModel,
-                                             const std::vector<std::vector<int>> &colors) {
-    for (int j = 0; j < 3; j++) {
-        for (int k = 0; k < 3; k++) {
-            Circle detectedCircle = facetModel[j][k];
-//            utils::drawCircle(currentFrame, detectedCircle, getColorAsScalar(colors[j][k]),
-//                              scalingRatio);
-
+void CubeDetectorBehavior::drawFoundFaceletsCircles(cv::Mat &procRgbaFrame,
+                                                    std::vector<std::vector<RubikFacelet>> &facetModel) {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            RubikFacelet facelet = facetModel[i][j];
             cv::circle(procRgbaFrame,
-                       cv::Point(round(detectedCircle.center.x *
-                                       ((float) imageWidth / processingWidth)),
-                                 round(detectedCircle.center.y *
-                                       ((float) imageHeight / processingHeight))),
-                       detectedCircle.radius * upscalingRatio,
-                       getColorAsScalar(colors[j][k]),
-                       (int) round(2 * upscalingRatio),
-                       CV_AA, 0);
+                       cv::Point2f(facelet.center.x, facelet.center.y),
+                       (int) roundf(std::min(facelet.width / 2, facelet.height / 2)),
+                       getColorAsScalar(facelet.color),
+                       cvRound(2 * upscalingRatio), CV_AA);
+        }
+    }
+}
+
+void CubeDetectorBehavior::drawFoundFaceletsRectangles(cv::Mat &procRgbaFrame,
+                                                       std::vector<std::vector<RubikFacelet>> &facetModel) {
+    cv::Point points[4];
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            RubikFacelet facelet = facetModel[i][j];
+            std::vector<Point2d> faceletContour = facelet.getPoints();
+            for (int k = 0; k < 4; k++) {
+                points[k] = cv::Point2d(faceletContour[k].x, faceletContour[k].y);
+            }
+            cv::Scalar color = getColorAsScalar(facelet.color);
+            //draw contour
+            cv::line(procRgbaFrame, points[0], points[1], color, cvRound(2 * upscalingRatio),
+                     CV_AA);
+            cv::line(procRgbaFrame, points[1], points[2], color, cvRound(2 * upscalingRatio),
+                     CV_AA);
+            cv::line(procRgbaFrame, points[2], points[3], color, cvRound(2 * upscalingRatio),
+                     CV_AA);
+            cv::line(procRgbaFrame, points[3], points[0], color, cvRound(2 * upscalingRatio),
+                     CV_AA);
         }
     }
 }
@@ -404,10 +330,7 @@ bool CubeDetectorBehavior::verifyIfCubeFound(
             break;
         case 110:
             if ((middleRow == 1 || middleRow == 11 || middleRow == 101 || middleRow == 111) &&
-                bottomRow != 100 &&
-                bottomRow != 10 &&
-                bottomRow != 1 &&
-                bottomRow != 0) {
+                (bottomRow == 111 || bottomRow == 11 || bottomRow == 101 || bottomRow == 110)) {
                 cubeFound = true;
             } else if ((middleRow == 10 || middleRow == 100 || middleRow == 110) &&
                        (bottomRow == 11 || bottomRow == 101 || bottomRow == 111)) {
@@ -458,41 +381,43 @@ CubeDetectorBehavior::matchEstimatedWithPotentialFacelets(
 
 std::vector<Circle>
 CubeDetectorBehavior::estimateRemainingFaceletsPos(const Circle &referenceCircle,
-                                                   int diameterWithMargin) const {//draw the remaining rectangles
+                                                   float margin) const {
+    //draw the remaining rectangles
     std::vector<Circle> newCircles;
+    float diameterWithMargin = referenceCircle.radius * 2 + margin;
 
     float angle = referenceCircle.angle;
     float xOffset = diameterWithMargin * std::cos(angle);
     float yOffset = diameterWithMargin * std::sin(angle);
-    float xOffset2 = diameterWithMargin * (float) cos(angle + CV_PI / 2);
-    float yOffset2 = diameterWithMargin * (float) sin(angle + CV_PI / 2);
-    Circle secondRowFirstCircle = Circle(cv::Point2f(referenceCircle.center.x + xOffset2,
-                                                     referenceCircle.center.y + yOffset2),
-                                         referenceCircle.radius, referenceCircle.angle);
-    Circle thirdRowFirstCircle = Circle(cv::Point2f(referenceCircle.center.x + 2 * xOffset2,
-                                                    referenceCircle.center.y + 2 * yOffset2),
-                                        referenceCircle.radius, referenceCircle.angle);
+    float xOffset2 = diameterWithMargin * (float) std::cos(angle + M_PI_2);
+    float yOffset2 = diameterWithMargin * (float) std::sin(angle + M_PI_2);
+    //create first circles in 2nd and 3rd rows respectively
+    Circle secondRowFirstCircle = Circle(referenceCircle,
+                                         cv::Point2f(xOffset2, yOffset2));
+    Circle thirdRowFirstCircle = Circle(referenceCircle,
+                                        cv::Point2f(2 * xOffset2, 2 * yOffset2));
 
-    newCircles.push_back(Circle(cv::Point2f(referenceCircle.center.x + xOffset,
-                                            referenceCircle.center.y + yOffset),
-                                referenceCircle.radius, referenceCircle.angle));
-    newCircles.push_back(Circle(cv::Point2f(referenceCircle.center.x + 2 * xOffset,
-                                            referenceCircle.center.y + 2 * yOffset),
-                                referenceCircle.radius, referenceCircle.angle));
+    //complete first row
+    newCircles.push_back(Circle(referenceCircle,
+                                cv::Point2f(xOffset, yOffset)));
+    newCircles.push_back(Circle(referenceCircle,
+                                cv::Point2f(2 * xOffset, 2 * yOffset)));
+
+    //push first circle in second row
     newCircles.push_back(secondRowFirstCircle);
-    newCircles.push_back(Circle(cv::Point2f(secondRowFirstCircle.center.x + xOffset,
-                                            secondRowFirstCircle.center.y + yOffset),
-                                referenceCircle.radius, referenceCircle.angle));
-    newCircles.push_back(Circle(cv::Point2f(secondRowFirstCircle.center.x + 2 * xOffset,
-                                            secondRowFirstCircle.center.y + 2 * yOffset),
-                                referenceCircle.radius, referenceCircle.angle));
+    //complete second row
+    newCircles.push_back(Circle(secondRowFirstCircle,
+                                cv::Point2f(xOffset, yOffset)));
+    newCircles.push_back(Circle(secondRowFirstCircle,
+                                cv::Point2f(2 * xOffset, 2 * yOffset)));
+
+    //push first circle in third row
     newCircles.push_back(thirdRowFirstCircle);
-    newCircles.push_back(Circle(cv::Point2f(thirdRowFirstCircle.center.x + xOffset,
-                                            thirdRowFirstCircle.center.y + yOffset),
-                                referenceCircle.radius, referenceCircle.angle));
-    newCircles.push_back(Circle(cv::Point2f(thirdRowFirstCircle.center.x + 2 * xOffset,
-                                            thirdRowFirstCircle.center.y + 2 * yOffset),
-                                referenceCircle.radius, referenceCircle.angle));
+    //complete third row
+    newCircles.push_back(Circle(thirdRowFirstCircle,
+                                cv::Point2f(xOffset, yOffset)));
+    newCircles.push_back(Circle(thirdRowFirstCircle,
+                                cv::Point2f(2 * xOffset, 2 * yOffset)));
     return newCircles;
 }
 
@@ -568,7 +493,7 @@ CubeDetectorBehavior::detectContours(const cv::Mat &frameGray) const {
     return contours;
 }
 
-void CubeDetectorBehavior::saveDebugData(const cv::Mat &currentFrame,
+void CubeDetectorBehavior::saveDebugData(const cv::Mat &frame,
                                          const std::vector<cv::RotatedRect> &filteredRectangles,
                                          const Circle &referenceCircle,
                                          const std::vector<Circle> &potentialFacelets,
@@ -577,22 +502,22 @@ void CubeDetectorBehavior::saveDebugData(const cv::Mat &currentFrame,
     ///BEGIN PRINT
     if (imageSaver != nullptr) {
         ///save whole frame
-        saveWholeFrame(currentFrame);
+        saveWholeFrame(frame, frameNumber * 10);
 
         ///save filtered rectangles
-        cv::Mat drawing = saveFilteredRectangles(currentFrame, filteredRectangles);
+        cv::Mat drawing = saveFilteredRectangles(frame, filteredRectangles, frameNumber * 10);
 
         ///save potential facelets
-        drawing = cv::Mat::zeros(currentFrame.size(), CV_8UC3);
-        utils::drawCircles(drawing, potentialFacelets, cv::Scalar(255, 0, 0), upscalingRatio);
-        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), upscalingRatio);
-        imageSaver->saveImage(drawing, frameNumber, "potential_facelets");
+        drawing = cv::Mat::zeros(frame.size(), CV_8UC3);
+        utils::drawCircles(drawing, potentialFacelets, cv::Scalar(255, 0, 0));
+        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255));
+        imageSaver->saveImage(drawing, frameNumber * 10, "potential_facelets");
 
         ///save estimated facelets
-        drawing = cv::Mat::zeros(currentFrame.size(), CV_8UC3);
-        utils::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80), upscalingRatio);
-        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), upscalingRatio);
-        imageSaver->saveImage(drawing, frameNumber, "estimated_facelets");
+        drawing = cv::Mat::zeros(frame.size(), CV_8UC3);
+        utils::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80));
+        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255));
+        imageSaver->saveImage(drawing, frameNumber * 10, "estimated_facelets");
 
         ///save potential & estimated facelets which match
         ///recompute the incomplete facelet model, in order to print only the facelets which passed through all the filtering steps
@@ -600,21 +525,18 @@ void CubeDetectorBehavior::saveDebugData(const cv::Mat &currentFrame,
         std::vector<std::vector<Circle>> faceletIncompleteModel = matchEstimatedWithPotentialFacelets(
                 potentialFacelets, estimatedFacelets);
 
-        drawing = cv::Mat::zeros(currentFrame.size(), CV_8UC3);
-        utils::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80), upscalingRatio);
-        utils::drawCircles(drawing, faceletIncompleteModel, cv::Scalar(255, 0, 0), upscalingRatio,
-                           3,
-                           true);
-        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), upscalingRatio);
-        utils::drawCircle(drawing, referenceCircle, cv::Scalar(255, 0, 0), upscalingRatio, 3, true);
-        imageSaver->saveImage(drawing, frameNumber, "matched_pot_est_facelets");
+        drawing = cv::Mat::zeros(frame.size(), CV_8UC3);
+        utils::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80));
+        utils::drawCircles(drawing, faceletIncompleteModel, cv::Scalar(255, 0, 0));
+        utils::drawCircle(drawing, referenceCircle, cv::Scalar(255, 0, 0));
+        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), 1, 2, true);
+        imageSaver->saveImage(drawing, frameNumber * 10, "matched_pot_est_facelets");
 
         ///save just the facelets which matched with the estimated ones
-        drawing = cv::Mat::zeros(currentFrame.size(), CV_8UC3);
-        utils::drawCircles(drawing, faceletIncompleteModel, cv::Scalar(0, 255, 0), upscalingRatio,
-                           3);
-        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), upscalingRatio);
-        imageSaver->saveImage(drawing, frameNumber, "matched_potential_facelets");
+        drawing = cv::Mat::zeros(frame.size(), CV_8UC3);
+        utils::drawCircles(drawing, faceletIncompleteModel, cv::Scalar(0, 255, 80));
+        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), 1, 2, true);
+        imageSaver->saveImage(drawing, frameNumber * 10, "matched_potential_facelets");
     }
 
     LOG_DEBUG("RUBIK_JNI_PART.cpp",
@@ -625,14 +547,15 @@ void CubeDetectorBehavior::saveDebugData(const cv::Mat &currentFrame,
 //    end debug data saving
 }
 
-void CubeDetectorBehavior::saveWholeFrame(const cv::Mat &currentFrame) const {
+void CubeDetectorBehavior::saveWholeFrame(const cv::Mat &currentFrame, int frameNr) const {
     cv::Mat bgr;
     cvtColor(currentFrame, bgr, CV_RGBA2BGR);
-    imageSaver->saveImage(bgr, frameNumber, "full_frame");
+    imageSaver->saveImage(bgr, frameNr, "full_frame");
 }
 
 cv::Mat CubeDetectorBehavior::saveFilteredRectangles(const cv::Mat &currentFrame,
-                                                     const std::vector<cv::RotatedRect> &filteredRectangles) const {
+                                                     const std::vector<cv::RotatedRect> &filteredRectangles,
+                                                     int frameNr) const {
     cv::Mat drawing = (cv::Mat) cv::Mat::zeros(currentFrame.size(), CV_8UC3);
     for (int i = 0; i < filteredRectangles.size(); i++) {
         // rotated rectangle
@@ -642,7 +565,7 @@ cv::Mat CubeDetectorBehavior::saveFilteredRectangles(const cv::Mat &currentFrame
             line(drawing, rect_points[j], rect_points[(j + 1) % 4],
                  cv::Scalar(0, 255, 0), 1, CV_AA);
     }
-    imageSaver->saveImage(drawing, frameNumber, "filtered_rectangles");
+    imageSaver->saveImage(drawing, frameNr, "filtered_rectangles");
     return drawing;
 }
 
@@ -660,11 +583,11 @@ void CubeDetectorBehavior::drawRectangleToMat(const cv::Mat &currentFrame,
 
 void CubeDetectorBehavior::fillMissingFacelets(const std::vector<Circle> &estimatedFacelets,
                                                std::vector<std::vector<Circle>> &facetModel) {
-    for (int j = 0; j < 3; j++) {
-        for (int k = 0; k < 3; k++) {
-            if (facetModel[j][k].isEmpty()) {
-                facetModel[j][k] =
-                        estimatedFacelets[getPositionInVector(j, k)];
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (facetModel[i][j].isEmpty()) {
+                facetModel[i][j] =
+                        estimatedFacelets[getPositionInVector(i, j)];
             }
         }
     }
@@ -732,16 +655,30 @@ int CubeDetectorBehavior::getNv21ImageSize() {
 }
 
 int CubeDetectorBehavior::getNv21ImageOffset() {
-    return rgbaImageOffset;
+    return nv21ImageOffset;
 }
 
 void CubeDetectorBehavior::setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets) {
     CubeDetectorBehavior::shouldDrawFoundFacelets = shouldDrawFoundFacelets;
 }
 
-/* return current time in milliseconds */
-static double getCurrentTimeMillis(void) {
-    struct timespec res;
-    clock_gettime(CLOCK_REALTIME, &res);
-    return 1000.0 * res.tv_sec + (double) res.tv_nsec / 1e6;
+std::vector<std::vector<RubikFacelet>>
+CubeDetectorBehavior::createResult(std::vector<std::vector<int>> colors,
+                                   std::vector<std::vector<Circle>> faceModel) {
+
+    std::vector<std::vector<RubikFacelet>> result(3, std::vector<RubikFacelet>(3));
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            Circle faceletCircle = faceModel[i][j];
+            result[i][j] = RubikFacelet(colors[i][j],
+                                        Point2d(faceletCircle.center.x *
+                                                ((float) imageWidth / processingWidth),
+                                                faceletCircle.center.y *
+                                                ((float) imageHeight / processingHeight)),
+                                        faceletCircle.originalRectWidth * upscalingRatio,
+                                        faceletCircle.originalRectHeight * upscalingRatio,
+                                        faceletCircle.angle);
+        }
+    }
+    return result;
 }

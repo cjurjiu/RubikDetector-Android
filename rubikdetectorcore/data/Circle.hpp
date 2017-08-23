@@ -8,18 +8,19 @@
 #include <opencv2/core/core.hpp>
 
 class Circle {
-private:
-    float computeAngle(cv::Point2f *points);
-
 public:
-    cv::Point2i center;
-    int radius;
+    cv::Point2f center;
+    float radius;
     int area;
     float angle;
+    float originalRectWidth;
+    float originalRectHeight;
 
     Circle();
 
-    Circle(cv::Point2f c, float r, float a);
+    Circle(const Circle &original);
+
+    Circle(const Circle &original, const cv::Point2f &centerOffset);
 
     Circle(const cv::RotatedRect &rect);
 
@@ -28,6 +29,9 @@ public:
     bool contains(cv::Point2i point) const;
 
     bool isEmpty() const;
+
+private:
+    float computeAngle(cv::Point2f *points);
 };
 
 

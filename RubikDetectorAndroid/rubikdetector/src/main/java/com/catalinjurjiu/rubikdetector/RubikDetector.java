@@ -3,16 +3,14 @@ package com.catalinjurjiu.rubikdetector;
 import android.support.annotation.IntDef;
 import android.util.Log;
 
-import java.util.Arrays;
-
 /**
  * Created by catalin on 11.07.2017.
  */
 
 public class RubikDetector {
 
-    public static final int NO_OFFSET = 0;
     public static final int NATIVE_DETECTOR_RELEASED = -1;
+    public static final int DATA_SIZE = 6;
 
     static {
         System.loadLibrary("opencv_java3");
@@ -27,9 +25,10 @@ public class RubikDetector {
     private int rgbaImageOffset;
     private int rgbaImageSize;
     private int nv21ImageSize;
+    private int nv21ImageOffset;
 
     public RubikDetector() {
-        cubeDetectorHandle = createNativeObject(null);
+        this(null);
     }
 
     public RubikDetector(String storagePath) {
@@ -38,17 +37,28 @@ public class RubikDetector {
 
     public void setImageDimensions(int width, int height) {
         if (cubeDetectorHandle != NATIVE_DETECTOR_RELEASED) {
+            nativeSetImageDimensions(cubeDetectorHandle, width, height);
             this.width = width;
             this.height = height;
-            this.totalRequiredMemory = width * height * 4 + width * (height + height / 2);
-            this.rgbaImageOffset = width * (height + height / 2);
-            this.rgbaImageSize = width * height * 4;
-            this.nv21ImageSize = width * (height + height / 2);
-            nativeSetImageDimensions(cubeDetectorHandle, width, height);
+            this.totalRequiredMemory = nativeGetTotalRequiredMemory(cubeDetectorHandle);
+            this.rgbaImageOffset = nativeGetRgbaImageOffset(cubeDetectorHandle);
+            this.rgbaImageSize = nativeGetRgbaImageSize(cubeDetectorHandle);
+            this.nv21ImageSize = nativeGetNv21ImageSize(cubeDetectorHandle);
+            this.nv21ImageOffset = nativeGetNv21ImageOffset(cubeDetectorHandle);
         }
     }
 
     private native void nativeSetImageDimensions(long nativeDetectorRef, int width, int height);
+
+    private native int nativeGetTotalRequiredMemory(long cubeDetectorHandle);
+
+    private native int nativeGetRgbaImageOffset(long cubeDetectorHandle);
+
+    private native int nativeGetRgbaImageSize(long cubeDetectorHandle);
+
+    private native int nativeGetNv21ImageSize(long cubeDetectorHandle);
+
+    private native int nativeGetNv21ImageOffset(long cubeDetectorHandle);
 
     public void setDebuggable(boolean debuggable) {
         if (cubeDetectorHandle != NATIVE_DETECTOR_RELEASED) {
@@ -86,20 +96,67 @@ public class RubikDetector {
     /**
      * Called from c++
      *
-     * @param faceletColors
+     * @param detectionResult
      */
     @SuppressWarnings("unused")
-    private void onFacetColorsDetected(int[] faceletColors) {
-        Log.d("Cata", "####Facelets discovered!!!!!!" + Arrays.toString(faceletColors));
+    private void onFacetColorsDetected(int[] detectionResult) {
+        Log.d("RubikResult", "####Facelets discovered!!!!!!");
+        RubikFacelet[][] result = decodeResult(detectionResult);
+        printResult(result);
         if (listener != null) {
-            listener.onCubeDetectionResult(to2DArray(faceletColors));
+            listener.onCubeDetectionResult(result);
         }
     }
 
-    private int[][] to2DArray(int colors[]) {
-        int[][] result = new int[3][3];
+    private void printResult(RubikFacelet[][] result) {
+        StringBuilder stringBuilder = new StringBuilder("Colors: {");
         for (int i = 0; i < 3; i++) {
-            System.arraycopy(colors, i * 3, result[i], 0, 3);
+            for (int j = 0; j < 3; j++) {
+                if (j == 0) {
+                    stringBuilder.append(" {");
+                }
+                switch (result[i][j].color) {
+                    case CubeColors.WHITE:
+                        stringBuilder.append("WHITE ");
+                        break;
+                    case CubeColors.YELLOW:
+                        stringBuilder.append("YELLOW ");
+                        break;
+                    case CubeColors.RED:
+                        stringBuilder.append("RED ");
+                        break;
+                    case CubeColors.BLUE:
+                        stringBuilder.append("BLUE ");
+                        break;
+                    case CubeColors.GREEN:
+                        stringBuilder.append("GREEN ");
+                        break;
+                    case CubeColors.ORANGE:
+                        stringBuilder.append("ORANGE ");
+                        break;
+
+                }
+                stringBuilder.append(", ");
+                stringBuilder.append(result[i][j].angle);
+                if (j == 2) {
+                    stringBuilder.append("} ");
+                }
+            }
+        }
+        stringBuilder.append("}");
+        Log.d("RubikResult", "Result: " + stringBuilder.toString());
+    }
+
+    private RubikFacelet[][] decodeResult(int[] detectionResult) {
+        RubikFacelet[][] result = new RubikFacelet[3][3];
+        for (int i = 0; i < detectionResult.length; i += DATA_SIZE) {
+            result[i / (3 * DATA_SIZE)][(i % (3 * DATA_SIZE)) / DATA_SIZE] = new RubikFacelet(
+                    detectionResult[i],
+                    new Point2d(detectionResult[i + 1] / 100000f, detectionResult[i + 2] / 100000f),
+                    detectionResult[i + 3] / 100000f,
+                    detectionResult[i + 4] / 100000f,
+                    detectionResult[i + 5] / 100000f
+            );
         }
         return result;
     }
@@ -122,7 +179,7 @@ public class RubikDetector {
     }
 
     public int getNv21ImageOffset() {
-        return NO_OFFSET;
+        return nv21ImageOffset;
     }
 
     public int getNv21ImageSize() {
@@ -148,6 +205,6 @@ public class RubikDetector {
     }
 
     public interface OnCubeDetectionResultListener {
-        void onCubeDetectionResult(int colors[][]);
+        void onCubeDetectionResult(RubikFacelet facelets[][]);
     }
 }

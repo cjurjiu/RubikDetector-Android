@@ -7,12 +7,11 @@
 #include <opencv2/imgproc.hpp>
 #include "Utils.hpp"
 #include "../detectors/cubedetector/CubeDetector.hpp"
-#include "CrossLog.hpp"
 
 namespace utils {
-    float pointsDistance(const cv::Point &firstPoint, const cv::Point &secondPoint) {
-        return std::sqrt((float) ((firstPoint.x - secondPoint.x) * (firstPoint.x - secondPoint.x) +
-                                  (firstPoint.y - secondPoint.y) * (firstPoint.y - secondPoint.y)));
+    float pointsDistance(const cv::Point2f &firstPoint, const cv::Point2f &secondPoint) {
+        return std::sqrt((firstPoint.x - secondPoint.x) * (firstPoint.x - secondPoint.x) +
+                                  (firstPoint.y - secondPoint.y) * (firstPoint.y - secondPoint.y));
     }
 
     bool quickSaveImage(const cv::Mat &mat, const std::string path, const int frameNumber,
@@ -51,11 +50,11 @@ namespace utils {
                     const cv::Scalar color, const float scalingFactor,
                     const int radiusModifier, const bool fillArea) {
         cv::circle(drawingCanvas, circle.center,
-                   (circle.radius - radiusModifier < 0) ?
-                   circle.radius : circle.radius - (int) round(radiusModifier * scalingFactor),
+                   (int)round((circle.radius - radiusModifier < 0) ?
+                   circle.radius : circle.radius - (int) round(radiusModifier * scalingFactor)),
                    color,
                 //-1 means the circle will be filled, otherwise draw it with a 2px stroke
-                   fillArea ? -1 : (int) round(2 * scalingFactor),
+                   fillArea ? -1 : (int) round(1 * scalingFactor),
                    CV_AA, 0);
     }
 
@@ -77,5 +76,12 @@ namespace utils {
                            fillArea);
             }
         }
+    }
+
+    /* return current time in milliseconds */
+    double getCurrentTimeMillis() {
+        struct timespec res;
+        clock_gettime(CLOCK_REALTIME, &res);
+        return 1000.0 * res.tv_sec + (double) res.tv_nsec / 1e6;
     }
 }

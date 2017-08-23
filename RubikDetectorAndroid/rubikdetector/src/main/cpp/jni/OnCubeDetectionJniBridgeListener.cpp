@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "OnCubeDetectionJniBridgeListener.hpp"
 #include "../rubikdetectorcore/utils/CrossLog.hpp"
+#include "../rubikdetectorcore/data/RubikFacelet.hpp"
 
 OnCubeDetectionJniBridgeListener::OnCubeDetectionJniBridgeListener(JNIEnv *jniEnv,
                                                                    jobject jobjc) {
@@ -35,18 +36,24 @@ OnCubeDetectionJniBridgeListener::~OnCubeDetectionJniBridgeListener() {
 }
 
 void OnCubeDetectionJniBridgeListener::onCubeDetectionResult(
-        const std::vector<std::vector<int>> result) const {
+        const std::vector<std::vector<RubikFacelet>> result) const {
     LOG_DEBUG("RubikJniPart.cpp",
               "OnCubeDetectionJniBridgeListener -> notifying java side of result.");
     JNIEnv *currentEnvironment;
     int status = javaVM->GetEnv((void **) &currentEnvironment, JNI_VERSION_1_6);
     if (status == JNI_OK) {
         //flatten the 2D color array, in order to send it over JNI
-        jint flattenedResult[9];
-        size_t data_size = 9;
+        size_t data_size = 9 * 6;
+        jint flattenedResult[data_size];
+        jint *currentPos = flattenedResult;
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                flattenedResult[i * 3 + j] = (jint) result[i][j];
+                *(currentPos++) = result[i][j].color;
+                *(currentPos++) = (int) (result[i][j].center.x * 100000);
+                *(currentPos++) = (int) (result[i][j].center.y * 100000);
+                *(currentPos++) = (int) (result[i][j].width * 100000);
+                *(currentPos++) = (int) (result[i][j].height * 100000);
+                *(currentPos++) = (int) (result[i][j].angle * 100000);
             }
         }
 

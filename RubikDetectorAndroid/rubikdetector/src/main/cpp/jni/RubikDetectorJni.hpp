@@ -45,6 +45,32 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetImageDimensions(JNIE
                                                                             jlong cubeDetectorHandle,
                                                                             jint width,
                                                                             jint height);
+
+JNIEXPORT jint JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetTotalRequiredMemory(JNIEnv *env,
+                                                                                jobject instance,
+                                                                                jlong cubeDetectorHandle);
+
+JNIEXPORT jint JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetRgbaImageOffset(JNIEnv *env,
+                                                                            jobject instance,
+                                                                            jlong cubeDetectorHandle);
+
+JNIEXPORT jint JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetRgbaImageSize(JNIEnv *env,
+                                                                          jobject instance,
+                                                                          jlong cubeDetectorHandle);
+
+JNIEXPORT jint JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetNv21ImageSize(JNIEnv *env,
+                                                                          jobject instance,
+                                                                          jlong cubeDetectorHandle);
+
+JNIEXPORT jint JNICALL
+Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetNv21ImageOffset(JNIEnv *env,
+                                                                            jobject instance,
+                                                                            jlong cubeDetectorHandle);
+
 #ifdef __cplusplus
 }
 #endif

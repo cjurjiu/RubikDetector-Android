@@ -2,9 +2,15 @@ package com.catalinjurjiu.rubikdetectordemo;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ImageFormat;
+import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,12 +20,15 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import com.catalinjurjiu.rubikdetector.Point2d;
 import com.catalinjurjiu.rubikdetector.RubikDetector;
+import com.catalinjurjiu.rubikdetector.RubikFacelet;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class MainActivity extends Activity implements SurfaceHolder.Callback {
+public class MainActivity extends Activity implements SurfaceHolder.Callback, RubikDetector.OnCubeDetectionResultListener {
 
 //    public static final int PREVIEW_WIDTH = 320;
 //    public static final int PREVIEW_HEIGHT = 240;
@@ -29,8 +38,11 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 //    public static final int PREVIEW_WIDTH = 720;
 //    public static final int PREVIEW_HEIGHT = 480;
 
-    public static final int PREVIEW_WIDTH = 1280;
-    public static final int PREVIEW_HEIGHT = 960;
+//    public static final int PREVIEW_WIDTH = 1280;
+//    public static final int PREVIEW_HEIGHT = 960;
+
+    public static final int PREVIEW_WIDTH = 1920;
+    public static final int PREVIEW_HEIGHT = 1080;
 
 //    public static final int PREVIEW_WIDTH = 1024;
 //    public static final int PREVIEW_HEIGHT = 768;
@@ -49,20 +61,27 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     private ProcessingThread processingThread;
     private ByteBuffer preallocatedBuffer;
     private Bitmap preallocatedBitmap;
+    private RubikFacelet[][] facelets;
+    private Paint paint;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 //        rubikDetector = new RubikDetector("/storage/emulated/0/RubikResults");
-        rubikDetector = new RubikDetector(null);
+        rubikDetector = new RubikDetector();
         rubikDetector.setDebuggable(true);
+        rubikDetector.setOnCubeDetectionResultListener(this);
         rubikDetector.setDrawFoundFacelets(true);
         rubikDetector.setImageDimensions(PREVIEW_WIDTH, PREVIEW_HEIGHT);
 
         preallocatedBuffer = ByteBuffer.allocate(rubikDetector.getRgbaImageSize());
         preallocatedBitmap = Bitmap.createBitmap(PREVIEW_WIDTH, PREVIEW_HEIGHT, Bitmap.Config.ARGB_8888);
-
+        paint = new Paint();
+        paint.setAntiAlias(true);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(5);
+        paint.setColor(Color.DKGRAY);
         processingThread = new ProcessingThread("RubikProcessingThread");
         processingThread.start();
         surfaceView = (SurfaceView) findViewById(R.id.camera_surface_view);
@@ -95,6 +114,42 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         processingThread.quit();
         rubikDetector.releaseResources();
         super.onDestroy();
+    }
+
+    @Override
+    public void onCubeDetectionResult(RubikFacelet[][] facelets) {
+        this.facelets = facelets;
+        if (facelets != null) {
+            Point2d[] pts2 = facelets[0][0].getPoints();
+            Log.d("RubikResult", String.format(
+                    "Java Result facelet points: p[0]:{ %.2f, %.2f}, p[1]:{ %.2f, %.2f}, p[2]:{ %.2f, %.2f}, p[3]:{ %.2f, %.2f}",
+                    pts2[0].x, pts2[0].y, pts2[1].x, pts2[1].y, pts2[2].x, pts2[2].y, pts2[3].x,
+                    pts2[3].y));
+        }
+    }
+
+    private void drawFaceletsOnCanvas(Canvas canvas, RubikFacelet[][] facelets, Paint paint) {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                Point2d[] points = facelets[i][j].getPoints();
+                Path path = new Path();
+                path.moveTo(points[0].x, points[0].y);
+                path.lineTo(points[1].x, points[1].y);
+
+                path.moveTo(points[1].x, points[1].y);
+                path.lineTo(points[2].x, points[2].y);
+
+                path.moveTo(points[2].x, points[2].y);
+                path.lineTo(points[3].x, points[3].y);
+
+                path.moveTo(points[3].x, points[3].y);
+                path.lineTo(points[0].x, points[0].y);
+
+                canvas.drawPath(path, paint);
+
+                canvas.drawCircle(facelets[i][j].center.x, facelets[i][j].center.y, 10, paint);
+            }
+        }
     }
 
     private class ProcessingThread extends HandlerThread implements Camera.PreviewCallback {
@@ -196,7 +251,14 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             preallocatedBitmap.copyPixelsFromBuffer(preallocatedBuffer);
 
             try {
+//                canvas.drawBitmap(bitmapFromNv21, srcRect, destRect, null);
                 canvas.drawBitmap(preallocatedBitmap, srcRect, destRect, null);
+                if (facelets != null) {
+                    Log.d("RubikResult", "drawing facelets!");
+                    drawFaceletsOnCanvas(canvas, facelets, paint);
+                } else {
+                    Log.d("RubikResult", "facelets are null!");
+                }
             } catch (Exception e) {
                 Log.w("Cata", "Exception while rendering", e);
             } finally {
@@ -204,13 +266,13 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
         }
 
-//        private Bitmap getAndroidBitmapFromNV21(byte[] data) {
-//            ByteArrayOutputStream out = new ByteArrayOutputStream();
-//            YuvImage yuvImage = new YuvImage(data, ImageFormat.NV21, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height, null);
-//            yuvImage.compressToJpeg(new Rect(0, 0, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height), 50, out);
-//            byte[] imageBytes = out.toByteArray();
-//            return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-//        }
+        private Bitmap getAndroidBitmapFromNV21(byte[] data) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            YuvImage yuvImage = new YuvImage(data, ImageFormat.NV21, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height, null);
+            yuvImage.compressToJpeg(new Rect(0, 0, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height), 50, out);
+            byte[] imageBytes = out.toByteArray();
+            return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+        }
 
         private void startCameraInternal() {
             camera.startPreview();
@@ -228,7 +290,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {
+            Log.d("RubikMemoryInfo", "onPreviewFrame, data buffer size: " + data.length);
             if (rubikDetector.isActive()) {
+                facelets = null;
                 renderFrameInternal(data);
             }
             camera.addCallbackBuffer(data);

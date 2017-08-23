@@ -12,7 +12,7 @@ namespace cv {
 }
 
 namespace utils {
-    float pointsDistance(const cv::Point &firstPoint, const cv::Point &secondPoint);
+    float pointsDistance(const cv::Point2f &firstPoint, const cv::Point2f &secondPoint);
 
     bool quickSaveImage(const cv::Mat &mat, const std::string path, const int frameNumber,
                         const int regionId);
@@ -30,5 +30,7 @@ namespace utils {
     void drawCircles(cv::Mat &drawingCanvas, const std::vector<std::vector<Circle>> circles,
                      const cv::Scalar color, const float scalingFactor = 1,
                      const int radiusModifier = 0, const bool fillArea = false);
+
+    double getCurrentTimeMillis();
 }
 #endif //RUBIKDETECTORDEMO_UTILS_HPP

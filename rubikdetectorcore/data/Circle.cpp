@@ -25,27 +25,31 @@ float Circle::computeAngle(cv::Point2f *points) {
     return angle;
 }
 
-Circle::Circle() {
-    center = cv::Point2i(0, 0);
-    radius = 0;
-    area = 0;
-    angle = 0;
-}
+Circle::Circle() : center(cv::Point2i(0, 0)), radius(0),
+                   area(0), angle(0), originalRectWidth(0),
+                   originalRectHeight(0) {}
 
-Circle::Circle(cv::Point2f c, float r, float a) {
-    center = cv::Point2i((int) roundf(c.x), (int) roundf(c.y));
-    radius = (int) roundf(r);
-    area = (int) (CV_PI * r * r);
-    angle = a;
+
+Circle::Circle(const Circle &original) : Circle(original, cv::Point(0, 0)) {}
+
+Circle::Circle(const Circle &original, const cv::Point2f &centerOffset) {
+    center = original.center + centerOffset;
+    radius = original.radius;
+    area = original.area;
+    angle = original.angle;
+    originalRectWidth = original.originalRectWidth;
+    originalRectHeight = original.originalRectHeight;
 }
 
 Circle::Circle(const cv::RotatedRect &rect) {
-    center = cv::Point2i((int) roundf(rect.center.x), (int) round(rect.center.y));
-    radius = (int) roundf(std::min(rect.size.width, rect.size.height) / 2);
-    area = (int) roundf((float) CV_PI * radius * radius);
-    cv::Point_<float> pts[4];
+    center = rect.center;
+    radius = std::min(rect.size.width, rect.size.height) / 2;
+    area = (int) round(CV_PI * radius * radius);
+    cv::Point2f pts[4];
     rect.points(pts);
     angle = computeAngle(pts);
+    originalRectWidth = rect.size.width;
+    originalRectHeight = rect.size.height;
 }
 
 bool Circle::contains(cv::Point2f point) const {
@@ -59,5 +63,6 @@ bool Circle::contains(cv::Point2i point) const {
 }
 
 bool Circle::isEmpty() const {
-    return (int) angle == 0 && area == 0 && radius == 0 && center.x == 0 && center.y == 0;
+    return (int) angle == 0 && area == 0 && (int) radius == 0 && (int) center.x == 0 &&
+           (int) center.y == 0;
 }

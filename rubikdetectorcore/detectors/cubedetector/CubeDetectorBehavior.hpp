@@ -52,6 +52,8 @@
 
 class OnCubeDetectionResultListener;
 
+class RubikFacelet;
+
 class CubeDetectorBehavior {
 public:
     CubeDetectorBehavior();
@@ -128,8 +130,19 @@ private:
     float upscalingRatio;
     int maxShapeSideSize;
     int minValidShapeArea;
+    int processingWidth;
+    int processingHeight;
+    int largestDimension;
+    float downscalingRatio;
+    bool needsResize;
+    int nv21ImageOffset;
+    int processingRgbaImageOffset;
+    int processingRgbaImageSize;
+    int processingGrayImageOffset;
+    int processingGrayImageSize;
 
-    int getSmallestMargin(Circle referenceCircle, std::vector<Circle> validCircles);
+    float getSmallestMargin(Circle referenceCircle,
+                            std::vector<Circle> validCircles);
 
     int getPositionInVector(int i, int j);
 
@@ -137,9 +150,10 @@ private:
 
     void performCannyProcessing(cv::Mat &frameRgba, cv::Mat &frameGray, cv::Mat &resultFrame);
 
-    void saveDebugData(const cv::Mat &currentFrame,
+    void saveDebugData(const cv::Mat &frame,
                        const std::vector<cv::RotatedRect> &filteredRectangles,
-                       const Circle &referenceCircle, const std::vector<Circle> &potentialFacelets,
+                       const Circle &referenceCircle,
+                       const std::vector<Circle> &potentialFacelets,
                        const std::vector<Circle> &estimatedFacelets,
                        const std::vector<std::vector<int>> colors);
 
@@ -156,7 +170,8 @@ private:
                           int referenceCircleIndex) const;
 
     std::vector<Circle>
-    estimateRemainingFaceletsPos(const Circle &referenceCircle, int diameterWithMargin) const;
+    estimateRemainingFaceletsPos(const Circle &referenceCircle,
+                                 float margin) const;
 
     std::vector<std::vector<Circle>>
     matchEstimatedWithPotentialFacelets(const std::vector<Circle> &potentialFacelets,
@@ -172,21 +187,24 @@ private:
                       const std::vector<std::vector<Circle>> facetModel);
 
     void
-    drawFoundFacelets(cv::Mat &procRgbaFrame, const std::vector<std::vector<Circle>> &facetModel,
-                      const std::vector<std::vector<int>> &colors);
+    drawFoundFaceletsCircles(cv::Mat &procRgbaFrame,
+                             std::vector<std::vector<RubikFacelet>> &facetModel);
+
+    void
+    drawFoundFaceletsRectangles(cv::Mat &procRgbaFrame,
+                                std::vector<std::vector<RubikFacelet>> &facetModel);
 
     cv::Mat saveFilteredRectangles(const cv::Mat &currentFrame,
-                                   const std::vector<cv::RotatedRect> &filteredRectangles) const;
+                                   const std::vector<cv::RotatedRect> &filteredRectangles,
+                                   int frameNr) const;
 
-    void saveWholeFrame(const cv::Mat &currentFrame) const;
+    void saveWholeFrame(const cv::Mat &currentFrame, int frameNr) const;
 
     void drawRectangleToMat(const cv::Mat &currentFrame, const cv::RotatedRect &rotatedRect,
                             const cv::Scalar color = cv::Scalar(0, 255, 0)) const;
 
-    int processingWidth;
-    int processingHeight;
-    int largestDimension;
-    float downscalingRatio;
+    std::vector<std::vector<RubikFacelet>>
+    createResult(std::vector<std::vector<int>> vector, std::vector<std::vector<Circle>> model);
 };
 
 #endif //RUBIKDETECTORDEMO_CUBEDETECTORBEHAVIOR_HPP
