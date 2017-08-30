@@ -1,2 +1,2 @@
-include ':app', ':rubikdetector'
+include ':app', ':rubikdetector', ':fotoapparatconnector'
 include ':openCVLibrary320'

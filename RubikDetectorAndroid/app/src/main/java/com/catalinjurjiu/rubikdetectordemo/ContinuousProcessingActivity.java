@@ -27,7 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class MainActivity extends Activity implements SurfaceHolder.Callback {
+public class ContinuousProcessingActivity extends Activity implements SurfaceHolder.Callback {
 
 //    public static final int PREVIEW_WIDTH = 320;
 //    public static final int PREVIEW_HEIGHT = 240;
@@ -41,11 +41,11 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 //    public static final int PREVIEW_WIDTH = 1280;
 //    public static final int PREVIEW_HEIGHT = 960;
 
-//    public static final int PREVIEW_WIDTH = 1920;
-//    public static final int PREVIEW_HEIGHT = 1080;
+    public static final int PREVIEW_WIDTH = 1920;
+    public static final int PREVIEW_HEIGHT = 1080;
 
-    public static final int PREVIEW_WIDTH = 1024;
-    public static final int PREVIEW_HEIGHT = 768;
+//    public static final int PREVIEW_WIDTH = 1024;
+//    public static final int PREVIEW_HEIGHT = 768;
 
 //    public static final int PREVIEW_WIDTH = 800;
 //    public static final int PREVIEW_HEIGHT = 600;
@@ -63,18 +63,19 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     private Bitmap preallocatedBitmap;
     private Paint paint;
 
+    private int androidImageFormat = ImageFormat.NV21;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.layout_activity_continuous_processing);
 //        rubikDetector = new RubikDetector("/storage/emulated/0/RubikResults");
         rubikDetector = new RubikDetector();
         rubikDetector.setDebuggable(true);
-//        rubikDetector.setDrawFoundFacelets(true);
-        rubikDetector.setDrawFoundFacelets(false);
-        rubikDetector.setImageDimensions(PREVIEW_WIDTH, PREVIEW_HEIGHT);
+        rubikDetector.setDrawFoundFacelets(true);
+        rubikDetector.setImageProperties(PREVIEW_WIDTH, PREVIEW_HEIGHT, RubikDetectorUtils.convertAndroidImageFormat(androidImageFormat));
 
-        preallocatedBuffer = ByteBuffer.allocate(rubikDetector.getRgbaImageSize());
+        preallocatedBuffer = ByteBuffer.allocate(rubikDetector.getResultFrameByteCount());
         preallocatedBitmap = Bitmap.createBitmap(PREVIEW_WIDTH, PREVIEW_HEIGHT, Bitmap.Config.ARGB_8888);
         paint = new Paint();
         paint.setAntiAlias(true);
@@ -168,11 +169,12 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             camera = Camera.open(0);
             Camera.Parameters cameraParameters = camera.getParameters();
             cameraParameters.setPreviewSize(PREVIEW_WIDTH, PREVIEW_HEIGHT);
+            cameraParameters.setPreviewFormat(androidImageFormat);
             camera.setParameters(cameraParameters);
 
-            camera.addCallbackBuffer(ByteBuffer.allocateDirect(rubikDetector.getTotalRequiredMemory()).array());
-            camera.addCallbackBuffer(ByteBuffer.allocateDirect(rubikDetector.getTotalRequiredMemory()).array());
-            camera.addCallbackBuffer(ByteBuffer.allocateDirect(rubikDetector.getTotalRequiredMemory()).array());
+            camera.addCallbackBuffer(ByteBuffer.allocateDirect(rubikDetector.getRequiredMemory()).array());
+            camera.addCallbackBuffer(ByteBuffer.allocateDirect(rubikDetector.getRequiredMemory()).array());
+            camera.addCallbackBuffer(ByteBuffer.allocateDirect(rubikDetector.getRequiredMemory()).array());
             camera.setPreviewCallbackWithBuffer(this);
             try {
                 surfaceTexture = new SurfaceTexture(13242);
@@ -188,31 +190,32 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             if (canvas == null) {
                 return;
             }
+
             Rect srcRect = new Rect(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT);
             Rect destRect = new Rect(0, 0, surfaceView.getWidth(), (int) (surfaceView.getWidth() * (PREVIEW_HEIGHT / (float) PREVIEW_WIDTH)));
 
             RubikFacelet[][] facelets = rubikDetector.findCube(data);
 
             preallocatedBuffer.rewind();
-            preallocatedBuffer.put(data, rubikDetector.getRgbaImageOffset(), rubikDetector.getRgbaImageSize());
+            preallocatedBuffer.put(data, rubikDetector.getResultFrameBufferOffset(), rubikDetector.getResultFrameByteCount());
             preallocatedBuffer.rewind();
             Log.d("RubikMemoryInfo", "preallocatedBuffer capacity: " + preallocatedBuffer.capacity() + " buffer is direct: " + preallocatedBuffer.isDirect() + " remaining:" + preallocatedBuffer.remaining());
             preallocatedBitmap.copyPixelsFromBuffer(preallocatedBuffer);
 
             try {
                 canvas.drawBitmap(preallocatedBitmap, srcRect, destRect, null);
-                if (facelets != null) {
-                    facelets = RubikDetectorUtils.rescaleResults(facelets,
-                            rubikDetector.getFrameWidth(),
-                            rubikDetector.getFrameHeight(),
-                            destRect.width(),
-                            destRect.height());
-                    Log.d("RubikResult", "drawing facelets!");
-//                    RubikDetectorUtils.drawFaceletsAsRectangles(facelets, canvas, paint);
-                    RubikDetectorUtils.drawFaceletsAsCircles(facelets, canvas, paint);
-                } else {
-                    Log.d("RubikResult", "facelets are null!");
-                }
+//                if (facelets != null) {
+//                    facelets = RubikDetectorUtils.rescaleResults(facelets,
+//                            rubikDetector.getFrameWidth(),
+//                            rubikDetector.getFrameHeight(),
+//                            destRect.width(),
+//                            destRect.height());
+//                    Log.d("RubikResult", "drawing facelets!");
+////                    RubikDetectorUtils.drawFaceletsAsRectangles(facelets, canvas, paint);
+//                    RubikDetectorUtils.drawFaceletsAsCircles(facelets, canvas, paint);
+//                } else {
+//                    Log.d("RubikResult", "facelets are null!");
+//                }
             } catch (Exception e) {
                 Log.w("Cata", "Exception while rendering", e);
             } finally {

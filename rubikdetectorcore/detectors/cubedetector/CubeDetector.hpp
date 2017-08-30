@@ -16,12 +16,12 @@ class CubeDetectorBehavior;
 
 class ImageSaver;
 
-static enum CubeColors {
+enum CubeColors {
     RED, ORANGE, YELLOW, GREEN, BLUE, WHITE
 };
 
-static enum ColorSpace {
-    YUV_NV21, YUV_NV12, YUV_I420, YUV_YV12
+enum ImageFormat {
+    YUV_NV21, YUV_NV12, YUV_I420, YUV_YV12, RGBA8888
 };
 
 class CubeDetector {
@@ -38,7 +38,9 @@ public:
 
     void setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener);
 
-    void setImageProperties(int width, int height, int colorSpace = YUV_NV21);
+    void setImageProperties(int width, int height, int imageFormat = YUV_NV21);
+
+    void overrideInputFrameWithResultFrame(const uint8_t *imageData);
 
     void setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets);
 
@@ -46,15 +48,15 @@ public:
 
     bool isDebuggable();
 
-    int getTotalRequiredMemory();
+    int getRequiredMemory();
 
-    int getRgbaImageOffset();
+    int getOutputFrameBufferOffset();
 
-    int getRgbaImageSize();
+    int getOutputFrameByteCount();
 
-    int getNv21ImageSize();
+    int getInputFrameByteCount();
 
-    int getNv21ImageOffset();
+    int getInputFrameBufferOffset();
 
 private:
     std::unique_ptr<CubeDetectorBehavior> behavior;

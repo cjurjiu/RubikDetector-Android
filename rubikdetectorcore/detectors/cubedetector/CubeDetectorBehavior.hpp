@@ -41,14 +41,6 @@
 #define VALUE 2
 #endif
 
-#ifndef  CANNY_DETECTION
-#define CANNY_DETECTION 1
-#endif
-
-#ifndef  CANNY_DETECTION_DEMO
-#define CANNY_DETECTION_DEMO 3
-#endif
-
 class OnCubeDetectionResultListener;
 
 class RubikFacelet;
@@ -68,7 +60,9 @@ public:
 
     void setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener);
 
-    void setImageProperties(int width, int height, int colorSpace);
+    void setImageProperties(int width, int height, int imageFormat);
+
+    void overrideInputFrameWithResultFrame(const uint8_t *imageData);
 
     void setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets);
 
@@ -76,15 +70,15 @@ public:
 
     bool isDebuggable();
 
-    int getTotalRequiredMemory();
+    int getRequiredMemory();
 
-    int getRgbaImageOffset();
+    int getOutputFrameBufferOffset();
 
-    int getRgbaImageSize();
+    int getOutputFrameByteCount();
 
-    int getNv21ImageSize();
+    int getInputFrameByteCount();
 
-    int getNv21ImageOffset();
+    int getInputBufferFrameOffset();
 
 private:
 
@@ -101,6 +95,10 @@ private:
     static constexpr int CANNY_THRESHOLD_RATIO = 3;
 
     static constexpr int CANNY_APERTURE_SIZE = 5;
+
+    static constexpr int NO_CONVERSION_NEEDED = 2504;
+
+    static constexpr int NO_OFFSET = 0;
 
     std::unique_ptr<OnCubeDetectionResultListener> onCubeDetectionResultListener;
 
@@ -119,9 +117,9 @@ private:
     int imageHeight;
     int imageWidth;
     int totalRequiredMemory;
-    int rgbaImageOffset;
-    int rgbaImageSize;
-    int nv21ImageSize;
+    int outputRgbaImageOffset;
+    int outputRgbaImageByteCount;
+    int inputImageByteCount;
     float upscalingRatio;
     int maxShapeSideSize;
     int minValidShapeArea;
@@ -130,11 +128,12 @@ private:
     int largestDimension;
     float downscalingRatio;
     bool needsResize;
-    int nv21ImageOffset;
+    int inputImageOffset;
     int processingRgbaImageOffset;
-    int processingRgbaImageSize;
+    int processingRgbaImageByteCount;
     int processingGrayImageOffset;
     int processingGrayImageSize;
+    int inputImageFormat;
     int cvColorConversionCode;
 
     std::vector<std::vector<RubikFacelet>> findCubeInternal(const uint8_t *imageData);

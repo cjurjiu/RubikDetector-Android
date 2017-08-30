@@ -45,19 +45,23 @@ void CubeDetectorBehavior::setOnCubeDetectionResultListener(
     onCubeDetectionResultListener = std::unique_ptr<OnCubeDetectionResultListener>(listener);
 }
 
-void CubeDetectorBehavior::setImageProperties(int width, int height, int colorSpace) {
-    switch (colorSpace) {
-        case YUV_NV21:
+void CubeDetectorBehavior::setImageProperties(int width, int height, int imageFormat) {
+    CubeDetectorBehavior::inputImageFormat = imageFormat;
+    switch (imageFormat) {
+        case ImageFormat::YUV_NV21:
             cvColorConversionCode = cv::COLOR_YUV2RGBA_NV21;
             break;
-        case YUV_NV12:
+        case ImageFormat::YUV_NV12:
             cvColorConversionCode = cv::COLOR_YUV2RGBA_NV12;
             break;
-        case YUV_I420:
+        case ImageFormat::YUV_I420:
             cvColorConversionCode = cv::COLOR_YUV2RGBA_I420;
             break;
-        case YUV_YV12:
+        case ImageFormat::YUV_YV12:
             cvColorConversionCode = cv::COLOR_YUV2RGBA_YV12;
+            break;
+        case ImageFormat::RGBA8888:
+            cvColorConversionCode = CubeDetectorBehavior::NO_CONVERSION_NEEDED;
             break;
         default:
             cvColorConversionCode = cv::COLOR_YUV2RGBA_NV21;
@@ -90,21 +94,43 @@ void CubeDetectorBehavior::setImageProperties(int width, int height, int colorSp
     }
     needsResize = imageHeight != processingHeight || imageWidth != processingWidth;
 
-    rgbaImageSize = width * height * 4;
-    rgbaImageOffset = width * (height + height / 2);
-    nv21ImageSize = width * (height + height / 2);
-    nv21ImageOffset = 0;
+    if (imageFormat != ImageFormat::RGBA8888) {
+        //image is in one of the supported YUV formats
+        outputRgbaImageByteCount = width * height * 4;
+        outputRgbaImageOffset = width * (height + height / 2);
+        inputImageByteCount = width * (height + height / 2);
+        inputImageOffset = CubeDetectorBehavior::NO_OFFSET;
 
-    if (needsResize) {
-        processingRgbaImageOffset = rgbaImageSize + nv21ImageSize;
-        processingRgbaImageSize = processingHeight * processingWidth * 4;
-        processingGrayImageOffset = rgbaImageSize + nv21ImageSize + processingRgbaImageSize;
-        processingGrayImageSize = processingHeight * processingWidth;
+        if (needsResize) {
+            processingRgbaImageOffset = outputRgbaImageByteCount + inputImageByteCount;
+            processingRgbaImageByteCount = processingHeight * processingWidth * 4;
+            processingGrayImageOffset =
+                    outputRgbaImageByteCount + inputImageByteCount + processingRgbaImageByteCount;
+            processingGrayImageSize = processingHeight * processingWidth;
 
-        totalRequiredMemory = rgbaImageSize + nv21ImageSize +
-                              processingGrayImageSize + processingRgbaImageSize;
+            totalRequiredMemory = outputRgbaImageByteCount + inputImageByteCount +
+                                  processingGrayImageSize + processingRgbaImageByteCount;
+        } else {
+            totalRequiredMemory = outputRgbaImageByteCount + inputImageByteCount;
+        }
     } else {
-        totalRequiredMemory = rgbaImageSize + nv21ImageSize;
+        inputImageByteCount = outputRgbaImageByteCount = width * height * 4;
+        inputImageOffset = outputRgbaImageOffset = CubeDetectorBehavior::NO_OFFSET;
+
+        if (needsResize) {
+            processingRgbaImageOffset = outputRgbaImageByteCount;
+            processingRgbaImageByteCount = processingHeight * processingWidth * 4;
+            processingGrayImageOffset = outputRgbaImageByteCount + processingRgbaImageByteCount;
+            processingGrayImageSize = processingHeight * processingWidth;
+
+            totalRequiredMemory =
+                    outputRgbaImageByteCount + processingRgbaImageByteCount +
+                    processingGrayImageSize;
+        } else {
+            processingGrayImageSize = processingHeight * processingWidth;
+            processingGrayImageOffset = outputRgbaImageByteCount;
+            totalRequiredMemory = outputRgbaImageByteCount + processingGrayImageSize;
+        }
     }
 
     minValidShapeArea = (int) (processingWidth * processingHeight *
@@ -112,6 +138,39 @@ void CubeDetectorBehavior::setImageProperties(int width, int height, int colorSp
     maxShapeSideSize = (int) (std::max(processingWidth, processingHeight) *
                               MIN_VALID_SHAPE_TO_IMAGE_SIDE_SIZE_RATIO);
 }
+
+void CubeDetectorBehavior::overrideInputFrameWithResultFrame(const uint8_t *imageData) {
+    if (inputImageFormat == ImageFormat::RGBA8888) {
+        //input frame is equal to output frame already, this would have no effect.
+        return;
+    }
+    cv::Mat yuvFrame = cv::Mat(imageHeight + imageHeight / 2, imageWidth, CV_8UC1,
+                               (uchar *) imageData + inputImageOffset);
+    cv::Mat rgbaFrame = cv::Mat(imageHeight, imageWidth, CV_8UC4,
+                                (uchar *) imageData + outputRgbaImageOffset);
+    int reverseColorConversionCode;
+    switch (inputImageFormat) {
+        case ImageFormat::YUV_I420:
+            reverseColorConversionCode = cv::COLOR_RGBA2YUV_I420;
+            break;
+        case ImageFormat::YUV_YV12:
+            reverseColorConversionCode = cv::COLOR_RGBA2YUV_YV12;
+            break;
+        default:
+            reverseColorConversionCode = NO_CONVERSION_NEEDED;
+    }
+
+    if (reverseColorConversionCode != NO_CONVERSION_NEEDED) {
+        cv::cvtColor(rgbaFrame, yuvFrame, reverseColorConversionCode);
+    } else {
+        if (inputImageFormat == ImageFormat::YUV_NV21) {
+            utils::encodeNV21(rgbaFrame, yuvFrame, imageWidth, imageHeight);
+        } else if (inputImageFormat == ImageFormat::YUV_NV12) {
+            utils::encodeNV12(rgbaFrame, yuvFrame, imageWidth, imageHeight);
+        }
+    }
+}
+
 
 void CubeDetectorBehavior::setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets) {
     CubeDetectorBehavior::shouldDrawFoundFacelets = shouldDrawFoundFacelets;
@@ -130,52 +189,257 @@ bool CubeDetectorBehavior::isDebuggable() {
     return debuggable;
 }
 
-int CubeDetectorBehavior::getTotalRequiredMemory() {
+int CubeDetectorBehavior::getRequiredMemory() {
     return totalRequiredMemory;
 }
 
-int CubeDetectorBehavior::getRgbaImageOffset() {
-    return rgbaImageOffset;
+int CubeDetectorBehavior::getOutputFrameBufferOffset() {
+    return outputRgbaImageOffset;
 }
 
-int CubeDetectorBehavior::getRgbaImageSize() {
-    return rgbaImageSize;
+int CubeDetectorBehavior::getOutputFrameByteCount() {
+    return outputRgbaImageByteCount;
 }
 
-int CubeDetectorBehavior::getNv21ImageSize() {
-    return nv21ImageSize;
+int CubeDetectorBehavior::getInputFrameByteCount() {
+    return inputImageByteCount;
 }
 
-int CubeDetectorBehavior::getNv21ImageOffset() {
-    return nv21ImageOffset;
+int CubeDetectorBehavior::getInputBufferFrameOffset() {
+    return inputImageOffset;
 }
 /**##### END PUBLIC API #####**/
 /**##### PRIVATE MEMBERS FROM HERE #####**/
 std::vector<std::vector<RubikFacelet>> CubeDetectorBehavior::findCubeInternal(
         const uint8_t *imageData) {
-    cv::Mat frameYuv(imageHeight + imageHeight / 2, imageWidth, CV_8UC1,
-                     (uchar *) imageData);
 
-    cv::Mat frameRgba(imageHeight, imageWidth, CV_8UC4,
-                      (uchar *) imageData + rgbaImageOffset);
+    cv::Mat outputFrameRgba(imageHeight, imageWidth, CV_8UC4,
+                            (uchar *) imageData + outputRgbaImageOffset);
 
-    cv::cvtColor(frameYuv, frameRgba, cvColorConversionCode);
+    cv::Mat processingFrameRgba;
+    cv::Mat processingFrameGrey;
 
-    cv::Mat procRgbaFrame;
-    cv::Mat frameGrey;
+    if (inputImageFormat != ImageFormat::RGBA8888) {
+        //YUV image, need to convert the output & processing frames to RGBA8888
+        cv::Mat frameYuv(imageHeight + imageHeight / 2, imageWidth, CV_8UC1,
+                         (uchar *) imageData);
+        cv::cvtColor(frameYuv, outputFrameRgba, cvColorConversionCode);
 
-    if (needsResize) {
-        procRgbaFrame = cv::Mat(processingHeight, processingWidth, CV_8UC4,
-                                (uchar *) imageData + processingRgbaImageOffset);
-        frameGrey = cv::Mat(processingHeight, processingWidth, CV_8UC1,
-                            (uchar *) imageData + processingGrayImageOffset);
-        cv::resize(frameRgba, procRgbaFrame, cv::Size(processingWidth, processingHeight));
-        cv::cvtColor(procRgbaFrame, frameGrey, CV_RGBA2GRAY);
+        if (needsResize) {
+            processingFrameRgba = cv::Mat(processingHeight, processingWidth, CV_8UC4,
+                                          (uchar *) imageData + processingRgbaImageOffset);
+            processingFrameGrey = cv::Mat(processingHeight, processingWidth, CV_8UC1,
+                                          (uchar *) imageData + processingGrayImageOffset);
+            cv::resize(outputFrameRgba, processingFrameRgba,
+                       cv::Size(processingWidth, processingHeight));
+            cv::cvtColor(processingFrameRgba, processingFrameGrey, CV_RGBA2GRAY);
+        } else {
+            processingFrameRgba = cv::Mat(outputFrameRgba);
+            processingFrameGrey = frameYuv(cv::Rect(0, 0, imageWidth, imageHeight));
+        }
+
     } else {
-        procRgbaFrame = cv::Mat(frameRgba);
-        frameGrey = frameYuv(cv::Rect(0, 0, imageWidth, imageHeight));
+        //input already in RGBA8888 format
+        processingFrameGrey = cv::Mat(processingHeight, processingWidth, CV_8UC1,
+                                      (uchar *) imageData + processingGrayImageOffset);
+        LOG_DEBUG("RubikMemoryInfo", "###################ALREADY RGBA");
+
+        LOG_DEBUG("RubikMemoryInfo",
+                  "outputFrameRgba: width: %d,\n"
+                          "height: %d,\n"
+                          "depth: %d,\n"
+                          "dataStart: %p,\n"
+                          "dataEnd: %p,\n"
+                          "dataLimit: %p,\n"
+                          "computedSize: %d\n"
+                          "GRAY: width: %d,\n"
+                          "height: %d,\n"
+                          "depth: %d,\n"
+                          "dataStart: %p,\n"
+                          "dataEnd: %p,\n"
+                          "dataLimit: %p,\n"
+                          "computedSize: %d\n",
+                  outputFrameRgba.cols,
+                  outputFrameRgba.rows,
+                  outputFrameRgba.depth(),
+                  (void *) outputFrameRgba.datastart,
+                  (void *) outputFrameRgba.dataend,
+                  (void *) outputFrameRgba.datalimit,
+                  outputFrameRgba.total() * outputFrameRgba.elemSize(),
+                  outputFrameRgba.cols,
+                  outputFrameRgba.rows,
+                  outputFrameRgba.depth(),
+                  (void *) outputFrameRgba.datastart,
+                  (void *) outputFrameRgba.dataend,
+                  (void *) outputFrameRgba.datalimit,
+                  outputFrameRgba.total() * outputFrameRgba.elemSize());
+
+        LOG_DEBUG("RubikMemoryInfo",
+                  "processingFrameGrey after alloc: width: %d,\n"
+                          "height: %d,\n"
+                          "depth: %d,\n"
+                          "dataStart: %p,\n"
+                          "dataEnd: %p,\n"
+                          "dataLimit: %p,\n"
+                          "computedSize: %d\n"
+                          "GRAY: width: %d,\n"
+                          "height: %d,\n"
+                          "depth: %d,\n"
+                          "dataStart: %p,\n"
+                          "dataEnd: %p,\n"
+                          "dataLimit: %p,\n"
+                          "computedSize: %d\n",
+                  processingFrameGrey.cols,
+                  processingFrameGrey.rows,
+                  processingFrameGrey.depth(),
+                  (void *) processingFrameGrey.datastart,
+                  (void *) processingFrameGrey.dataend,
+                  (void *) processingFrameGrey.datalimit,
+                  processingFrameGrey.total() * processingFrameGrey.elemSize(),
+                  processingFrameGrey.cols,
+                  processingFrameGrey.rows,
+                  processingFrameGrey.depth(),
+                  (void *) processingFrameGrey.datastart,
+                  (void *) processingFrameGrey.dataend,
+                  (void *) processingFrameGrey.datalimit,
+                  processingFrameGrey.total() * processingFrameGrey.elemSize());
+
+        if (needsResize) {
+            processingFrameRgba = cv::Mat(processingHeight, processingWidth, CV_8UC4,
+                                          (uchar *) imageData + processingRgbaImageOffset);
+
+            LOG_DEBUG("RubikMemoryInfo", "Needs resize");
+            LOG_DEBUG("RubikMemoryInfo",
+                      "processingFrameRgba after alloc: width: %d,\n"
+                              "height: %d,\n"
+                              "depth: %d,\n"
+                              "dataStart: %p,\n"
+                              "dataEnd: %p,\n"
+                              "dataLimit: %p,\n"
+                              "computedSize: %d\n"
+                              "GRAY: width: %d,\n"
+                              "height: %d,\n"
+                              "depth: %d,\n"
+                              "dataStart: %p,\n"
+                              "dataEnd: %p,\n"
+                              "dataLimit: %p,\n"
+                              "computedSize: %d\n",
+                      processingFrameRgba.cols,
+                      processingFrameRgba.rows,
+                      processingFrameRgba.depth(),
+                      (void *) processingFrameRgba.datastart,
+                      (void *) processingFrameRgba.dataend,
+                      (void *) processingFrameRgba.datalimit,
+                      processingFrameRgba.total() * processingFrameRgba.elemSize(),
+                      processingFrameRgba.cols,
+                      processingFrameRgba.rows,
+                      processingFrameRgba.depth(),
+                      (void *) processingFrameRgba.datastart,
+                      (void *) processingFrameRgba.dataend,
+                      (void *) processingFrameRgba.datalimit,
+                      processingFrameRgba.total() * processingFrameRgba.elemSize());
+
+            cv::resize(outputFrameRgba, processingFrameRgba,
+                       cv::Size(processingWidth, processingHeight));
+
+            LOG_DEBUG("RubikMemoryInfo",
+                      "processingFrameRgba after resize: width: %d,\n"
+                              "height: %d,\n"
+                              "depth: %d,\n"
+                              "dataStart: %p,\n"
+                              "dataEnd: %p,\n"
+                              "dataLimit: %p,\n"
+                              "computedSize: %d\n"
+                              "GRAY: width: %d,\n"
+                              "height: %d,\n"
+                              "depth: %d,\n"
+                              "dataStart: %p,\n"
+                              "dataEnd: %p,\n"
+                              "dataLimit: %p,\n"
+                              "computedSize: %d\n",
+                      processingFrameRgba.cols,
+                      processingFrameRgba.rows,
+                      processingFrameRgba.depth(),
+                      (void *) processingFrameRgba.datastart,
+                      (void *) processingFrameRgba.dataend,
+                      (void *) processingFrameRgba.datalimit,
+                      processingFrameRgba.total() * processingFrameRgba.elemSize(),
+                      processingFrameRgba.cols,
+                      processingFrameRgba.rows,
+                      processingFrameRgba.depth(),
+                      (void *) processingFrameRgba.datastart,
+                      (void *) processingFrameRgba.dataend,
+                      (void *) processingFrameRgba.datalimit,
+                      processingFrameRgba.total() * processingFrameRgba.elemSize());
+
+        } else {
+            LOG_DEBUG("RubikMemoryInfo", "No resize");
+            processingFrameRgba = cv::Mat(outputFrameRgba);
+            LOG_DEBUG("RubikMemoryInfo",
+                      "processingFrameRgba: width: %d,\n"
+                              "height: %d,\n"
+                              "depth: %d,\n"
+                              "dataStart: %p,\n"
+                              "dataEnd: %p,\n"
+                              "dataLimit: %p,\n"
+                              "computedSize: %d\n"
+                              "GRAY: width: %d,\n"
+                              "height: %d,\n"
+                              "depth: %d,\n"
+                              "dataStart: %p,\n"
+                              "dataEnd: %p,\n"
+                              "dataLimit: %p,\n"
+                              "computedSize: %d\n",
+                      processingFrameRgba.cols,
+                      processingFrameRgba.rows,
+                      processingFrameRgba.depth(),
+                      (void *) processingFrameRgba.datastart,
+                      (void *) processingFrameRgba.dataend,
+                      (void *) processingFrameRgba.datalimit,
+                      processingFrameRgba.total() * processingFrameRgba.elemSize(),
+                      processingFrameRgba.cols,
+                      processingFrameRgba.rows,
+                      processingFrameRgba.depth(),
+                      (void *) processingFrameRgba.datastart,
+                      (void *) processingFrameRgba.dataend,
+                      (void *) processingFrameRgba.datalimit,
+                      processingFrameRgba.total() * processingFrameRgba.elemSize());
+        }
+        cv::cvtColor(processingFrameRgba, processingFrameGrey, CV_RGBA2GRAY);
+
+        LOG_DEBUG("RubikMemoryInfo",
+                  "processingFrameGrey after resize: width: %d,\n"
+                          "height: %d,\n"
+                          "depth: %d,\n"
+                          "dataStart: %p,\n"
+                          "dataEnd: %p,\n"
+                          "dataLimit: %p,\n"
+                          "computedSize: %d\n"
+                          "GRAY: width: %d,\n"
+                          "height: %d,\n"
+                          "depth: %d,\n"
+                          "dataStart: %p,\n"
+                          "dataEnd: %p,\n"
+                          "dataLimit: %p,\n"
+                          "computedSize: %d\n",
+                  processingFrameGrey.cols,
+                  processingFrameGrey.rows,
+                  processingFrameGrey.depth(),
+                  (void *) processingFrameGrey.datastart,
+                  (void *) processingFrameGrey.dataend,
+                  (void *) processingFrameGrey.datalimit,
+                  processingFrameGrey.total() * processingFrameGrey.elemSize(),
+                  processingFrameGrey.cols,
+                  processingFrameGrey.rows,
+                  processingFrameGrey.depth(),
+                  (void *) processingFrameGrey.datastart,
+                  (void *) processingFrameGrey.dataend,
+                  (void *) processingFrameGrey.datalimit,
+                  processingFrameGrey.total() * processingFrameGrey.elemSize());
+
     }
-    return findFaceletsInFrame(procRgbaFrame, frameGrey, frameRgba);;
+    LOG_DEBUG("RubikMemoryInfo", "###################END PREPARING");
+    return findFaceletsInFrame(processingFrameRgba, processingFrameGrey, outputFrameRgba);;
 }
 
 std::vector<std::vector<RubikFacelet>> CubeDetectorBehavior::findFaceletsInFrame(cv::Mat &frameRgba,

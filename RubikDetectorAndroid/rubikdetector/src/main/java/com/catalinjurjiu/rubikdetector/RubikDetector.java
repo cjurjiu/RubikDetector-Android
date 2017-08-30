@@ -6,10 +6,13 @@ import android.util.Log;
 import com.catalinjurjiu.rubikdetector.model.Point2d;
 import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
 
+import java.nio.ByteBuffer;
+
 /**
  * Created by catalin on 11.07.2017.
  */
 
+@SuppressWarnings("unused")
 public class RubikDetector {
 
     public static final int NATIVE_DETECTOR_RELEASED = -1;
@@ -23,11 +26,11 @@ public class RubikDetector {
     private long cubeDetectorHandle = -1;
     private int frameHeight;
     private int frameWidth;
-    private int totalRequiredMemory;
-    private int rgbaImageOffset;
-    private int rgbaImageSize;
-    private int nv21ImageSize;
-    private int nv21ImageOffset;
+    private int requiredMemory;
+    private int resultFrameBufferOffset;
+    private int resultFrameByteCount;
+    private int inputFrameByteCount;
+    private int inputFrameBufferOffset;
     private OnCubeDetectionResultListener listener;
 
     public RubikDetector() {
@@ -38,16 +41,16 @@ public class RubikDetector {
         cubeDetectorHandle = createNativeObject(storagePath);
     }
 
-    public void setImageDimensions(int width, int height) {
+    public void setImageProperties(int width, int height, @ImageFormat int imageFormat) {
         if (isActive()) {
-            nativeSetImageDimensions(cubeDetectorHandle, width, height);
+            nativeSetImageProperties(cubeDetectorHandle, width, height, imageFormat);
             this.frameWidth = width;
             this.frameHeight = height;
-            this.totalRequiredMemory = nativeGetTotalRequiredMemory(cubeDetectorHandle);
-            this.rgbaImageOffset = nativeGetRgbaImageOffset(cubeDetectorHandle);
-            this.rgbaImageSize = nativeGetRgbaImageSize(cubeDetectorHandle);
-            this.nv21ImageSize = nativeGetNv21ImageSize(cubeDetectorHandle);
-            this.nv21ImageOffset = nativeGetNv21ImageOffset(cubeDetectorHandle);
+            this.requiredMemory = nativeGetRequiredMemory(cubeDetectorHandle);
+            this.resultFrameBufferOffset = nativeGetRgbaImageOffset(cubeDetectorHandle);
+            this.resultFrameByteCount = nativeGetRgbaImageSize(cubeDetectorHandle);
+            this.inputFrameByteCount = nativeGetNv21ImageSize(cubeDetectorHandle);
+            this.inputFrameBufferOffset = nativeGetNv21ImageOffset(cubeDetectorHandle);
         }
     }
 
@@ -80,28 +83,47 @@ public class RubikDetector {
         return null;
     }
 
+    public RubikFacelet[][] findCube(ByteBuffer imageDataBuffer) {
+        if (!imageDataBuffer.isDirect()) {
+            throw new IllegalArgumentException("The image data buffer needs to be a direct buffer.");
+        }
+        if (isActive()) {
+            int[] nativeResult = findCubeNativeImageDataBuffer(cubeDetectorHandle, imageDataBuffer);
+            return decodeResult(nativeResult);
+        }
+        return null;
+    }
+
     public boolean isActive() {
         return cubeDetectorHandle != NATIVE_DETECTOR_RELEASED;
     }
 
-    public int getTotalRequiredMemory() {
-        return totalRequiredMemory;
+    public int getRequiredMemory() {
+        return requiredMemory;
     }
 
-    public int getRgbaImageOffset() {
-        return rgbaImageOffset;
+    public int getResultFrameBufferOffset() {
+        return resultFrameBufferOffset;
     }
 
-    public int getRgbaImageSize() {
-        return rgbaImageSize;
+    public int getResultFrameByteCount() {
+        return resultFrameByteCount;
     }
 
-    public int getNv21ImageOffset() {
-        return nv21ImageOffset;
+    public void overrideInputFrameWithResultFrame(byte[] data) {
+        if (isActive()) {
+            nativeOverrideInputFrameWithResultFrame(cubeDetectorHandle, data);
+        }
     }
 
-    public int getNv21ImageSize() {
-        return nv21ImageSize;
+    private native void nativeOverrideInputFrameWithResultFrame(long nativeDetectorRef, byte[] data);
+
+    public int getInputFrameBufferOffset() {
+        return inputFrameBufferOffset;
+    }
+
+    public int getInputFrameByteCount() {
+        return inputFrameByteCount;
     }
 
     /**
@@ -109,53 +131,13 @@ public class RubikDetector {
      *
      * @param detectionResult
      */
-    @SuppressWarnings("unused")
     private void onFacetColorsDetected(int[] detectionResult) {
         Log.d("RubikResult", "####Facelets discovered!!!!!!");
         RubikFacelet[][] result = decodeResult(detectionResult);
-        printResult(result);
+        Log.d("RubikResult", "Colors: " + RubikDetectorUtils.getResultColorsAsString(result));
         if (listener != null) {
             listener.onCubeDetectionResult(result);
         }
-    }
-
-    private void printResult(RubikFacelet[][] result) {
-        StringBuilder stringBuilder = new StringBuilder("Colors: {");
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                if (j == 0) {
-                    stringBuilder.append(" {");
-                }
-                switch (result[i][j].color) {
-                    case CubeColors.WHITE:
-                        stringBuilder.append("WHITE ");
-                        break;
-                    case CubeColors.YELLOW:
-                        stringBuilder.append("YELLOW ");
-                        break;
-                    case CubeColors.RED:
-                        stringBuilder.append("RED ");
-                        break;
-                    case CubeColors.BLUE:
-                        stringBuilder.append("BLUE ");
-                        break;
-                    case CubeColors.GREEN:
-                        stringBuilder.append("GREEN ");
-                        break;
-                    case CubeColors.ORANGE:
-                        stringBuilder.append("ORANGE ");
-                        break;
-
-                }
-                stringBuilder.append(", ");
-                stringBuilder.append(result[i][j].angle);
-                if (j == 2) {
-                    stringBuilder.append("} ");
-                }
-            }
-        }
-        stringBuilder.append("}");
-        Log.d("RubikResult", "Result: " + stringBuilder.toString());
     }
 
     private RubikFacelet[][] decodeResult(int[] detectionResult) {
@@ -184,11 +166,13 @@ public class RubikDetector {
 
     private native int[] findCubeNativeImageData(long nativeDetectorRef, byte[] imageData);
 
+    private native int[] findCubeNativeImageDataBuffer(long nativeDetectorRef, ByteBuffer imageDataBuffer);
+
     private native void nativeReleaseCubeDetector(long nativeDetectorRef);
 
-    private native void nativeSetImageDimensions(long nativeDetectorRef, int width, int height);
+    private native void nativeSetImageProperties(long nativeDetectorRef, int width, int height, int imageFormat);
 
-    private native int nativeGetTotalRequiredMemory(long cubeDetectorHandle);
+    private native int nativeGetRequiredMemory(long cubeDetectorHandle);
 
     private native int nativeGetRgbaImageOffset(long cubeDetectorHandle);
 
@@ -204,6 +188,15 @@ public class RubikDetector {
 
     public int getFrameHeight() {
         return frameHeight;
+    }
+
+    @IntDef
+    public @interface ImageFormat {
+        int YUV_NV21 = 0,
+                YUV_NV12 = 1,
+                YUV_I420 = 2,
+                YUV_YV12 = 3,
+                ARGB_8888 = 4;
     }
 
     @IntDef

@@ -37,5 +37,10 @@ namespace utils {
                      const bool fillArea = false);
 
     double getCurrentTimeMillis();
-}
+
+    void encodeNV21(const cv::Mat &inputArgb, const cv::Mat &outputNv21, int width, int height);
+
+    void encodeNV12(const cv::Mat &inputArgb, const cv::Mat &outputNv12, int width, int height);
+
+    }
 #endif //RUBIKDETECTORDEMO_UTILS_HPP

@@ -50,67 +50,40 @@ void performProcessingOnVideo() {
         std::cout << "Caption not opened, return." << std::endl;
         return;
     }
-    cv::Mat frame;
 
-    ResultListener resultListener;
     std::shared_ptr<ImageSaver> imageSaver = std::make_shared<ImageSaver>(
-            ImageSaver(std::string(
-                    "../debug_images")));
-    CubeDetector rubikDetector(imageSaver);
-    rubikDetector.setImageDimensions(720, 480);
-    rubikDetector.setDebuggable(true);
-    rubikDetector.setOnCubeDetectionResultListener(&resultListener);
+            ImageSaver(std::string("../debug_images")));
 
+    CubeDetector rubikDetector(imageSaver);
+    rubikDetector.setImageProperties(720, 480, ImageFormat::RGBA8888);
+    rubikDetector.setDebuggable(true);
+
+    uchar largeBuffer[rubikDetector.getRequiredMemory()];
+
+    cv::Mat frame;
     while (cap.read(frame)) {
+
         cv::cvtColor(frame, frame, CV_BGR2RGBA);
-        rubikDetector.findCube(frame);
-//        cv::namedWindow("Contours", CV_WINDOW_AUTOSIZE);
-//        cv::imshow("Contours", frame);
-//        if (cv::waitKey(30) >= 0) {
-//            std::cout << "Got to end of video, break." << std::endl;
-//            break;
-//        }
-    }
-    std::cout << "Finished processing." << std::endl;
-}
-
-void performProcessingOnVideoSmart() {
-    cv::VideoCapture cap;
-    cap.open(
-            "../videos/720x480.mp4");
-    if (!cap.isOpened()) {
-        std::cout << "Caption not opened, return." << std::endl;
-        return;
-    }
-    cv::Mat frame;
-
-    ResultListener resultListener;
-    std::shared_ptr<ImageSaver> imageSaver = std::make_shared<ImageSaver>(
-            ImageSaver(std::string(
-                    "../debug_images")));
-    CubeDetector rubikDetector(imageSaver);
-    rubikDetector.setImageDimensions(720, 480);
-    rubikDetector.setDebuggable(true);
-    rubikDetector.setOnCubeDetectionResultListener(&resultListener);
-
-    uchar largeBuffer[rubikDetector.getTotalRequiredMemory()];
-
-    while (cap.read(frame)) {
-
-        cv::cvtColor(frame, frame, CV_BGR2YUV_I420);
 
         const uchar *nv21Ptr = frame.ptr();
-        for (int i = 0; i < rubikDetector.getNv21ImageSize(); i++) {
+        for (int i = 0; i < rubikDetector.getInputFrameByteCount(); i++) {
             largeBuffer[i] = *nv21Ptr++;
         }
 
-        rubikDetector.findCube(largeBuffer, rubikDetector.getTotalRequiredMemory());
-//        cv::namedWindow("Contours", CV_WINDOW_AUTOSIZE);
-//        cv::imshow("Contours", frame);
-//        if (cv::waitKey(30) >= 0) {
-//            std::cout << "Got to end of video, break." << std::endl;
-//            break;
-//        }
+        std::vector<std::vector<RubikFacelet>> result = rubikDetector.findCube(largeBuffer);
+        if (result.size() != 0) {
+            LOG_DEBUG("RUBIK_JNI_PART.cpp",
+                      "COLORS: [1]:{ %c %c %c } [2]:{ %c %c %c } [3]:{ %c %c %c }",
+                      utils::colorIntToChar(result[0][0].color),
+                      utils::colorIntToChar(result[0][1].color),
+                      utils::colorIntToChar(result[0][2].color),
+                      utils::colorIntToChar(result[1][0].color),
+                      utils::colorIntToChar(result[1][1].color),
+                      utils::colorIntToChar(result[1][2].color),
+                      utils::colorIntToChar(result[2][0].color),
+                      utils::colorIntToChar(result[2][1].color),
+                      utils::colorIntToChar(result[2][2].color));
+        }
     }
     std::cout << "Finished processing." << std::endl;
 }

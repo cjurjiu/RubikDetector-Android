@@ -2,9 +2,11 @@ package com.catalinjurjiu.rubikdetector;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ImageFormat;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.support.annotation.ColorInt;
+import android.support.annotation.NonNull;
 
 import com.catalinjurjiu.rubikdetector.model.Point2d;
 import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
@@ -102,4 +104,58 @@ public class RubikDetectorUtils {
         }
     }
 
+    @RubikDetector.ImageFormat
+    public static int convertAndroidImageFormat(int imageFormatAndroid) {
+        switch (imageFormatAndroid) {
+            case ImageFormat.NV21:
+                return RubikDetector.ImageFormat.YUV_NV21;
+            case ImageFormat.YUV_420_888:
+                return RubikDetector.ImageFormat.YUV_I420;
+            case ImageFormat.YV12:
+                return RubikDetector.ImageFormat.YUV_YV12;
+            case ImageFormat.FLEX_RGBA_8888:
+                return RubikDetector.ImageFormat.ARGB_8888;
+            default:
+                throw new IllegalArgumentException("Unsupported image format requested.");
+        }
+    }
+
+    public static String getResultColorsAsString(@NonNull RubikFacelet[][] result) {
+        StringBuilder stringBuilder = new StringBuilder("Colors: {");
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (j == 0) {
+                    stringBuilder.append(" {");
+                }
+                switch (result[i][j].color) {
+                    case RubikDetector.CubeColors.WHITE:
+                        stringBuilder.append("WHITE ");
+                        break;
+                    case RubikDetector.CubeColors.YELLOW:
+                        stringBuilder.append("YELLOW ");
+                        break;
+                    case RubikDetector.CubeColors.RED:
+                        stringBuilder.append("RED ");
+                        break;
+                    case RubikDetector.CubeColors.BLUE:
+                        stringBuilder.append("BLUE ");
+                        break;
+                    case RubikDetector.CubeColors.GREEN:
+                        stringBuilder.append("GREEN ");
+                        break;
+                    case RubikDetector.CubeColors.ORANGE:
+                        stringBuilder.append("ORANGE ");
+                        break;
+
+                }
+                stringBuilder.append(", ");
+                stringBuilder.append(result[i][j].angle);
+                if (j == 2) {
+                    stringBuilder.append("} ");
+                }
+            }
+        }
+        stringBuilder.append("}");
+        return stringBuilder.toString();
+    }
 }

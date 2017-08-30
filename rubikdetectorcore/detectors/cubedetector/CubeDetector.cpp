@@ -13,7 +13,6 @@ CubeDetector::CubeDetector(const std::shared_ptr<ImageSaver> imageSaver)
 
 CubeDetector::~CubeDetector() {
     if (behavior->isDebuggable()) {
-        LOG_DEBUG("CATAMEM", "CubeDetector - destructor.");
         LOG_DEBUG("RubikJniPart.cpp", "CubeDetector - destructor.");
     }
 }
@@ -26,8 +25,12 @@ void CubeDetector::findCubeAsync(const uint8_t *imageData) {
     behavior->findCubeAsync(imageData);
 }
 
-void CubeDetector::setImageProperties(int width, int height, int colorSpace) {
-    behavior->setImageProperties(width, height, colorSpace);
+void CubeDetector::setImageProperties(int width, int height, int imageFormat) {
+    behavior->setImageProperties(width, height, imageFormat);
+}
+
+void CubeDetector::overrideInputFrameWithResultFrame(const uint8_t *imageData) {
+    behavior->overrideInputFrameWithResultFrame(imageData);
 }
 
 void CubeDetector::setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener) {
@@ -42,24 +45,24 @@ bool CubeDetector::isDebuggable() {
     return behavior->isDebuggable();
 }
 
-int CubeDetector::getTotalRequiredMemory() {
-    return behavior->getTotalRequiredMemory();
+int CubeDetector::getRequiredMemory() {
+    return behavior->getRequiredMemory();
 }
 
-int CubeDetector::getRgbaImageOffset() {
-    return behavior->getRgbaImageOffset();
+int CubeDetector::getOutputFrameBufferOffset() {
+    return behavior->getOutputFrameBufferOffset();
 }
 
-int CubeDetector::getRgbaImageSize() {
-    return behavior->getRgbaImageSize();
+int CubeDetector::getOutputFrameByteCount() {
+    return behavior->getOutputFrameByteCount();
 }
 
-int CubeDetector::getNv21ImageSize() {
-    return behavior->getNv21ImageSize();
+int CubeDetector::getInputFrameByteCount() {
+    return behavior->getInputFrameByteCount();
 }
 
-int CubeDetector::getNv21ImageOffset() {
-    return behavior->getNv21ImageOffset();
+int CubeDetector::getInputFrameBufferOffset() {
+    return behavior->getInputBufferFrameOffset();
 }
 
 void CubeDetector::setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets) {
