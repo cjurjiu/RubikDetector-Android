@@ -937,8 +937,7 @@ float CubeDetectorBehavior::getSmallestMargin(Circle referenceCircle,
             //TODO replace magic number 2*10(pixels)
             continue;
         }
-        float currentMargin =
-                (int) utils::pointsDistance(referenceCircle.center, testedCircle.center) -
+        float currentMargin = utils::pointsDistance(referenceCircle.center, testedCircle.center) -
                 referenceCircle.radius - testedCircle.radius;
         if (currentMargin < margin && currentMargin > 0) {
             margin = currentMargin;

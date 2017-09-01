@@ -1,18 +1,14 @@
 package com.catalinjurjiu.rubikdetector.fotoapparatconnector;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.os.Looper;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
+import android.view.TextureView;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
-
-import com.catalinjurjiu.rubikdetector.RubikDetectorUtils;
-import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
 
 import io.fotoapparat.view.CameraView;
 
@@ -24,9 +20,7 @@ public class RubikDetectorResultView extends FrameLayout implements RubikDetecto
 
     private CameraView cameraView;
 
-    private RubikFacelet[][] facelets;
-
-    private Paint paint;
+    private FaceletsView faceletsView;
 
     public RubikDetectorResultView(@NonNull Context context) {
         super(context);
@@ -47,34 +41,45 @@ public class RubikDetectorResultView extends FrameLayout implements RubikDetecto
         return cameraView;
     }
 
-    @Override
-    protected void dispatchDraw(Canvas canvas) {
-        super.dispatchDraw(canvas);
-        if (facelets != null) {
-//            RubikDetectorUtils.rescaleResults(facelets, 1600, 1200, 1560, 1080);
-            RubikDetectorUtils.drawFaceletsAsCircles(facelets, canvas, paint);
-        }
-    }
-
     private void initView(Context context) {
         this.cameraView = new CameraView(context);
         cameraView.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         addView(cameraView);
 
-        this.paint = new Paint();
-        paint.setStrokeCap(Paint.Cap.ROUND);
-        paint.setStrokeWidth(5);
-        paint.setStyle(Paint.Style.STROKE);
-
-        setWillNotDraw(false);
+        this.faceletsView = new FaceletsView(context);
+        faceletsView.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        addView(faceletsView);
     }
 
     @Override
-    public void onRubikCubeFaceletsFound(RubikFacelet[][] cubeFacelets) {
-        if (Looper.myLooper() != Looper.getMainLooper()) {
-            throw new IllegalStateException("This should only be called from the main thread");
+    public void onRubikCubeFaceletsFound(RubikResultWrapper rubikResult) {
+        faceletsView.displayFacelets(rubikResult);
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+
+        final View textureView = findTextureView(cameraView);
+
+        cameraView.layout(left, top, right, bottom);
+        faceletsView.layout(
+                textureView.getLeft(),
+                textureView.getTop(),
+                textureView.getRight(),
+                textureView.getBottom()
+        );
+    }
+
+    private View findTextureView(View view) {
+        View queryView = view;
+        while (queryView instanceof ViewGroup) {
+            queryView = ((ViewGroup) queryView).getChildAt(0);
+
+            if (queryView instanceof TextureView) {
+                return queryView;
+            }
         }
-        this.facelets = cubeFacelets;
-        invalidate();
+
+        throw new IllegalStateException("Can't find TextureView");
     }
 }
