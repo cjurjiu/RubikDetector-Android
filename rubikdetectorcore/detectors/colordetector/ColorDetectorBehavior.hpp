@@ -5,7 +5,6 @@
 #ifndef RUBIKDETECTORDEMO_COLORDETECTORBEHAVIOR_HPP
 #define RUBIKDETECTORDEMO_COLORDETECTORBEHAVIOR_HPP
 
-
 #include <vector>
 #include <memory>
 #include "../../helpers/ImageSaver.hpp"

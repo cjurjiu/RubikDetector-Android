@@ -19,17 +19,22 @@ namespace utils {
 
     char colorIntToChar(const int colorInt);
 
+    cv::Scalar getColorAsScalar(int color);
+
     void drawCircle(cv::Mat &drawingCanvas, const Circle circle, const cv::Scalar color,
-                    const float scalingFactor = 1, const int radiusModifier = 0,
+                    const float scalingFactor = 1,
+                    const int radiusModifier = 0,
                     const bool fillArea = false);
 
-    void
-    drawCircles(cv::Mat &drawingCanvas, const std::vector<Circle> circles, const cv::Scalar color,
-                const float scalingFactor = 1);
+    void drawCircles(cv::Mat &drawingCanvas, const std::vector<Circle> circles,
+                     const cv::Scalar color,
+                     const float scalingFactor = 1);
 
     void drawCircles(cv::Mat &drawingCanvas, const std::vector<std::vector<Circle>> circles,
-                     const cv::Scalar color, const float scalingFactor = 1,
-                     const int radiusModifier = 0, const bool fillArea = false);
+                     const cv::Scalar color,
+                     const float scalingFactor = 1,
+                     const int radiusModifier = 0,
+                     const bool fillArea = false);
 
     double getCurrentTimeMillis();
 }

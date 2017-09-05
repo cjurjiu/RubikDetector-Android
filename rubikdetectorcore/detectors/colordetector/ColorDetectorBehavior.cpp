@@ -78,7 +78,7 @@ int ColorDetectorBehavior::detectColor(const cv::Mat &image, const float whiteRa
             cv::cvtColor(image, image, cv::COLOR_HSV2BGR);
             imageSaver->saveImage(image, frameNr, regionId);
         }
-        return WHITE;
+        return CubeColors::WHITE;
     } else {
         uchar pixelHsvHue, pixelHsvValue;
         int hueHistogram[HUE_HISTOGRAM_SIZE];
@@ -95,23 +95,23 @@ int ColorDetectorBehavior::detectColor(const cv::Mat &image, const float whiteRa
             }
         }
 
-        HueColorEvidence colorEvidence[5] = {HueColorEvidence(RED),
-                                             HueColorEvidence(ORANGE),
-                                             HueColorEvidence(YELLOW),
-                                             HueColorEvidence(GREEN),
-                                             HueColorEvidence(BLUE)};
+        HueColorEvidence colorEvidence[5] = {HueColorEvidence(CubeColors::RED),
+                                             HueColorEvidence(CubeColors::ORANGE),
+                                             HueColorEvidence(CubeColors::YELLOW),
+                                             HueColorEvidence(CubeColors::GREEN),
+                                             HueColorEvidence(CubeColors::BLUE)};
 
         for (int i = 0; i < HUE_HISTOGRAM_SIZE; i++) {
             if (i >= 4 && i <= 18) {
-                colorEvidence[ORANGE].evidence += hueHistogram[i];
+                colorEvidence[CubeColors::ORANGE].evidence += hueHistogram[i];
             } else if (i > 18 && i <= 39) {
-                colorEvidence[YELLOW].evidence += hueHistogram[i];
+                colorEvidence[CubeColors::YELLOW].evidence += hueHistogram[i];
             } else if (i > 39 && i <= 76) {
-                colorEvidence[GREEN].evidence += hueHistogram[i];
+                colorEvidence[CubeColors::GREEN].evidence += hueHistogram[i];
             } else if (i > 76 && i <= 136) {
-                colorEvidence[BLUE].evidence += hueHistogram[i];
+                colorEvidence[CubeColors::BLUE].evidence += hueHistogram[i];
             } else if ((i >= 171 && i <= 179) || (i >= 0 && i < 4)) {
-                colorEvidence[RED].evidence += hueHistogram[i];
+                colorEvidence[CubeColors::RED].evidence += hueHistogram[i];
             }
         }
 
@@ -129,29 +129,13 @@ int ColorDetectorBehavior::detectColor(const cv::Mat &image, const float whiteRa
     }
 }
 
-void ColorDetectorBehavior::computeSaturationHistogram(const std::vector<cv::Mat> &hsvChannels,
-                                                       int *saturationHistogram,
-                                                       int &nrNonWhiteNonGrayPixels) const {
-    uchar pixelHsvSaturation, pixelHsvValue;
-    for (int i = 0; i < SATURATION_HISTOGRAM_SIZE; i++) {
-        saturationHistogram[i] = 0;
-    }
-
-    for (int i = 0; i < hsvChannels[SATURATION].rows; i++) {
-        for (int j = 0; j < hsvChannels[SATURATION].cols; j++) {
-            pixelHsvSaturation = hsvChannels[SATURATION].at<uchar>(i, j);
-            pixelHsvValue = hsvChannels[VALUE].at<uchar>(i, j);
-            if (pixelHsvSaturation <= saturationThreshold &&
-                pixelHsvValue > MIN_HSV_VALUE_FOR_WHITE) {
-                saturationHistogram[pixelHsvSaturation]++;
-            }
-            if (pixelHsvValue > MIN_HSV_VALUE_NON_GRAY) {
-                nrNonWhiteNonGrayPixels++;
-            }
-        }
-    }
+void ColorDetectorBehavior::setDebuggable(bool debuggable) {
+    ColorDetectorBehavior::debuggable = debuggable;
 }
 
+bool ColorDetectorBehavior::isDebuggable() {
+    return debuggable;
+}
 
 /**
 Print the histogram and also specify the row & column of the printed sticker
@@ -178,10 +162,25 @@ void ColorDetectorBehavior::printOwnHistogram(const int hist[], const int histog
     imageSaver->saveImage(histImage, frameNumber, regionId);
 }
 
-void ColorDetectorBehavior::setDebuggable(bool debuggable) {
-    ColorDetectorBehavior::debuggable = debuggable;
-}
+void ColorDetectorBehavior::computeSaturationHistogram(const std::vector<cv::Mat> &hsvChannels,
+                                                       int *saturationHistogram,
+                                                       int &nrNonWhiteNonGrayPixels) const {
+    uchar pixelHsvSaturation, pixelHsvValue;
+    for (int i = 0; i < SATURATION_HISTOGRAM_SIZE; i++) {
+        saturationHistogram[i] = 0;
+    }
 
-bool ColorDetectorBehavior::isDebuggable() {
-    return debuggable;
+    for (int i = 0; i < hsvChannels[SATURATION].rows; i++) {
+        for (int j = 0; j < hsvChannels[SATURATION].cols; j++) {
+            pixelHsvSaturation = hsvChannels[SATURATION].at<uchar>(i, j);
+            pixelHsvValue = hsvChannels[VALUE].at<uchar>(i, j);
+            if (pixelHsvSaturation <= saturationThreshold &&
+                pixelHsvValue > MIN_HSV_VALUE_FOR_WHITE) {
+                saturationHistogram[pixelHsvSaturation]++;
+            }
+            if (pixelHsvValue > MIN_HSV_VALUE_NON_GRAY) {
+                nrNonWhiteNonGrayPixels++;
+            }
+        }
+    }
 }

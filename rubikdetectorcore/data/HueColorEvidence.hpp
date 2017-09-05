@@ -12,7 +12,7 @@ public:
     int color;
     int evidence;
 
-    HueColorEvidence(int c);
+    HueColorEvidence(const int color);
 };
 
 

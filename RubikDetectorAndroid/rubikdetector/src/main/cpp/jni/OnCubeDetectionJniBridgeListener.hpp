@@ -19,7 +19,7 @@ public:
 
     ~OnCubeDetectionJniBridgeListener();
 
-    void onCubeDetectionResult(const std::vector<std::vector<RubikFacelet>> result) const override;
+    void onCubeDetectionResult(const std::vector<std::vector<RubikFacelet>> &result) const override;
 
 private:
     JavaVM *javaVM;

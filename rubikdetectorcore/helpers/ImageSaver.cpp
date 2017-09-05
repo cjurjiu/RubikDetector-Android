@@ -10,9 +10,7 @@
 ImageSaver::ImageSaver(const std::string saveLocation) : path(saveLocation) {}
 
 ImageSaver::~ImageSaver() {
-//    if (debuggable) {
     LOG_DEBUG("RubikJniPart.cpp", "ImageSaver - destructor.");
-//    }
 }
 
 bool ImageSaver::saveImage(const cv::Mat &mat, const int frameNumber, const int regionId) {

@@ -3,6 +3,9 @@ package com.catalinjurjiu.rubikdetector;
 import android.support.annotation.IntDef;
 import android.util.Log;
 
+import com.catalinjurjiu.rubikdetector.model.Point2d;
+import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
+
 /**
  * Created by catalin on 11.07.2017.
  */
@@ -17,15 +20,15 @@ public class RubikDetector {
         System.loadLibrary("native_processing");
     }
 
-    private OnCubeDetectionResultListener listener;
     private long cubeDetectorHandle = -1;
-    private int height;
-    private int width;
+    private int frameHeight;
+    private int frameWidth;
     private int totalRequiredMemory;
     private int rgbaImageOffset;
     private int rgbaImageSize;
     private int nv21ImageSize;
     private int nv21ImageOffset;
+    private OnCubeDetectionResultListener listener;
 
     public RubikDetector() {
         this(null);
@@ -36,10 +39,10 @@ public class RubikDetector {
     }
 
     public void setImageDimensions(int width, int height) {
-        if (cubeDetectorHandle != NATIVE_DETECTOR_RELEASED) {
+        if (isActive()) {
             nativeSetImageDimensions(cubeDetectorHandle, width, height);
-            this.width = width;
-            this.height = height;
+            this.frameWidth = width;
+            this.frameHeight = height;
             this.totalRequiredMemory = nativeGetTotalRequiredMemory(cubeDetectorHandle);
             this.rgbaImageOffset = nativeGetRgbaImageOffset(cubeDetectorHandle);
             this.rgbaImageSize = nativeGetRgbaImageSize(cubeDetectorHandle);
@@ -48,49 +51,57 @@ public class RubikDetector {
         }
     }
 
-    private native void nativeSetImageDimensions(long nativeDetectorRef, int width, int height);
-
-    private native int nativeGetTotalRequiredMemory(long cubeDetectorHandle);
-
-    private native int nativeGetRgbaImageOffset(long cubeDetectorHandle);
-
-    private native int nativeGetRgbaImageSize(long cubeDetectorHandle);
-
-    private native int nativeGetNv21ImageSize(long cubeDetectorHandle);
-
-    private native int nativeGetNv21ImageOffset(long cubeDetectorHandle);
-
     public void setDebuggable(boolean debuggable) {
-        if (cubeDetectorHandle != NATIVE_DETECTOR_RELEASED) {
+        if (isActive()) {
             nativeSetDebuggable(cubeDetectorHandle, debuggable);
         }
     }
 
     public void setDrawFoundFacelets(boolean drawFoundFacelets) {
-        if (cubeDetectorHandle != NATIVE_DETECTOR_RELEASED) {
+        if (isActive()) {
             nativeSetDrawFoundFacelets(cubeDetectorHandle, drawFoundFacelets);
         }
     }
 
     public void releaseResources() {
         Log.d("CATAMEM", "RubikDetector#releaseResources.");
-        if (cubeDetectorHandle != NATIVE_DETECTOR_RELEASED) {
+        if (isActive()) {
             Log.d("CATAMEM", "RubikDetector#releaseResources - handle not -1, calling native release.");
             nativeReleaseCubeDetector(cubeDetectorHandle);
             cubeDetectorHandle = NATIVE_DETECTOR_RELEASED;
         }
     }
 
-    private native void nativeReleaseCubeDetector(long nativeDetectorRef);
-
-    public void setOnCubeDetectionResultListener(OnCubeDetectionResultListener onCubeDetectionResultListener) {
-        this.listener = onCubeDetectionResultListener;
+    public RubikFacelet[][] findCube(byte[] imageData) {
+        if (isActive()) {
+            int[] nativeResult = findCubeNativeImageData(cubeDetectorHandle, imageData);
+            return decodeResult(nativeResult);
+        }
+        return null;
     }
 
-    public void findCube(byte[] imageData) {
-        if (cubeDetectorHandle != NATIVE_DETECTOR_RELEASED) {
-            findCubeNativeImageData(cubeDetectorHandle, imageData);
-        }
+    public boolean isActive() {
+        return cubeDetectorHandle != NATIVE_DETECTOR_RELEASED;
+    }
+
+    public int getTotalRequiredMemory() {
+        return totalRequiredMemory;
+    }
+
+    public int getRgbaImageOffset() {
+        return rgbaImageOffset;
+    }
+
+    public int getRgbaImageSize() {
+        return rgbaImageSize;
+    }
+
+    public int getNv21ImageOffset() {
+        return nv21ImageOffset;
+    }
+
+    public int getNv21ImageSize() {
+        return nv21ImageSize;
     }
 
     /**
@@ -148,6 +159,10 @@ public class RubikDetector {
     }
 
     private RubikFacelet[][] decodeResult(int[] detectionResult) {
+        if (detectionResult == null) {
+            return null;
+        }
+
         RubikFacelet[][] result = new RubikFacelet[3][3];
         for (int i = 0; i < detectionResult.length; i += DATA_SIZE) {
             result[i / (3 * DATA_SIZE)][(i % (3 * DATA_SIZE)) / DATA_SIZE] = new RubikFacelet(
@@ -161,38 +176,35 @@ public class RubikDetector {
         return result;
     }
 
-    public boolean isActive() {
-        return cubeDetectorHandle != NATIVE_DETECTOR_RELEASED;
-    }
-
-    public int getTotalRequiredMemory() {
-        //width * height * 4 channels for RGBA + width + height*1.5 for NV21
-        return totalRequiredMemory;
-    }
-
-    public int getRgbaImageOffset() {
-        return rgbaImageOffset;
-    }
-
-    public int getRgbaImageSize() {
-        return rgbaImageSize;
-    }
-
-    public int getNv21ImageOffset() {
-        return nv21ImageOffset;
-    }
-
-    public int getNv21ImageSize() {
-        return nv21ImageSize;
-    }
-
     private native long createNativeObject(String storagePath);
 
     private native void nativeSetDebuggable(long nativeDetectorRef, boolean debuggable);
 
     private native void nativeSetDrawFoundFacelets(long nativeDetectorRef, boolean shouldDrawFoundFacelets);
 
-    private native void findCubeNativeImageData(long nativeDetectorRef, byte[] imageData);
+    private native int[] findCubeNativeImageData(long nativeDetectorRef, byte[] imageData);
+
+    private native void nativeReleaseCubeDetector(long nativeDetectorRef);
+
+    private native void nativeSetImageDimensions(long nativeDetectorRef, int width, int height);
+
+    private native int nativeGetTotalRequiredMemory(long cubeDetectorHandle);
+
+    private native int nativeGetRgbaImageOffset(long cubeDetectorHandle);
+
+    private native int nativeGetRgbaImageSize(long cubeDetectorHandle);
+
+    private native int nativeGetNv21ImageSize(long cubeDetectorHandle);
+
+    private native int nativeGetNv21ImageOffset(long cubeDetectorHandle);
+
+    public int getFrameWidth() {
+        return frameWidth;
+    }
+
+    public int getFrameHeight() {
+        return frameHeight;
+    }
 
     @IntDef
     public @interface CubeColors {

@@ -7,7 +7,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.graphics.YuvImage;
@@ -20,32 +19,33 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import com.catalinjurjiu.rubikdetector.Point2d;
 import com.catalinjurjiu.rubikdetector.RubikDetector;
-import com.catalinjurjiu.rubikdetector.RubikFacelet;
+import com.catalinjurjiu.rubikdetector.RubikDetectorUtils;
+import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class MainActivity extends Activity implements SurfaceHolder.Callback, RubikDetector.OnCubeDetectionResultListener {
+public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
 //    public static final int PREVIEW_WIDTH = 320;
 //    public static final int PREVIEW_HEIGHT = 240;
 //
 //    public static final int PREVIEW_WIDTH = 640;
 //    public static final int PREVIEW_HEIGHT = 480;
+
 //    public static final int PREVIEW_WIDTH = 720;
 //    public static final int PREVIEW_HEIGHT = 480;
 
 //    public static final int PREVIEW_WIDTH = 1280;
 //    public static final int PREVIEW_HEIGHT = 960;
 
-    public static final int PREVIEW_WIDTH = 1920;
-    public static final int PREVIEW_HEIGHT = 1080;
+//    public static final int PREVIEW_WIDTH = 1920;
+//    public static final int PREVIEW_HEIGHT = 1080;
 
-//    public static final int PREVIEW_WIDTH = 1024;
-//    public static final int PREVIEW_HEIGHT = 768;
+    public static final int PREVIEW_WIDTH = 1024;
+    public static final int PREVIEW_HEIGHT = 768;
 
 //    public static final int PREVIEW_WIDTH = 800;
 //    public static final int PREVIEW_HEIGHT = 600;
@@ -61,7 +61,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ru
     private ProcessingThread processingThread;
     private ByteBuffer preallocatedBuffer;
     private Bitmap preallocatedBitmap;
-    private RubikFacelet[][] facelets;
     private Paint paint;
 
     @Override
@@ -71,8 +70,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ru
 //        rubikDetector = new RubikDetector("/storage/emulated/0/RubikResults");
         rubikDetector = new RubikDetector();
         rubikDetector.setDebuggable(true);
-        rubikDetector.setOnCubeDetectionResultListener(this);
-        rubikDetector.setDrawFoundFacelets(true);
+//        rubikDetector.setDrawFoundFacelets(true);
+        rubikDetector.setDrawFoundFacelets(false);
         rubikDetector.setImageDimensions(PREVIEW_WIDTH, PREVIEW_HEIGHT);
 
         preallocatedBuffer = ByteBuffer.allocate(rubikDetector.getRgbaImageSize());
@@ -80,7 +79,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ru
         paint = new Paint();
         paint.setAntiAlias(true);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(5);
+        paint.setStrokeWidth(10);
         paint.setColor(Color.DKGRAY);
         processingThread = new ProcessingThread("RubikProcessingThread");
         processingThread.start();
@@ -116,49 +115,12 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ru
         super.onDestroy();
     }
 
-    @Override
-    public void onCubeDetectionResult(RubikFacelet[][] facelets) {
-        this.facelets = facelets;
-        if (facelets != null) {
-            Point2d[] pts2 = facelets[0][0].getPoints();
-            Log.d("RubikResult", String.format(
-                    "Java Result facelet points: p[0]:{ %.2f, %.2f}, p[1]:{ %.2f, %.2f}, p[2]:{ %.2f, %.2f}, p[3]:{ %.2f, %.2f}",
-                    pts2[0].x, pts2[0].y, pts2[1].x, pts2[1].y, pts2[2].x, pts2[2].y, pts2[3].x,
-                    pts2[3].y));
-        }
-    }
-
-    private void drawFaceletsOnCanvas(Canvas canvas, RubikFacelet[][] facelets, Paint paint) {
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                Point2d[] points = facelets[i][j].getPoints();
-                Path path = new Path();
-                path.moveTo(points[0].x, points[0].y);
-                path.lineTo(points[1].x, points[1].y);
-
-                path.moveTo(points[1].x, points[1].y);
-                path.lineTo(points[2].x, points[2].y);
-
-                path.moveTo(points[2].x, points[2].y);
-                path.lineTo(points[3].x, points[3].y);
-
-                path.moveTo(points[3].x, points[3].y);
-                path.lineTo(points[0].x, points[0].y);
-
-                canvas.drawPath(path, paint);
-
-                canvas.drawCircle(facelets[i][j].center.x, facelets[i][j].center.y, 10, paint);
-            }
-        }
-    }
-
     private class ProcessingThread extends HandlerThread implements Camera.PreviewCallback {
 
         final static int OPEN_CAMERA = 0;
         final static int START_CAMERA = 1;
-        final static int RENDER_FRAME = 2;
-        final static int TEMPORARY_STOP_CAMERA = 3;
-        final static int STOP_CAMERA_AND_RENDERING = 4;
+        final static int STOP_CAMERA_AND_RENDERING = 2;
+
         private Handler processingHandler;
         private SurfaceTexture surfaceTexture;
 
@@ -183,12 +145,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ru
                         case STOP_CAMERA_AND_RENDERING:
                             stopCameraAndRenderingInternal();
                             break;
-                        case RENDER_FRAME:
-//                            renderFrameInternal();
-                            break;
-                        case TEMPORARY_STOP_CAMERA:
-                            temporaryStopCameraInternal();
-                            break;
                         default:
                             Log.d("Cata", "Handler default case:" + msg.what);
                     }
@@ -200,16 +156,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ru
             processingHandler.sendEmptyMessage(OPEN_CAMERA);
         }
 
-        public void renderFrame() {
-            processingHandler.sendEmptyMessage(RENDER_FRAME);
-        }
-
         public void startCamera() {
             processingHandler.sendEmptyMessage(START_CAMERA);
-        }
-
-        public void temporaryStopCamera() {
-            processingHandler.sendEmptyMessage(TEMPORARY_STOP_CAMERA);
         }
 
         public void stopCameraAndRendering() {
@@ -242,7 +190,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ru
             }
             Rect srcRect = new Rect(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT);
             Rect destRect = new Rect(0, 0, surfaceView.getWidth(), (int) (surfaceView.getWidth() * (PREVIEW_HEIGHT / (float) PREVIEW_WIDTH)));
-            rubikDetector.findCube(data);
+
+            RubikFacelet[][] facelets = rubikDetector.findCube(data);
 
             preallocatedBuffer.rewind();
             preallocatedBuffer.put(data, rubikDetector.getRgbaImageOffset(), rubikDetector.getRgbaImageSize());
@@ -251,11 +200,16 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ru
             preallocatedBitmap.copyPixelsFromBuffer(preallocatedBuffer);
 
             try {
-//                canvas.drawBitmap(bitmapFromNv21, srcRect, destRect, null);
                 canvas.drawBitmap(preallocatedBitmap, srcRect, destRect, null);
                 if (facelets != null) {
+                    facelets = RubikDetectorUtils.rescaleResults(facelets,
+                            rubikDetector.getFrameWidth(),
+                            rubikDetector.getFrameHeight(),
+                            destRect.width(),
+                            destRect.height());
                     Log.d("RubikResult", "drawing facelets!");
-                    drawFaceletsOnCanvas(canvas, facelets, paint);
+//                    RubikDetectorUtils.drawFaceletsAsRectangles(facelets, canvas, paint);
+                    RubikDetectorUtils.drawFaceletsAsCircles(facelets, canvas, paint);
                 } else {
                     Log.d("RubikResult", "facelets are null!");
                 }
@@ -292,7 +246,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, Ru
         public void onPreviewFrame(byte[] data, Camera camera) {
             Log.d("RubikMemoryInfo", "onPreviewFrame, data buffer size: " + data.length);
             if (rubikDetector.isActive()) {
-                facelets = null;
                 renderFrameInternal(data);
             }
             camera.addCallbackBuffer(data);

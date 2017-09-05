@@ -1,4 +1,4 @@
-package com.catalinjurjiu.rubikdetector;
+package com.catalinjurjiu.rubikdetector.model;
 
 /**
  * Created by catalin on 19.08.2017.

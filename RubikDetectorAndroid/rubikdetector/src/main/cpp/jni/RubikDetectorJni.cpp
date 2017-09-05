@@ -24,8 +24,6 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_createNativeObject(JNIEnv *en
     }
 
     CubeDetector &cubeDetector = *new CubeDetector(imageSaver);
-    cubeDetector.setOnCubeDetectionResultListener(
-            new OnCubeDetectionJniBridgeListener(env, instance));
     return reinterpret_cast<jlong>(&cubeDetector);
 
 }
@@ -60,21 +58,41 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetDrawFoundFacelets(JN
     cubeDetector.setShouldDrawFoundFacelets(static_cast<bool>(shouldDrawFoundFacelets));
 }
 
-JNIEXPORT void JNICALL
+JNIEXPORT jintArray  JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNativeImageData(JNIEnv *env,
                                                                            jobject instance,
                                                                            jlong cubeDetectorHandle,
                                                                            jbyteArray imageByteData) {
     CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
 
-    jsize length = env->GetArrayLength(imageByteData);
     jboolean isCopy = 3;
     void *ptr = env->GetPrimitiveArrayCritical(imageByteData, &isCopy);
 
     if (ptr) {
         uint8_t *ptrAsInt = reinterpret_cast<uint8_t *>(ptr);
         env->ReleasePrimitiveArrayCritical(imageByteData, ptr, JNI_ABORT);
-        cubeDetector.findCube(ptrAsInt, length);
+        std::vector<std::vector<RubikFacelet>> result = cubeDetector.findCube(ptrAsInt);
+        if (result.size() != 0) {
+            size_t data_size = 9 * 6;
+            jint flattenedResult[data_size];
+            jint *currentPos = flattenedResult;
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    *(currentPos++) = result[i][j].color;
+                    *(currentPos++) = (int) (result[i][j].center.x * 100000);
+                    *(currentPos++) = (int) (result[i][j].center.y * 100000);
+                    *(currentPos++) = (int) (result[i][j].width * 100000);
+                    *(currentPos++) = (int) (result[i][j].height * 100000);
+                    *(currentPos++) = (int) (result[i][j].angle * 100000);
+                }
+            }
+
+            jintArray retArray = env->NewIntArray(data_size);
+            env->SetIntArrayRegion(retArray, 0, data_size, (jint *) flattenedResult);
+            return retArray;
+        } else {
+            return NULL;
+        }
     } else {
         LOG_WARN("RUBIK_JNI_PART.cpp",
                  "Could not obtain image byte array. No processing performed.");
@@ -88,7 +106,7 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetImageDimensions(JNIE
                                                                             jint width,
                                                                             jint height) {
     CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
-    cubeDetector.setImageDimensions((int) width, (int) height);
+    cubeDetector.setImageProperties((int) width, (int) height);
 }
 
 JNIEXPORT jint JNICALL
@@ -130,3 +148,4 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetNv21ImageOffset(JNIE
     CubeDetector &cubeDetector = *reinterpret_cast<CubeDetector *>(cubeDetectorHandle);
     return cubeDetector.getNv21ImageOffset();
 }
+

@@ -13,7 +13,6 @@
 #include <iostream>
 #include <memory>
 
-
 #ifndef  X1
 #define X1 0
 #endif
@@ -62,14 +61,16 @@ public:
 
     ~CubeDetectorBehavior();
 
-    void setImageDimensions(int width, int height);
-
-    void findCube(cv::Mat &rgbaMat);
+    std::vector<std::vector<RubikFacelet>> findCube(const uint8_t *imageData);
 
     void
-    findCube(const uint8_t *imageData, const int dataLength);
+    findCubeAsync(const uint8_t *imageData);
 
     void setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener);
+
+    void setImageProperties(int width, int height, int colorSpace);
+
+    void setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets);
 
     void setDebuggable(const bool isDebuggable);
 
@@ -84,8 +85,6 @@ public:
     int getNv21ImageSize();
 
     int getNv21ImageOffset();
-
-    void setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets);
 
 private:
 
@@ -103,15 +102,11 @@ private:
 
     static constexpr int CANNY_APERTURE_SIZE = 5;
 
-    static constexpr int MORPH_OP_ITERATIONS = 2;
-
     std::unique_ptr<OnCubeDetectionResultListener> onCubeDetectionResultListener;
 
     std::unique_ptr<ColorDetector> colorDetector;
 
     std::shared_ptr<ImageSaver> imageSaver;
-
-    const cv::Mat morphOpStructuringElement;
 
     int frameNumber = 0;
 
@@ -140,22 +135,13 @@ private:
     int processingRgbaImageSize;
     int processingGrayImageOffset;
     int processingGrayImageSize;
+    int cvColorConversionCode;
 
-    float getSmallestMargin(Circle referenceCircle,
-                            std::vector<Circle> validCircles);
+    std::vector<std::vector<RubikFacelet>> findCubeInternal(const uint8_t *imageData);
 
-    int getPositionInVector(int i, int j);
-
-    cv::Scalar getColorAsScalar(int color);
-
-    void performCannyProcessing(cv::Mat &frameRgba, cv::Mat &frameGray, cv::Mat &resultFrame);
-
-    void saveDebugData(const cv::Mat &frame,
-                       const std::vector<cv::RotatedRect> &filteredRectangles,
-                       const Circle &referenceCircle,
-                       const std::vector<Circle> &potentialFacelets,
-                       const std::vector<Circle> &estimatedFacelets,
-                       const std::vector<std::vector<int>> colors);
+    std::vector<std::vector<RubikFacelet>> findFaceletsInFrame(cv::Mat &frameRgba,
+                                                               cv::Mat &frameGray,
+                                                               cv::Mat &resultFrame);
 
     std::vector<std::vector<cv::Point>> detectContours(const cv::Mat &frameGray) const;
 
@@ -164,47 +150,52 @@ private:
                         std::vector<cv::RotatedRect> &possibleFacelets,
                         std::vector<Circle> &possibleFaceletsInnerCircles) const;
 
-    std::vector<Circle>
-    findPotentialFacelets(const Circle &referenceCircle,
-                          const std::vector<Circle> &innerCircles,
-                          int referenceCircleIndex) const;
+    std::vector<Circle> findPotentialFacelets(const Circle &referenceCircle,
+                                              const std::vector<Circle> &innerCircles,
+                                              int referenceCircleIndex) const;
 
-    std::vector<Circle>
-    estimateRemainingFaceletsPos(const Circle &referenceCircle,
-                                 float margin) const;
+    std::vector<Circle> estimateRemainingFaceletsPositions(const Circle &referenceCircle,
+                                                           float margin) const;
 
-    std::vector<std::vector<Circle>>
-    matchEstimatedWithPotentialFacelets(const std::vector<Circle> &potentialFacelets,
-                                        const std::vector<Circle> &estimatedFacelets);
+    std::vector<std::vector<Circle>> matchEstimatedWithPotentialFacelets(
+            const std::vector<Circle> &potentialFacelets,
+            const std::vector<Circle> &estimatedFacelets);
 
     bool verifyIfCubeFound(const std::vector<std::vector<Circle>> &cubeFacet) const;
 
     void fillMissingFacelets(const std::vector<Circle> &facelets,
                              std::vector<std::vector<Circle>> &vector);
 
-    std::vector<std::vector<int>>
-    detectFacetColors(const cv::Mat &currentFrame,
-                      const std::vector<std::vector<Circle>> facetModel);
+    std::vector<std::vector<int>> detectFacetColors(const cv::Mat &currentFrame,
+                                                    const std::vector<std::vector<Circle>> facetModel);
 
-    void
-    drawFoundFaceletsCircles(cv::Mat &procRgbaFrame,
-                             std::vector<std::vector<RubikFacelet>> &facetModel);
+    std::vector<std::vector<RubikFacelet>> createResult(const std::vector<std::vector<int>> &colors,
+                                                        const std::vector<std::vector<Circle>> &model);
 
-    void
-    drawFoundFaceletsRectangles(cv::Mat &procRgbaFrame,
-                                std::vector<std::vector<RubikFacelet>> &facetModel);
+    void drawFoundFaceletsCircles(cv::Mat &procRgbaFrame,
+                                  std::vector<std::vector<RubikFacelet>> &facetModel);
+
+    void drawFoundFaceletsRectangles(cv::Mat &procRgbaFrame,
+                                     std::vector<std::vector<RubikFacelet>> &facetModel);
+
+    void saveWholeFrame(const cv::Mat &currentFrame, int frameNr) const;
 
     cv::Mat saveFilteredRectangles(const cv::Mat &currentFrame,
                                    const std::vector<cv::RotatedRect> &filteredRectangles,
                                    int frameNr) const;
 
-    void saveWholeFrame(const cv::Mat &currentFrame, int frameNr) const;
+    void saveDebugData(const cv::Mat &frame,
+                       const std::vector<cv::RotatedRect> &filteredRectangles,
+                       const Circle &referenceCircle,
+                       const std::vector<Circle> &potentialFacelets,
+                       const std::vector<Circle> &estimatedFacelets,
+                       const std::vector<std::vector<int>> colors);
 
     void drawRectangleToMat(const cv::Mat &currentFrame, const cv::RotatedRect &rotatedRect,
                             const cv::Scalar color = cv::Scalar(0, 255, 0)) const;
 
-    std::vector<std::vector<RubikFacelet>>
-    createResult(std::vector<std::vector<int>> vector, std::vector<std::vector<Circle>> model);
+    float getSmallestMargin(Circle referenceCircle, std::vector<Circle> validCircles);
+
 };
 
 #endif //RUBIKDETECTORDEMO_CUBEDETECTORBEHAVIOR_HPP

@@ -11,7 +11,7 @@
 namespace utils {
     float pointsDistance(const cv::Point2f &firstPoint, const cv::Point2f &secondPoint) {
         return std::sqrt((firstPoint.x - secondPoint.x) * (firstPoint.x - secondPoint.x) +
-                                  (firstPoint.y - secondPoint.y) * (firstPoint.y - secondPoint.y));
+                         (firstPoint.y - secondPoint.y) * (firstPoint.y - secondPoint.y));
     }
 
     bool quickSaveImage(const cv::Mat &mat, const std::string path, const int frameNumber,
@@ -29,20 +29,39 @@ namespace utils {
 
     char colorIntToChar(const int colorInt) {
         switch (colorInt) {
-            case RED:
+            case CubeColors::RED:
                 return 'r';
-            case ORANGE:
+            case CubeColors::ORANGE:
                 return 'o';
-            case YELLOW:
+            case CubeColors::YELLOW:
                 return 'y';
-            case GREEN:
+            case CubeColors::GREEN:
                 return 'g';
-            case BLUE:
+            case CubeColors::BLUE:
                 return 'b';
-            case WHITE:
+            case CubeColors::WHITE:
                 return 'w';
             default:
                 return 'x';
+        }
+    }
+
+    cv::Scalar getColorAsScalar(int color) {
+        switch (color) {
+            case CubeColors::WHITE:
+                return cv::Scalar(255, 255, 255, 255);
+            case CubeColors::ORANGE:
+                return cv::Scalar(255, 127, 0, 255);
+            case CubeColors::YELLOW:
+                return cv::Scalar(255, 255, 0, 255);
+            case CubeColors::GREEN:
+                return cv::Scalar(20, 240, 20, 255);
+            case CubeColors::BLUE:
+                return cv::Scalar(0, 0, 200, 255);
+            case CubeColors::RED:
+                return cv::Scalar(255, 0, 0, 255);
+            default:
+                return cv::Scalar(-1, -1, -1, 255);
         }
     }
 
@@ -50,17 +69,17 @@ namespace utils {
                     const cv::Scalar color, const float scalingFactor,
                     const int radiusModifier, const bool fillArea) {
         cv::circle(drawingCanvas, circle.center,
-                   (int)round((circle.radius - radiusModifier < 0) ?
-                   circle.radius : circle.radius - (int) round(radiusModifier * scalingFactor)),
+                   (int) round((circle.radius - radiusModifier < 0) ?
+                               circle.radius : circle.radius -
+                                               (int) round(radiusModifier * scalingFactor)),
                    color,
                 //-1 means the circle will be filled, otherwise draw it with a 2px stroke
                    fillArea ? -1 : (int) round(1 * scalingFactor),
                    CV_AA, 0);
     }
 
-    void
-    drawCircles(cv::Mat &drawingCanvas, const std::vector<Circle> circles, const cv::Scalar color,
-                const float scalingFactor) {
+    void drawCircles(cv::Mat &drawingCanvas, const std::vector<Circle> circles,
+                     const cv::Scalar color, const float scalingFactor) {
         for (int i = 0; i < circles.size(); i++) {
             drawCircle(drawingCanvas, circles[i], color, scalingFactor);
         }

@@ -24,14 +24,14 @@ public:
 
     Circle(const cv::RotatedRect &rect);
 
-    bool contains(cv::Point2f point) const;
+    bool contains(const cv::Point2i &point) const;
 
-    bool contains(cv::Point2i point) const;
+    bool contains(const cv::Point2f &point) const;
 
     bool isEmpty() const;
 
 private:
-    float computeAngle(cv::Point2f *points);
+    float computeAngle(const cv::Point2f points[]);
 };
 
 

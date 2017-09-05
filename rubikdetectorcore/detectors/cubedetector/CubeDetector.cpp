@@ -18,18 +18,16 @@ CubeDetector::~CubeDetector() {
     }
 }
 
-void
-CubeDetector::findCube(cv::Mat &rgbaMat) {
-    behavior->findCube(rgbaMat);
+std::vector<std::vector<RubikFacelet>> CubeDetector::findCube(const uint8_t *imageData) {
+    return behavior->findCube(imageData);
 }
 
-void
-CubeDetector::findCube(const uint8_t *imageData, const int dataLength) {
-    behavior->findCube(imageData, dataLength);
+void CubeDetector::findCubeAsync(const uint8_t *imageData) {
+    behavior->findCubeAsync(imageData);
 }
 
-void CubeDetector::setImageDimensions(int width, int height) {
-    behavior->setImageDimensions(width, height);
+void CubeDetector::setImageProperties(int width, int height, int colorSpace) {
+    behavior->setImageProperties(width, height, colorSpace);
 }
 
 void CubeDetector::setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener) {

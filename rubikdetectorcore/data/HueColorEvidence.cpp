@@ -4,7 +4,4 @@
 
 #include "HueColorEvidence.hpp"
 
-HueColorEvidence::HueColorEvidence(int c) {
-    color = c;
-    evidence = 0;
-}
+HueColorEvidence::HueColorEvidence(int color) : color(color), evidence(0) {}

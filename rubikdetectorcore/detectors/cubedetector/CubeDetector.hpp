@@ -8,22 +8,21 @@
 #include <vector>
 #include <cstdint>
 #include <memory>
+#include "../../data/RubikFacelet.hpp"
 
-namespace cv {
-    class Mat;
-}
 class OnCubeDetectionResultListener;
 
 class CubeDetectorBehavior;
 
 class ImageSaver;
 
-static const int RED = 0;
-static const int ORANGE = 1;
-static const int YELLOW = 2;
-static const int GREEN = 3;
-static const int BLUE = 4;
-static const int WHITE = 5;
+static enum CubeColors {
+    RED, ORANGE, YELLOW, GREEN, BLUE, WHITE
+};
+
+static enum ColorSpace {
+    YUV_NV21, YUV_NV12, YUV_I420, YUV_YV12
+};
 
 class CubeDetector {
 public:
@@ -33,20 +32,19 @@ public:
 
     ~CubeDetector();
 
-    void findCube(cv::Mat &rgbaMat);
+    std::vector<std::vector<RubikFacelet>> findCube(const uint8_t *imageData);
 
-    void
-    findCube(const uint8_t *imageData, const int dataLength);
-
-    void setImageDimensions(int width, int height);
+    void findCubeAsync(const uint8_t *imageData);
 
     void setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener);
+
+    void setImageProperties(int width, int height, int colorSpace = YUV_NV21);
+
+    void setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets);
 
     void setDebuggable(const bool debuggable);
 
     bool isDebuggable();
-
-    void setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets);
 
     int getTotalRequiredMemory();
 
@@ -60,7 +58,6 @@ public:
 
 private:
     std::unique_ptr<CubeDetectorBehavior> behavior;
-
 };
 
 #endif //RUBIKDETECTORDEMO_CUBEDETECTOR_HPP

@@ -33,7 +33,7 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetDrawFoundFacelets(JN
                                                                        jlong cubeDetectorHandle,
                                                                        jboolean shouldDrawFoundFacelets);
 
-JNIEXPORT void JNICALL
+JNIEXPORT jintArray JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_findCubeNativeImageData(JNIEnv *env,
                                                                            jobject instance,
                                                                            jlong cubeDetectorHandle,

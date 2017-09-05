@@ -36,7 +36,7 @@ OnCubeDetectionJniBridgeListener::~OnCubeDetectionJniBridgeListener() {
 }
 
 void OnCubeDetectionJniBridgeListener::onCubeDetectionResult(
-        const std::vector<std::vector<RubikFacelet>> result) const {
+        const std::vector<std::vector<RubikFacelet>> &result) const {
     LOG_DEBUG("RubikJniPart.cpp",
               "OnCubeDetectionJniBridgeListener -> notifying java side of result.");
     JNIEnv *currentEnvironment;

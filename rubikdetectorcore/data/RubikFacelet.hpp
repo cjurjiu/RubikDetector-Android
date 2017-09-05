@@ -5,7 +5,6 @@
 #ifndef RUBIKDETECTORANDROID_RUBIKFACELET_HPP
 #define RUBIKDETECTORANDROID_RUBIKFACELET_HPP
 
-
 #include <vector>
 #include "Point2d.hpp"
 
