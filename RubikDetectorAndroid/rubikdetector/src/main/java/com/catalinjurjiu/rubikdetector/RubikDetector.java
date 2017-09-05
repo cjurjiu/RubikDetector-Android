@@ -33,12 +33,14 @@ public class RubikDetector {
     private int inputFrameBufferOffset;
     private OnCubeDetectionResultListener listener;
 
-    public RubikDetector() {
-        this(null);
+    private RubikDetector(ImageProperties properties, DrawParams drawParams) {
+        this(properties, drawParams, null);
     }
 
-    public RubikDetector(String storagePath) {
+    private RubikDetector(ImageProperties properties, DrawParams drawParams, String storagePath) {
         cubeDetectorHandle = createNativeObject(storagePath);
+        setImageProperties(properties.width, properties.height, properties.inputImageFormat);
+        nativeSetDrawFoundFacelets(cubeDetectorHandle, true);
     }
 
     public void setImageProperties(int width, int height, @ImageFormat int imageFormat) {
@@ -57,12 +59,6 @@ public class RubikDetector {
     public void setDebuggable(boolean debuggable) {
         if (isActive()) {
             nativeSetDebuggable(cubeDetectorHandle, debuggable);
-        }
-    }
-
-    public void setDrawFoundFacelets(boolean drawFoundFacelets) {
-        if (isActive()) {
-            nativeSetDrawFoundFacelets(cubeDetectorHandle, drawFoundFacelets);
         }
     }
 
@@ -190,6 +186,10 @@ public class RubikDetector {
         return frameHeight;
     }
 
+    private void setDrawParams(DrawParams drawParams) {
+
+    }
+
     @IntDef
     public @interface ImageFormat {
         int YUV_NV21 = 0,
@@ -211,5 +211,96 @@ public class RubikDetector {
 
     public interface OnCubeDetectionResultListener {
         void onCubeDetectionResult(RubikFacelet facelets[][]);
+    }
+
+    @IntDef
+    public @interface DrawMode {
+        int DO_NOT_DRAW = 0,
+                DRAW_RECTANGLES = 1,
+                DRAW_CIRCLES = 2;
+
+    }
+
+    public static class ImageProperties {
+        public final int width;
+        public final int height;
+        public final
+        @ImageFormat
+        int inputImageFormat;
+
+        public ImageProperties(int width, int height, int inputImageFormat) {
+            this.width = width;
+            this.height = height;
+            this.inputImageFormat = inputImageFormat;
+        }
+    }
+
+    public static class DrawParams {
+        public final int strokeWidth;
+        public final boolean fillShape;
+        @DrawMode
+        public final int drawMode;
+
+        public DrawParams(int drawMode, int strokeWidth) {
+            this.drawMode = drawMode;
+            this.strokeWidth = strokeWidth;
+            this.fillShape = false;
+        }
+
+        public DrawParams(int drawMode, boolean fillShape) {
+            this.drawMode = drawMode;
+            this.strokeWidth = 1;
+            this.fillShape = fillShape;
+        }
+
+        public static DrawParams DEFAULT() {
+            return new DrawParams(DrawMode.DRAW_CIRCLES, 2);
+        }
+    }
+
+    public static class Builder {
+        private DrawParams drawParams;
+        private boolean debuggable;
+        private String imageSavePath = null;
+        private int inputFrameWidth = 320;
+        private int inputFrameHeight = 240;
+        @ImageFormat
+        private int inputFrameFormat = ImageFormat.YUV_NV21;
+
+        public Builder inputFrameSize(int inputFrameWidth, int inputFrameHeight) {
+            this.inputFrameWidth = inputFrameWidth;
+            this.inputFrameHeight = inputFrameHeight;
+            return this;
+        }
+
+        public Builder inputFrameFormat(int inputFrameFormat) {
+            this.inputFrameFormat = inputFrameFormat;
+            return this;
+        }
+
+        public Builder drawParams(DrawParams drawParams) {
+            this.drawParams = drawParams;
+            return this;
+        }
+
+        public Builder debuggable(boolean debuggable) {
+            this.debuggable = debuggable;
+            return this;
+        }
+
+        public Builder imageSavePath(String imageSavePath) {
+            this.imageSavePath = imageSavePath;
+            return this;
+        }
+
+        public RubikDetector build() {
+            ImageProperties imageProperties = new ImageProperties(inputFrameWidth, inputFrameHeight, inputFrameFormat);
+            if (drawParams == null) {
+                drawParams = DrawParams.DEFAULT();
+            }
+            RubikDetector rubikDetector = new RubikDetector(imageProperties, drawParams, imageSavePath);
+            rubikDetector.setDebuggable(debuggable);
+            return rubikDetector;
+        }
     }
 }

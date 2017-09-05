@@ -10,7 +10,9 @@
 ImageSaver::ImageSaver(const std::string saveLocation) : path(saveLocation) {}
 
 ImageSaver::~ImageSaver() {
-    LOG_DEBUG("RubikJniPart.cpp", "ImageSaver - destructor.");
+    if (debuggable) {
+        LOG_DEBUG("RubikJniPart.cpp", "ImageSaver - destructor.");
+    }
 }
 
 bool ImageSaver::saveImage(const cv::Mat &mat, const int frameNumber, const int regionId) {
@@ -27,3 +29,10 @@ ImageSaver::saveImage(const cv::Mat &mat, const int frameNumber, const std::stri
     return cv::imwrite(store_path, mat);
 }
 
+void ImageSaver::setDebuggable(const bool debuggable) {
+    ImageSaver::debuggable = debuggable;
+}
+
+bool ImageSaver::isDebuggable() const {
+    return ImageSaver::debuggable;
+}

@@ -10,15 +10,20 @@
 
 class RubikFacelet {
 public:
+
+    enum class Color {
+        RED, ORANGE, YELLOW, GREEN, BLUE, WHITE
+    };
+
     RubikFacelet();
 
-    RubikFacelet(int color, Point2d center, float width, float height, float angle);
+    RubikFacelet(Color color, Point2d center, float width, float height, float angle);
 
     ~RubikFacelet();
 
     std::vector<Point2d> getPoints();
 
-    int color;
+    Color color;
 
     Point2d center;
 

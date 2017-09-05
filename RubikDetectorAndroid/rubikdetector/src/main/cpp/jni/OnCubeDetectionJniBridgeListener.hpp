@@ -8,7 +8,7 @@
 
 #include <jni.h>
 #include <vector>
-#include "../rubikdetectorcore/detectors/cubedetector/OnCubeDetectionResultListener.hpp"
+#include "../rubikdetectorcore/detectors/faceletsdetector/OnCubeDetectionResultListener.hpp"
 
 class RubikFacelet;
 

@@ -6,6 +6,7 @@
 #include "OnCubeDetectionJniBridgeListener.hpp"
 #include "../rubikdetectorcore/utils/CrossLog.hpp"
 #include "../rubikdetectorcore/data/RubikFacelet.hpp"
+#include "../rubikdetectorcore/utils/Utils.hpp"
 
 OnCubeDetectionJniBridgeListener::OnCubeDetectionJniBridgeListener(JNIEnv *jniEnv,
                                                                    jobject jobjc) {
@@ -48,7 +49,7 @@ void OnCubeDetectionJniBridgeListener::onCubeDetectionResult(
         jint *currentPos = flattenedResult;
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                *(currentPos++) = result[i][j].color;
+                *(currentPos++) = utils::asInt(result[i][j].color);
                 *(currentPos++) = (int) (result[i][j].center.x * 100000);
                 *(currentPos++) = (int) (result[i][j].center.y * 100000);
                 *(currentPos++) = (int) (result[i][j].width * 100000);

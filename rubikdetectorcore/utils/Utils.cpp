@@ -6,7 +6,6 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include "Utils.hpp"
-#include "../detectors/cubedetector/CubeDetector.hpp"
 
 namespace utils {
     float pointsDistance(const cv::Point2f &firstPoint, const cv::Point2f &secondPoint) {
@@ -27,41 +26,37 @@ namespace utils {
         return cv::imwrite(store_path, mat);
     }
 
-    char colorIntToChar(const int colorInt) {
+    char colorIntToChar(const RubikFacelet::Color colorInt) {
         switch (colorInt) {
-            case CubeColors::RED:
+            case RubikFacelet::Color::RED:
                 return 'r';
-            case CubeColors::ORANGE:
+            case RubikFacelet::Color::ORANGE:
                 return 'o';
-            case CubeColors::YELLOW:
+            case RubikFacelet::Color::YELLOW:
                 return 'y';
-            case CubeColors::GREEN:
+            case RubikFacelet::Color::GREEN:
                 return 'g';
-            case CubeColors::BLUE:
+            case RubikFacelet::Color::BLUE:
                 return 'b';
-            case CubeColors::WHITE:
+            case RubikFacelet::Color::WHITE:
                 return 'w';
-            default:
-                return 'x';
         }
     }
 
-    cv::Scalar getColorAsScalar(int color) {
+    cv::Scalar getColorAsScalar(const RubikFacelet::Color color) {
         switch (color) {
-            case CubeColors::WHITE:
+            case RubikFacelet::Color::WHITE:
                 return cv::Scalar(255, 255, 255, 255);
-            case CubeColors::ORANGE:
+            case RubikFacelet::Color::ORANGE:
                 return cv::Scalar(255, 127, 0, 255);
-            case CubeColors::YELLOW:
+            case RubikFacelet::Color::YELLOW:
                 return cv::Scalar(255, 255, 0, 255);
-            case CubeColors::GREEN:
+            case RubikFacelet::Color::GREEN:
                 return cv::Scalar(20, 240, 20, 255);
-            case CubeColors::BLUE:
+            case RubikFacelet::Color::BLUE:
                 return cv::Scalar(0, 0, 200, 255);
-            case CubeColors::RED:
+            case RubikFacelet::Color::RED:
                 return cv::Scalar(255, 0, 0, 255);
-            default:
-                return cv::Scalar(-1, -1, -1, 255);
         }
     }
 
@@ -177,6 +172,43 @@ namespace utils {
 
                 index++;
             }
+        }
+
+    }
+
+    RubikFacelet::Color colorFromInt(const int val) {
+        switch (val) {
+            case 0:
+                return RubikFacelet::Color::RED;
+            case 1:
+                return RubikFacelet::Color::ORANGE;
+            case 2:
+                return RubikFacelet::Color::YELLOW;
+            case 3:
+                return RubikFacelet::Color::GREEN;
+            case 4:
+                return RubikFacelet::Color::BLUE;
+            case 5:
+                return RubikFacelet::Color::WHITE;
+            default:
+                return RubikFacelet::Color::WHITE;
+        }
+    }
+
+    FaceletsDetector::ImageFormat imageFormatFromInt(const int val) {
+        switch (val) {
+            case 0:
+                return FaceletsDetector::ImageFormat::YUV_NV21;
+            case 1:
+                return FaceletsDetector::ImageFormat::YUV_NV12;
+            case 2:
+                return FaceletsDetector::ImageFormat::YUV_I420;
+            case 3:
+                return FaceletsDetector::ImageFormat::YUV_YV12;
+            case 4:
+                return FaceletsDetector::ImageFormat::RGBA8888;
+            default:
+                return FaceletsDetector::ImageFormat::YUV_NV21;
         }
     }
 }

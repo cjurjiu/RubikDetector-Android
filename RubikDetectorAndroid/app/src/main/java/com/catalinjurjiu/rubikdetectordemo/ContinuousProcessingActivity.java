@@ -70,10 +70,11 @@ public class ContinuousProcessingActivity extends Activity implements SurfaceHol
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_activity_continuous_processing);
 //        rubikDetector = new RubikDetector("/storage/emulated/0/RubikResults");
-        rubikDetector = new RubikDetector();
-        rubikDetector.setDebuggable(true);
-        rubikDetector.setDrawFoundFacelets(true);
-        rubikDetector.setImageProperties(PREVIEW_WIDTH, PREVIEW_HEIGHT, RubikDetectorUtils.convertAndroidImageFormat(androidImageFormat));
+        rubikDetector = new RubikDetector.Builder()
+                .debuggable(true)
+                .inputFrameFormat(androidImageFormat)
+                .inputFrameSize(PREVIEW_WIDTH, PREVIEW_HEIGHT)
+                .build();
 
         preallocatedBuffer = ByteBuffer.allocate(rubikDetector.getResultFrameByteCount());
         preallocatedBitmap = Bitmap.createBitmap(PREVIEW_WIDTH, PREVIEW_HEIGHT, Bitmap.Config.ARGB_8888);

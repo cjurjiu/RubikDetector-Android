@@ -5,14 +5,15 @@
 #ifndef RUBIKDETECTORDEMO_HUECOLOREVIDENCE_H
 #define RUBIKDETECTORDEMO_HUECOLOREVIDENCE_H
 
+#include "RubikFacelet.hpp"
 
 class HueColorEvidence {
 
 public:
-    int color;
+    RubikFacelet::Color color;
     int evidence;
 
-    HueColorEvidence(const int color);
+    HueColorEvidence(const RubikFacelet::Color color);
 };
 
 

@@ -8,77 +8,50 @@
 #include <opencv2/core/core.hpp>
 #include "../../data/Circle.hpp"
 #include "../../data/HueColorEvidence.hpp"
-#include "../colordetector/ColorDetector.hpp"
-#include "../../helpers/ImageSaver.hpp"
+#include "../colordetector/HistogramColorDetector.hpp"
+#include "../../imagesaver/ImageSaver.hpp"
+#include "FaceletsDetector.hpp"
 #include <iostream>
 #include <memory>
-
-#ifndef  X1
-#define X1 0
-#endif
-
-#ifndef  Y1
-#define Y1 1
-#endif
-
-#ifndef  X2
-#define X2 2
-#endif
-
-#ifndef  Y2
-#define Y2 3
-#endif
-
-#ifndef  HUE
-#define HUE 0
-#endif
-
-#ifndef  SATURATION
-#define SATURATION 1
-#endif
-
-#ifndef  VALUE
-#define VALUE 2
-#endif
 
 class OnCubeDetectionResultListener;
 
 class RubikFacelet;
 
-class CubeDetectorBehavior {
+class SimpleFaceletsDetectorBehavior : FaceletsDetector{
 public:
-    CubeDetectorBehavior();
+    SimpleFaceletsDetectorBehavior();
 
-    CubeDetectorBehavior(std::shared_ptr<ImageSaver> imageSaver);
+    SimpleFaceletsDetectorBehavior(std::shared_ptr<ImageSaver> imageSaver);
 
-    ~CubeDetectorBehavior();
+    virtual ~SimpleFaceletsDetectorBehavior();
 
-    std::vector<std::vector<RubikFacelet>> findCube(const uint8_t *imageData);
+    std::vector<std::vector<RubikFacelet>> findCube(const uint8_t *imageData) override;
 
     void
-    findCubeAsync(const uint8_t *imageData);
+    findCubeAsync(const uint8_t *imageData) override;
 
-    void setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener);
+    void setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener) override;
 
-    void setImageProperties(int width, int height, int imageFormat);
+    void setImageProperties(int width, int height, FaceletsDetector::ImageFormat imageFormat) override;
 
-    void overrideInputFrameWithResultFrame(const uint8_t *imageData);
+    void overrideInputFrameWithResultFrame(const uint8_t *imageData) override;
 
-    void setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets);
+    void setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets) override;
 
-    void setDebuggable(const bool isDebuggable);
+    int getRequiredMemory() override;
 
-    bool isDebuggable();
+    int getOutputFrameBufferOffset() override;
 
-    int getRequiredMemory();
+    int getOutputFrameByteCount() override;
 
-    int getOutputFrameBufferOffset();
+    int getInputFrameByteCount() override;
 
-    int getOutputFrameByteCount();
+    int getInputFrameBufferOffset() override;
 
-    int getInputFrameByteCount();
+    void setDebuggable(const bool isDebuggable) override;
 
-    int getInputBufferFrameOffset();
+    bool isDebuggable() const override;
 
 private:
 
@@ -133,7 +106,7 @@ private:
     int processingRgbaImageByteCount;
     int processingGrayImageOffset;
     int processingGrayImageSize;
-    int inputImageFormat;
+    FaceletsDetector::ImageFormat inputImageFormat;
     int cvColorConversionCode;
 
     std::vector<std::vector<RubikFacelet>> findCubeInternal(const uint8_t *imageData);
@@ -165,10 +138,10 @@ private:
     void fillMissingFacelets(const std::vector<Circle> &facelets,
                              std::vector<std::vector<Circle>> &vector);
 
-    std::vector<std::vector<int>> detectFacetColors(const cv::Mat &currentFrame,
+    std::vector<std::vector<RubikFacelet::Color>> detectFacetColors(const cv::Mat &currentFrame,
                                                     const std::vector<std::vector<Circle>> facetModel);
 
-    std::vector<std::vector<RubikFacelet>> createResult(const std::vector<std::vector<int>> &colors,
+    std::vector<std::vector<RubikFacelet>> createResult(const std::vector<std::vector<RubikFacelet::Color>> &colors,
                                                         const std::vector<std::vector<Circle>> &model);
 
     void drawFoundFaceletsCircles(cv::Mat &procRgbaFrame,
@@ -188,7 +161,7 @@ private:
                        const Circle &referenceCircle,
                        const std::vector<Circle> &potentialFacelets,
                        const std::vector<Circle> &estimatedFacelets,
-                       const std::vector<std::vector<int>> colors);
+                       const std::vector<std::vector<RubikFacelet::Color>> colors);
 
     void drawRectangleToMat(const cv::Mat &currentFrame, const cv::RotatedRect &rotatedRect,
                             const cv::Scalar color = cv::Scalar(0, 255, 0)) const;

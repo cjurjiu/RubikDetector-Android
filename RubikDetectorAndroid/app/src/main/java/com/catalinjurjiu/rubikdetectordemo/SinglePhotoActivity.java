@@ -50,9 +50,12 @@ public class SinglePhotoActivity extends Activity {
                 startActivityForResult(cameraIntent, CAMERA_REQUEST);
             }
         });
-        rubikDetector = new RubikDetector();
-        rubikDetector.setDebuggable(true);
-        rubikDetector.setDrawFoundFacelets(true);
+        rubikDetector = new RubikDetector.Builder()
+                .imageSavePath(null)
+//                .imageSavePath("/storage/emulated/0/RubikResults")
+                .debuggable(true)
+                .drawParams(null)
+                .build();
     }
 
     @Override

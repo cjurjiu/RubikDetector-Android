@@ -22,10 +22,11 @@ public class FotoApparatActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_foto_apparat);
 
-        rubikDetector = new RubikDetector(null);
-//        rubikDetector = new RubikDetector("/storage/emulated/0/RubikResults");
-        rubikDetector.setDrawFoundFacelets(true);
-        rubikDetector.setDebuggable(true);
+        rubikDetector = new RubikDetector.Builder()
+                .imageSavePath(null)
+//                .imageSavePath("/storage/emulated/0/RubikResults")
+                .debuggable(true)
+                .build();
 
         RubikDetectorResultView rubikDetectorResultView = (RubikDetectorResultView) findViewById(R.id.rubik_results_view);
         RubikDetectorFrameProcessor rubikFrameProcessor = new RubikDetectorFrameProcessor(rubikDetector, rubikDetectorResultView);

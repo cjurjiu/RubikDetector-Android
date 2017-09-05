@@ -13,14 +13,14 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <!--<activity-->
-            <!--android:name=".ContinuousProcessingActivity"-->
-            <!--android:screenOrientation="landscape">-->
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.MAIN"/>-->
-                <!--<category android:name="android.intent.category.LAUNCHER"/>-->
-            <!--</intent-filter>-->
-        <!--</activity>-->
+        <activity
+            android:name=".ContinuousProcessingActivity"
+            android:screenOrientation="landscape">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
         <!--<activity android:name=".SinglePhotoActivity">-->
         <!--<intent-filter>-->
         <!--<action android:name="android.intent.action.MAIN"/>-->
@@ -29,15 +29,15 @@
         <!--</intent-filter>-->
         <!--</activity>-->
 
-        <activity android:name=".FotoApparatActivity"
-                  android:theme="@style/AppTheme2"
-            android:screenOrientation="reversePortrait">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+        <!--<activity android:name=".FotoApparatActivity"-->
+                  <!--android:theme="@style/AppTheme2"-->
+            <!--android:screenOrientation="reversePortrait">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.MAIN"/>-->
 
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-        </activity>
+                <!--<category android:name="android.intent.category.LAUNCHER"/>-->
+            <!--</intent-filter>-->
+        <!--</activity>-->
 
         <provider
             android:name="android.support.v4.content.FileProvider"

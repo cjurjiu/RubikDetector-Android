@@ -2,36 +2,37 @@
 //
 
 #include <math.h>
-#include "CubeDetectorBehavior.hpp"
-#include "CubeDetector.hpp"
-#include "OnCubeDetectionResultListener.hpp"
+#include "SimpleFaceletsDetectorBehavior.hpp"
+#include "SimpleFaceletsDetector.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "../../utils/Utils.hpp"
 #include "../../utils/CrossLog.hpp"
 
 /**##### PUBLIC API #####**/
-CubeDetectorBehavior::CubeDetectorBehavior() : CubeDetectorBehavior(nullptr) {
+SimpleFaceletsDetectorBehavior::SimpleFaceletsDetectorBehavior() : SimpleFaceletsDetectorBehavior(
+        nullptr) {
     //empty default constructor
 }
 
-CubeDetectorBehavior::CubeDetectorBehavior(std::shared_ptr<ImageSaver> imageSaver) :
+SimpleFaceletsDetectorBehavior::SimpleFaceletsDetectorBehavior(
+        std::shared_ptr<ImageSaver> imageSaver) :
         imageSaver(imageSaver),
-        colorDetector(std::unique_ptr<ColorDetector>(new ColorDetector(imageSaver))) {
-
+        colorDetector(std::unique_ptr<ColorDetector>(new HistogramColorDetector(imageSaver))) {
 }
 
-CubeDetectorBehavior::~CubeDetectorBehavior() {
+SimpleFaceletsDetectorBehavior::~SimpleFaceletsDetectorBehavior() {
     if (debuggable) {
         LOG_DEBUG("RubikJniPart.cpp", "CubeDetectorBehavior - destructor.");
     }
 }
 
-std::vector<std::vector<RubikFacelet>> CubeDetectorBehavior::findCube(const uint8_t *imageData) {
+std::vector<std::vector<RubikFacelet>>
+SimpleFaceletsDetectorBehavior::findCube(const uint8_t *imageData) {
     return findCubeInternal(imageData);
 }
 
-void CubeDetectorBehavior::findCubeAsync(const uint8_t *imageData) {
+void SimpleFaceletsDetectorBehavior::findCubeAsync(const uint8_t *imageData) {
     //TODO create a new thread, process the cube on the worker thread.
     //TODO notify back on the original thread, if possible
 //    std::vector<std::vector<RubikFacelet>> result = findCubeInternal(imageData);
@@ -40,31 +41,30 @@ void CubeDetectorBehavior::findCubeAsync(const uint8_t *imageData) {
 //    }
 }
 
-void CubeDetectorBehavior::setOnCubeDetectionResultListener(
+void SimpleFaceletsDetectorBehavior::setOnCubeDetectionResultListener(
         OnCubeDetectionResultListener *listener) {
     onCubeDetectionResultListener = std::unique_ptr<OnCubeDetectionResultListener>(listener);
 }
 
-void CubeDetectorBehavior::setImageProperties(int width, int height, int imageFormat) {
-    CubeDetectorBehavior::inputImageFormat = imageFormat;
+void SimpleFaceletsDetectorBehavior::setImageProperties(int width, int height,
+                                                        FaceletsDetector::ImageFormat imageFormat) {
+    SimpleFaceletsDetectorBehavior::inputImageFormat = imageFormat;
     switch (imageFormat) {
-        case ImageFormat::YUV_NV21:
+        case FaceletsDetector::ImageFormat::YUV_NV21:
             cvColorConversionCode = cv::COLOR_YUV2RGBA_NV21;
             break;
-        case ImageFormat::YUV_NV12:
+        case FaceletsDetector::ImageFormat::YUV_NV12:
             cvColorConversionCode = cv::COLOR_YUV2RGBA_NV12;
             break;
-        case ImageFormat::YUV_I420:
+        case FaceletsDetector::ImageFormat::YUV_I420:
             cvColorConversionCode = cv::COLOR_YUV2RGBA_I420;
             break;
-        case ImageFormat::YUV_YV12:
+        case FaceletsDetector::ImageFormat::YUV_YV12:
             cvColorConversionCode = cv::COLOR_YUV2RGBA_YV12;
             break;
-        case ImageFormat::RGBA8888:
-            cvColorConversionCode = CubeDetectorBehavior::NO_CONVERSION_NEEDED;
+        case FaceletsDetector::ImageFormat::RGBA8888:
+            cvColorConversionCode = SimpleFaceletsDetectorBehavior::NO_CONVERSION_NEEDED;
             break;
-        default:
-            cvColorConversionCode = cv::COLOR_YUV2RGBA_NV21;
     }
     imageWidth = width;
     imageHeight = height;
@@ -94,12 +94,12 @@ void CubeDetectorBehavior::setImageProperties(int width, int height, int imageFo
     }
     needsResize = imageHeight != processingHeight || imageWidth != processingWidth;
 
-    if (imageFormat != ImageFormat::RGBA8888) {
+    if (imageFormat != FaceletsDetector::ImageFormat::RGBA8888) {
         //image is in one of the supported YUV formats
         outputRgbaImageByteCount = width * height * 4;
         outputRgbaImageOffset = width * (height + height / 2);
         inputImageByteCount = width * (height + height / 2);
-        inputImageOffset = CubeDetectorBehavior::NO_OFFSET;
+        inputImageOffset = SimpleFaceletsDetectorBehavior::NO_OFFSET;
 
         if (needsResize) {
             processingRgbaImageOffset = outputRgbaImageByteCount + inputImageByteCount;
@@ -115,7 +115,7 @@ void CubeDetectorBehavior::setImageProperties(int width, int height, int imageFo
         }
     } else {
         inputImageByteCount = outputRgbaImageByteCount = width * height * 4;
-        inputImageOffset = outputRgbaImageOffset = CubeDetectorBehavior::NO_OFFSET;
+        inputImageOffset = outputRgbaImageOffset = SimpleFaceletsDetectorBehavior::NO_OFFSET;
 
         if (needsResize) {
             processingRgbaImageOffset = outputRgbaImageByteCount;
@@ -139,8 +139,8 @@ void CubeDetectorBehavior::setImageProperties(int width, int height, int imageFo
                               MIN_VALID_SHAPE_TO_IMAGE_SIDE_SIZE_RATIO);
 }
 
-void CubeDetectorBehavior::overrideInputFrameWithResultFrame(const uint8_t *imageData) {
-    if (inputImageFormat == ImageFormat::RGBA8888) {
+void SimpleFaceletsDetectorBehavior::overrideInputFrameWithResultFrame(const uint8_t *imageData) {
+    if (inputImageFormat == FaceletsDetector::ImageFormat::RGBA8888) {
         //input frame is equal to output frame already, this would have no effect.
         return;
     }
@@ -150,10 +150,10 @@ void CubeDetectorBehavior::overrideInputFrameWithResultFrame(const uint8_t *imag
                                 (uchar *) imageData + outputRgbaImageOffset);
     int reverseColorConversionCode;
     switch (inputImageFormat) {
-        case ImageFormat::YUV_I420:
+        case FaceletsDetector::ImageFormat::YUV_I420:
             reverseColorConversionCode = cv::COLOR_RGBA2YUV_I420;
             break;
-        case ImageFormat::YUV_YV12:
+        case FaceletsDetector::ImageFormat::YUV_YV12:
             reverseColorConversionCode = cv::COLOR_RGBA2YUV_YV12;
             break;
         default:
@@ -163,20 +163,20 @@ void CubeDetectorBehavior::overrideInputFrameWithResultFrame(const uint8_t *imag
     if (reverseColorConversionCode != NO_CONVERSION_NEEDED) {
         cv::cvtColor(rgbaFrame, yuvFrame, reverseColorConversionCode);
     } else {
-        if (inputImageFormat == ImageFormat::YUV_NV21) {
+        if (inputImageFormat == FaceletsDetector::ImageFormat::YUV_NV21) {
             utils::encodeNV21(rgbaFrame, yuvFrame, imageWidth, imageHeight);
-        } else if (inputImageFormat == ImageFormat::YUV_NV12) {
+        } else if (inputImageFormat == FaceletsDetector::ImageFormat::YUV_NV12) {
             utils::encodeNV12(rgbaFrame, yuvFrame, imageWidth, imageHeight);
         }
     }
 }
 
 
-void CubeDetectorBehavior::setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets) {
-    CubeDetectorBehavior::shouldDrawFoundFacelets = shouldDrawFoundFacelets;
+void SimpleFaceletsDetectorBehavior::setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets) {
+    SimpleFaceletsDetectorBehavior::shouldDrawFoundFacelets = shouldDrawFoundFacelets;
 }
 
-void CubeDetectorBehavior::setDebuggable(const bool isDebuggable) {
+void SimpleFaceletsDetectorBehavior::setDebuggable(const bool isDebuggable) {
     if (debuggable) {
         LOG_DEBUG("RUBIK_JNI_PART.cpp", "setDebuggable. current:%d, new: %d, frameNumber: %d",
                   debuggable, isDebuggable, frameNumber);
@@ -185,32 +185,32 @@ void CubeDetectorBehavior::setDebuggable(const bool isDebuggable) {
     colorDetector->setDebuggable(isDebuggable);
 }
 
-bool CubeDetectorBehavior::isDebuggable() {
+bool SimpleFaceletsDetectorBehavior::isDebuggable() const {
     return debuggable;
 }
 
-int CubeDetectorBehavior::getRequiredMemory() {
+int SimpleFaceletsDetectorBehavior::getRequiredMemory() {
     return totalRequiredMemory;
 }
 
-int CubeDetectorBehavior::getOutputFrameBufferOffset() {
+int SimpleFaceletsDetectorBehavior::getOutputFrameBufferOffset() {
     return outputRgbaImageOffset;
 }
 
-int CubeDetectorBehavior::getOutputFrameByteCount() {
+int SimpleFaceletsDetectorBehavior::getOutputFrameByteCount() {
     return outputRgbaImageByteCount;
 }
 
-int CubeDetectorBehavior::getInputFrameByteCount() {
+int SimpleFaceletsDetectorBehavior::getInputFrameByteCount() {
     return inputImageByteCount;
 }
 
-int CubeDetectorBehavior::getInputBufferFrameOffset() {
+int SimpleFaceletsDetectorBehavior::getInputFrameBufferOffset() {
     return inputImageOffset;
 }
 /**##### END PUBLIC API #####**/
 /**##### PRIVATE MEMBERS FROM HERE #####**/
-std::vector<std::vector<RubikFacelet>> CubeDetectorBehavior::findCubeInternal(
+std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorBehavior::findCubeInternal(
         const uint8_t *imageData) {
 
     cv::Mat outputFrameRgba(imageHeight, imageWidth, CV_8UC4,
@@ -219,7 +219,7 @@ std::vector<std::vector<RubikFacelet>> CubeDetectorBehavior::findCubeInternal(
     cv::Mat processingFrameRgba;
     cv::Mat processingFrameGrey;
 
-    if (inputImageFormat != ImageFormat::RGBA8888) {
+    if (inputImageFormat != FaceletsDetector::ImageFormat::RGBA8888) {
         //YUV image, need to convert the output & processing frames to RGBA8888
         cv::Mat frameYuv(imageHeight + imageHeight / 2, imageWidth, CV_8UC1,
                          (uchar *) imageData);
@@ -442,9 +442,10 @@ std::vector<std::vector<RubikFacelet>> CubeDetectorBehavior::findCubeInternal(
     return findFaceletsInFrame(processingFrameRgba, processingFrameGrey, outputFrameRgba);;
 }
 
-std::vector<std::vector<RubikFacelet>> CubeDetectorBehavior::findFaceletsInFrame(cv::Mat &frameRgba,
-                                                                                 cv::Mat &frameGray,
-                                                                                 cv::Mat &resultFrame) {
+std::vector<std::vector<RubikFacelet>>
+SimpleFaceletsDetectorBehavior::findFaceletsInFrame(cv::Mat &frameRgba,
+                                                    cv::Mat &frameGray,
+                                                    cv::Mat &resultFrame) {
     double startTime = utils::getCurrentTimeMillis();
 
     std::vector<std::vector<RubikFacelet>> facelets(0);
@@ -496,7 +497,8 @@ std::vector<std::vector<RubikFacelet>> CubeDetectorBehavior::findFaceletsInFrame
 //        }
         if (cubeFound) {
             fillMissingFacelets(estimatedFacelets, facetModel);
-            std::vector<std::vector<int>> colors = detectFacetColors(frameRgba, facetModel);
+            std::vector<std::vector<RubikFacelet::Color>> colors = detectFacetColors(frameRgba,
+                                                                                     facetModel);
             //save result
             facelets = createResult(colors, facetModel);
 
@@ -535,7 +537,7 @@ std::vector<std::vector<RubikFacelet>> CubeDetectorBehavior::findFaceletsInFrame
     //end
 }
 
-std::vector<std::vector<cv::Point>> CubeDetectorBehavior::detectContours(
+std::vector<std::vector<cv::Point>> SimpleFaceletsDetectorBehavior::detectContours(
         const cv::Mat &frameGray) const {
     /// Reduce noise with a kernel
     cv::blur(frameGray, frameGray, cv::Size(BLUR_KERNEL_SIZE, BLUR_KERNEL_SIZE));
@@ -549,10 +551,10 @@ std::vector<std::vector<cv::Point>> CubeDetectorBehavior::detectContours(
     return contours;
 }
 
-void CubeDetectorBehavior::filterContours(const cv::Mat &currentFrame,
-                                          const std::vector<std::vector<cv::Point>> &contours,
-                                          std::vector<cv::RotatedRect> &possibleFacelets,
-                                          std::vector<Circle> &possibleFaceletsInnerCircles) const {
+void SimpleFaceletsDetectorBehavior::filterContours(const cv::Mat &currentFrame,
+                                                    const std::vector<std::vector<cv::Point>> &contours,
+                                                    std::vector<cv::RotatedRect> &possibleFacelets,
+                                                    std::vector<Circle> &possibleFaceletsInnerCircles) const {
 //    cv::Mat drawing = (cv::Mat) cv::Mat::zeros(currentFrame.size(), CV_8UC3);
     /// Approximate contours to polygons + get bounding rects and circles
     for (int i = 0; i < contours.size(); i++) {
@@ -577,9 +579,10 @@ void CubeDetectorBehavior::filterContours(const cv::Mat &currentFrame,
 //    utils::quickSaveImage(drawing, "/storage/emulated/0/RubikResults", frameNumber, 1811);
 }
 
-std::vector<Circle> CubeDetectorBehavior::findPotentialFacelets(const Circle &referenceCircle,
-                                                                const std::vector<Circle> &innerCircles,
-                                                                int referenceCircleIndex) const {
+std::vector<Circle>
+SimpleFaceletsDetectorBehavior::findPotentialFacelets(const Circle &referenceCircle,
+                                                      const std::vector<Circle> &innerCircles,
+                                                      int referenceCircleIndex) const {
     //only have rectangles that have an area similar to the initial one
     Circle testedCircle;
     std::vector<Circle> foundCircles;
@@ -601,7 +604,7 @@ std::vector<Circle> CubeDetectorBehavior::findPotentialFacelets(const Circle &re
     return foundCircles;
 }
 
-std::vector<Circle> CubeDetectorBehavior::estimateRemainingFaceletsPositions(
+std::vector<Circle> SimpleFaceletsDetectorBehavior::estimateRemainingFaceletsPositions(
         const Circle &referenceCircle,
         float margin) const {
     //draw the remaining rectangles
@@ -643,7 +646,8 @@ std::vector<Circle> CubeDetectorBehavior::estimateRemainingFaceletsPositions(
     return newCircles;
 }
 
-std::vector<std::vector<Circle>> CubeDetectorBehavior::matchEstimatedWithPotentialFacelets(
+std::vector<std::vector<Circle>>
+SimpleFaceletsDetectorBehavior::matchEstimatedWithPotentialFacelets(
         const std::vector<Circle> &potentialFacelets,
         const std::vector<Circle> &estimatedFacelets) {
 
@@ -678,7 +682,7 @@ std::vector<std::vector<Circle>> CubeDetectorBehavior::matchEstimatedWithPotenti
     return facetModel;
 }
 
-bool CubeDetectorBehavior::verifyIfCubeFound(
+bool SimpleFaceletsDetectorBehavior::verifyIfCubeFound(
         const std::vector<std::vector<Circle>> &cubeFacet) const {
     bool cubeFound = false;
     //verify if valid cube model
@@ -719,8 +723,9 @@ bool CubeDetectorBehavior::verifyIfCubeFound(
     return cubeFound;
 }
 
-void CubeDetectorBehavior::fillMissingFacelets(const std::vector<Circle> &estimatedFacelets,
-                                               std::vector<std::vector<Circle>> &facetModel) {
+void
+SimpleFaceletsDetectorBehavior::fillMissingFacelets(const std::vector<Circle> &estimatedFacelets,
+                                                    std::vector<std::vector<Circle>> &facetModel) {
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             if (facetModel[i][j].isEmpty()) {
@@ -731,9 +736,10 @@ void CubeDetectorBehavior::fillMissingFacelets(const std::vector<Circle> &estima
     }
 }
 
-std::vector<std::vector<int>> CubeDetectorBehavior::detectFacetColors(const cv::Mat &currentFrame,
-                                                                      const std::vector<std::vector<Circle>> facetModel) {
-    std::vector<std::vector<int>> colors(3, std::vector<int>(3));
+std::vector<std::vector<RubikFacelet::Color>>
+SimpleFaceletsDetectorBehavior::detectFacetColors(const cv::Mat &currentFrame,
+                                                  const std::vector<std::vector<Circle>> facetModel) {
+    std::vector<std::vector<RubikFacelet::Color>> colors(3, std::vector<RubikFacelet::Color>(3));
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             Circle detectedCircle = facetModel[i][j];
@@ -759,11 +765,12 @@ std::vector<std::vector<int>> CubeDetectorBehavior::detectFacetColors(const cv::
                 } else {
                     whiteMinRatio = 0.5f;
                 }
-                colors[i][j] = colorDetector->detectColor(stickerRoiHSV, whiteMinRatio,
-                                                          frameNumber,
-                                                          i * 10 + j);
+                colors[i][j] = colorDetector->detectColor(stickerRoiHSV,
+                                                          whiteMinRatio,
+                                                          i * 10 + j,
+                                                          frameNumber);
             } else {
-                colors[i][j] = CubeColors::WHITE;
+                colors[i][j] = RubikFacelet::Color::WHITE;
                 if (debuggable) {
                     LOG_DEBUG("RUBIK_JNI_PART.cpp",
                               "frameNumberOld: %d FOUND INVALID RECT WHEN DETECTING COLORS",
@@ -775,8 +782,8 @@ std::vector<std::vector<int>> CubeDetectorBehavior::detectFacetColors(const cv::
     return colors;
 }
 
-std::vector<std::vector<RubikFacelet>> CubeDetectorBehavior::createResult(
-        const std::vector<std::vector<int>> &colors,
+std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorBehavior::createResult(
+        const std::vector<std::vector<RubikFacelet::Color>> &colors,
         const std::vector<std::vector<Circle>> &faceModel) {
 
     std::vector<std::vector<RubikFacelet>> result(3, std::vector<RubikFacelet>(3));
@@ -797,8 +804,8 @@ std::vector<std::vector<RubikFacelet>> CubeDetectorBehavior::createResult(
 }
 
 
-void CubeDetectorBehavior::drawFoundFaceletsCircles(cv::Mat &procRgbaFrame,
-                                                    std::vector<std::vector<RubikFacelet>> &facetModel) {
+void SimpleFaceletsDetectorBehavior::drawFoundFaceletsCircles(cv::Mat &procRgbaFrame,
+                                                              std::vector<std::vector<RubikFacelet>> &facetModel) {
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             RubikFacelet facelet = facetModel[i][j];
@@ -811,8 +818,8 @@ void CubeDetectorBehavior::drawFoundFaceletsCircles(cv::Mat &procRgbaFrame,
     }
 }
 
-void CubeDetectorBehavior::drawFoundFaceletsRectangles(cv::Mat &procRgbaFrame,
-                                                       std::vector<std::vector<RubikFacelet>> &facetModel) {
+void SimpleFaceletsDetectorBehavior::drawFoundFaceletsRectangles(cv::Mat &procRgbaFrame,
+                                                                 std::vector<std::vector<RubikFacelet>> &facetModel) {
     cv::Point points[4];
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
@@ -835,15 +842,16 @@ void CubeDetectorBehavior::drawFoundFaceletsRectangles(cv::Mat &procRgbaFrame,
     }
 }
 
-void CubeDetectorBehavior::saveWholeFrame(const cv::Mat &currentFrame, int frameNr) const {
+void
+SimpleFaceletsDetectorBehavior::saveWholeFrame(const cv::Mat &currentFrame, int frameNr) const {
     cv::Mat bgr;
     cvtColor(currentFrame, bgr, CV_RGBA2BGR);
     imageSaver->saveImage(bgr, frameNr, "full_frame");
 }
 
-cv::Mat CubeDetectorBehavior::saveFilteredRectangles(const cv::Mat &currentFrame,
-                                                     const std::vector<cv::RotatedRect> &filteredRectangles,
-                                                     int frameNr) const {
+cv::Mat SimpleFaceletsDetectorBehavior::saveFilteredRectangles(const cv::Mat &currentFrame,
+                                                               const std::vector<cv::RotatedRect> &filteredRectangles,
+                                                               int frameNr) const {
     cv::Mat drawing = (cv::Mat) cv::Mat::zeros(currentFrame.size(), CV_8UC3);
     for (int i = 0; i < filteredRectangles.size(); i++) {
         // rotated rectangle
@@ -857,12 +865,12 @@ cv::Mat CubeDetectorBehavior::saveFilteredRectangles(const cv::Mat &currentFrame
     return drawing;
 }
 
-void CubeDetectorBehavior::saveDebugData(const cv::Mat &frame,
-                                         const std::vector<cv::RotatedRect> &filteredRectangles,
-                                         const Circle &referenceCircle,
-                                         const std::vector<Circle> &potentialFacelets,
-                                         const std::vector<Circle> &estimatedFacelets,
-                                         const std::vector<std::vector<int>> colors) {
+void SimpleFaceletsDetectorBehavior::saveDebugData(const cv::Mat &frame,
+                                                   const std::vector<cv::RotatedRect> &filteredRectangles,
+                                                   const Circle &referenceCircle,
+                                                   const std::vector<Circle> &potentialFacelets,
+                                                   const std::vector<Circle> &estimatedFacelets,
+                                                   const std::vector<std::vector<RubikFacelet::Color>> colors) {
     ///BEGIN PRINT
     if (imageSaver != nullptr) {
         ///save whole frame
@@ -905,15 +913,21 @@ void CubeDetectorBehavior::saveDebugData(const cv::Mat &frame,
 
     LOG_DEBUG("RUBIK_JNI_PART.cpp",
               "COLORS: [1]:{ %d %d %d } [2]:{ %d %d %d } [3]:{ %d %d %d }",
-              colors[0][0], colors[0][1], colors[0][2], colors[1][0],
-              colors[1][1], colors[1][2], colors[2][0], colors[2][1],
-              colors[2][2]);
+              utils::asInt(colors[0][0]),
+              utils::asInt(colors[0][1]),
+              utils::asInt(colors[0][2]),
+              utils::asInt(colors[1][0]),
+              utils::asInt(colors[1][1]),
+              utils::asInt(colors[1][2]),
+              utils::asInt(colors[2][0]),
+              utils::asInt(colors[2][1]),
+              utils::asInt(colors[2][2]));
 //    end debug data saving
 }
 
-void CubeDetectorBehavior::drawRectangleToMat(const cv::Mat &currentFrame,
-                                              const cv::RotatedRect &rotatedRect,
-                                              const cv::Scalar color) const {
+void SimpleFaceletsDetectorBehavior::drawRectangleToMat(const cv::Mat &currentFrame,
+                                                        const cv::RotatedRect &rotatedRect,
+                                                        const cv::Scalar color) const {
     // rotated rectangle
     cv::Point2f rect_points[4];
     rotatedRect.points(rect_points);
@@ -922,8 +936,8 @@ void CubeDetectorBehavior::drawRectangleToMat(const cv::Mat &currentFrame,
              color, 1, CV_AA);
 }
 
-float CubeDetectorBehavior::getSmallestMargin(Circle referenceCircle,
-                                              std::vector<Circle> validCircles) {
+float SimpleFaceletsDetectorBehavior::getSmallestMargin(Circle referenceCircle,
+                                                        std::vector<Circle> validCircles) {
     float margin = 320.0f;
     for (int i = 0; i < validCircles.size(); i++) {
         Circle testedCircle = validCircles[i];
@@ -938,7 +952,7 @@ float CubeDetectorBehavior::getSmallestMargin(Circle referenceCircle,
             continue;
         }
         float currentMargin = utils::pointsDistance(referenceCircle.center, testedCircle.center) -
-                referenceCircle.radius - testedCircle.radius;
+                              referenceCircle.radius - testedCircle.radius;
         if (currentMargin < margin && currentMargin > 0) {
             margin = currentMargin;
         }

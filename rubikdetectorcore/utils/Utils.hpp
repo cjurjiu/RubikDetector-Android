@@ -6,6 +6,8 @@
 #define RUBIKDETECTORDEMO_UTILS_HPP
 
 #include "../data/Circle.hpp"
+#include "../data/RubikFacelet.hpp"
+#include "../detectors/faceletsdetector/FaceletsDetector.hpp"
 
 namespace cv {
     class Mat;
@@ -17,9 +19,9 @@ namespace utils {
     bool quickSaveImage(const cv::Mat &mat, const std::string path, const int frameNumber,
                         const int regionId);
 
-    char colorIntToChar(const int colorInt);
+    char colorIntToChar(const RubikFacelet::Color colorInt);
 
-    cv::Scalar getColorAsScalar(int color);
+    cv::Scalar getColorAsScalar(const RubikFacelet::Color color);
 
     void drawCircle(cv::Mat &drawingCanvas, const Circle circle, const cv::Scalar color,
                     const float scalingFactor = 1,
@@ -42,5 +44,14 @@ namespace utils {
 
     void encodeNV12(const cv::Mat &inputArgb, const cv::Mat &outputNv12, int width, int height);
 
+    template<typename Enumeration>
+    auto asInt(const Enumeration value)
+    -> typename std::underlying_type<Enumeration>::type {
+        return static_cast<typename std::underlying_type<Enumeration>::type>(value);
     }
+
+    RubikFacelet::Color colorFromInt(const int val);
+
+    FaceletsDetector::ImageFormat imageFormatFromInt(const int val);
+}
 #endif //RUBIKDETECTORDEMO_UTILS_HPP

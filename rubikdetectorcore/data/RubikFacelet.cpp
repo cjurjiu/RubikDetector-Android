@@ -5,9 +5,9 @@
 #include <cmath>
 #include "RubikFacelet.hpp"
 
-RubikFacelet::RubikFacelet() : RubikFacelet(0, Point2d(0, 0), 0, 0, 0) {}
+RubikFacelet::RubikFacelet() : RubikFacelet(Color::WHITE, Point2d(0, 0), 0, 0, 0) {}
 
-RubikFacelet::RubikFacelet(int color, Point2d center, float width, float height, float angle)
+RubikFacelet::RubikFacelet(Color color, Point2d center, float width, float height, float angle)
         : color(color),
           center(center),
           width(width),

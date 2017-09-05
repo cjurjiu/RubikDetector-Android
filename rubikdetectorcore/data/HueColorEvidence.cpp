@@ -4,4 +4,4 @@
 
 #include "HueColorEvidence.hpp"
 
-HueColorEvidence::HueColorEvidence(int color) : color(color), evidence(0) {}
+HueColorEvidence::HueColorEvidence(RubikFacelet::Color color) : color(color), evidence(0) {}
