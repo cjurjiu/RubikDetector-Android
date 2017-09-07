@@ -195,20 +195,33 @@ namespace utils {
         }
     }
 
-    FaceletsDetector::ImageFormat imageFormatFromInt(const int val) {
+    ImageProcessor::ImageFormat imageFormatFromInt(const int val) {
         switch (val) {
             case 0:
-                return FaceletsDetector::ImageFormat::YUV_NV21;
+                return ImageProcessor::ImageFormat::YUV_NV21;
             case 1:
-                return FaceletsDetector::ImageFormat::YUV_NV12;
+                return ImageProcessor::ImageFormat::YUV_NV12;
             case 2:
-                return FaceletsDetector::ImageFormat::YUV_I420;
+                return ImageProcessor::ImageFormat::YUV_I420;
             case 3:
-                return FaceletsDetector::ImageFormat::YUV_YV12;
+                return ImageProcessor::ImageFormat::YUV_YV12;
             case 4:
-                return FaceletsDetector::ImageFormat::RGBA8888;
+                return ImageProcessor::ImageFormat::RGBA8888;
             default:
-                return FaceletsDetector::ImageFormat::YUV_NV21;
+                return ImageProcessor::ImageFormat::YUV_NV21;
+        }
+    }
+
+    DrawConfig::DrawMode drawModeFromInt(const int val) {
+        switch (val) {
+            case 0:
+                return DrawConfig::DrawMode::DO_NOT_DRAW;
+            case 1:
+                return DrawConfig::DrawMode::DRAW_RECTANGLES;
+            case 2:
+                return DrawConfig::DrawMode::DRAW_CIRCLES;
+            default:
+                return DrawConfig::DrawMode::DRAW_CIRCLES;
         }
     }
 }

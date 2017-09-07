@@ -14,6 +14,7 @@ import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
 /**
  * Created by catalin on 25.08.2017.
  */
+@SuppressWarnings("unused")
 public class RubikDetectorUtils {
 
     public static RubikFacelet[][] rescaleResults(RubikFacelet[][] result, int originalWidth, int originalHeight, int newWidth, int newHeight) {

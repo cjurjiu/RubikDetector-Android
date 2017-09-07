@@ -13,30 +13,18 @@ SimpleFaceletsDetector::SimpleFaceletsDetector(const std::shared_ptr<ImageSaver>
         new SimpleFaceletsDetectorBehavior(imageSaver))) {}
 
 SimpleFaceletsDetector::~SimpleFaceletsDetector() {
-    if (behavior->isDebuggable()) {
-        LOG_DEBUG("RubikJniPart.cpp", "CubeDetector - destructor.");
+    if (isDebuggable()) {
+        LOG_DEBUG("RubikJniPart.cpp", "SimpleFaceletsDetector - destructor.");
     }
 }
 
-std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetector::findCube(const uint8_t *imageData) {
-    return behavior->findCube(imageData);
+std::vector<std::vector<RubikFacelet>>
+SimpleFaceletsDetector::findFacelets(cv::Mat &frameRgba, cv::Mat &frameGray, const int frameNumber) {
+    return behavior->findFacelets(frameRgba, frameGray, frameNumber);
 }
 
-void SimpleFaceletsDetector::findCubeAsync(const uint8_t *imageData) {
-    behavior->findCubeAsync(imageData);
-}
-
-void SimpleFaceletsDetector::setImageProperties(int width, int height, ImageFormat imageFormat) {
-    behavior->setImageProperties(width, height, imageFormat);
-}
-
-void SimpleFaceletsDetector::overrideInputFrameWithResultFrame(const uint8_t *imageData) {
-    behavior->overrideInputFrameWithResultFrame(imageData);
-}
-
-void
-SimpleFaceletsDetector::setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener) {
-    behavior->setOnCubeDetectionResultListener(listener);
+void SimpleFaceletsDetector::onFrameSizeSelected(int width, int height) {
+    behavior->onFrameSizeSelected(width, height);
 }
 
 void SimpleFaceletsDetector::setDebuggable(const bool debuggable) {
@@ -45,28 +33,4 @@ void SimpleFaceletsDetector::setDebuggable(const bool debuggable) {
 
 bool SimpleFaceletsDetector::isDebuggable() const {
     return behavior->isDebuggable();
-}
-
-int SimpleFaceletsDetector::getRequiredMemory() {
-    return behavior->getRequiredMemory();
-}
-
-int SimpleFaceletsDetector::getOutputFrameBufferOffset() {
-    return behavior->getOutputFrameBufferOffset();
-}
-
-int SimpleFaceletsDetector::getOutputFrameByteCount() {
-    return behavior->getOutputFrameByteCount();
-}
-
-int SimpleFaceletsDetector::getInputFrameByteCount() {
-    return behavior->getInputFrameByteCount();
-}
-
-int SimpleFaceletsDetector::getInputFrameBufferOffset() {
-    return behavior->getInputFrameBufferOffset();
-}
-
-void SimpleFaceletsDetector::setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets) {
-    behavior->setShouldDrawFoundFacelets(shouldDrawFoundFacelets);
 }

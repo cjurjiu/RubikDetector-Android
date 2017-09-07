@@ -11,6 +11,10 @@
 #include "../../data/RubikFacelet.hpp"
 #include "FaceletsDetector.hpp"
 
+namespace cv {
+    class Mat;
+}
+
 class OnCubeDetectionResultListener;
 
 class SimpleFaceletsDetectorBehavior;
@@ -25,28 +29,10 @@ public:
 
     virtual ~SimpleFaceletsDetector();
 
-    std::vector<std::vector<RubikFacelet>> findCube(const uint8_t *imageData) override;
+    virtual std::vector<std::vector<RubikFacelet>>
+    findFacelets(cv::Mat &frameRgba, cv::Mat &frameGray, const int frameNumber = 0) override;
 
-    void findCubeAsync(const uint8_t *imageData) override;
-
-    void setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener) override;
-
-    void setImageProperties(int width, int height,
-                            ImageFormat imageFormat = ImageFormat::YUV_NV21) override;
-
-    void overrideInputFrameWithResultFrame(const uint8_t *imageData) override;
-
-    void setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets) override;
-
-    int getRequiredMemory() override;
-
-    int getOutputFrameBufferOffset() override;
-
-    int getOutputFrameByteCount() override;
-
-    int getInputFrameByteCount() override;
-
-    int getInputFrameBufferOffset() override;
+    void onFrameSizeSelected(int width, int height) override;
 
     void setDebuggable(const bool debuggable) override;
 

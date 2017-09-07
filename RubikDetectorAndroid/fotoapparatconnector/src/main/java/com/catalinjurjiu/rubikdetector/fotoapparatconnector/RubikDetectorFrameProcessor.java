@@ -38,7 +38,7 @@ public class RubikDetectorFrameProcessor implements FrameProcessor, RubikDetecto
 
     @Override
     public void onSizeSelected(Size size) {
-        rubikDetector.setImageProperties(size.width, size.height, RubikDetector.ImageFormat.YUV_NV21);
+        rubikDetector.updateImageProperties(size.width, size.height, RubikDetector.ImageFormat.YUV_NV21);
         this.imageDataBuffer = ByteBuffer.allocateDirect(rubikDetector.getRequiredMemory());
     }
 

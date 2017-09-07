@@ -18,7 +18,7 @@ class OnCubeDetectionResultListener;
 
 class RubikFacelet;
 
-class SimpleFaceletsDetectorBehavior : FaceletsDetector{
+class SimpleFaceletsDetectorBehavior : FaceletsDetector {
 public:
     SimpleFaceletsDetectorBehavior();
 
@@ -26,28 +26,10 @@ public:
 
     virtual ~SimpleFaceletsDetectorBehavior();
 
-    std::vector<std::vector<RubikFacelet>> findCube(const uint8_t *imageData) override;
+    std::vector<std::vector<RubikFacelet>>
+    findFacelets(cv::Mat &frameRgba, cv::Mat &frameGray, const int frameNumber = 0) override;
 
-    void
-    findCubeAsync(const uint8_t *imageData) override;
-
-    void setOnCubeDetectionResultListener(OnCubeDetectionResultListener *listener) override;
-
-    void setImageProperties(int width, int height, FaceletsDetector::ImageFormat imageFormat) override;
-
-    void overrideInputFrameWithResultFrame(const uint8_t *imageData) override;
-
-    void setShouldDrawFoundFacelets(bool shouldDrawFoundFacelets) override;
-
-    int getRequiredMemory() override;
-
-    int getOutputFrameBufferOffset() override;
-
-    int getOutputFrameByteCount() override;
-
-    int getInputFrameByteCount() override;
-
-    int getInputFrameBufferOffset() override;
+    void onFrameSizeSelected(int processingWidth, int processingHeight) override;
 
     void setDebuggable(const bool isDebuggable) override;
 
@@ -55,11 +37,11 @@ public:
 
 private:
 
-    static constexpr int DEFAULT_DIMENSION = 320;
-
     static constexpr float MIN_VALID_SHAPE_TO_IMAGE_AREA_RATIO = 0.0025f;
 
     static constexpr float MIN_VALID_SHAPE_TO_IMAGE_SIDE_SIZE_RATIO = 0.25f;
+
+    static constexpr int CIRCLE_DISTANCE_BUFFER = 2 * 10;
 
     static constexpr int BLUR_KERNEL_SIZE = 5;
 
@@ -69,51 +51,12 @@ private:
 
     static constexpr int CANNY_APERTURE_SIZE = 5;
 
-    static constexpr int NO_CONVERSION_NEEDED = 2504;
-
-    static constexpr int NO_OFFSET = 0;
-
-    std::unique_ptr<OnCubeDetectionResultListener> onCubeDetectionResultListener;
-
-    std::unique_ptr<ColorDetector> colorDetector;
-
     std::shared_ptr<ImageSaver> imageSaver;
-
-    int frameNumber = 0;
-
-    int frameRateSum = 0;
 
     bool debuggable = false;
 
-    bool shouldDrawFoundFacelets = false;
-
-    int imageHeight;
-    int imageWidth;
-    int totalRequiredMemory;
-    int outputRgbaImageOffset;
-    int outputRgbaImageByteCount;
-    int inputImageByteCount;
-    float upscalingRatio;
     int maxShapeSideSize;
     int minValidShapeArea;
-    int processingWidth;
-    int processingHeight;
-    int largestDimension;
-    float downscalingRatio;
-    bool needsResize;
-    int inputImageOffset;
-    int processingRgbaImageOffset;
-    int processingRgbaImageByteCount;
-    int processingGrayImageOffset;
-    int processingGrayImageSize;
-    FaceletsDetector::ImageFormat inputImageFormat;
-    int cvColorConversionCode;
-
-    std::vector<std::vector<RubikFacelet>> findCubeInternal(const uint8_t *imageData);
-
-    std::vector<std::vector<RubikFacelet>> findFaceletsInFrame(cv::Mat &frameRgba,
-                                                               cv::Mat &frameGray,
-                                                               cv::Mat &resultFrame);
 
     std::vector<std::vector<cv::Point>> detectContours(const cv::Mat &frameGray) const;
 
@@ -121,6 +64,8 @@ private:
                         const std::vector<std::vector<cv::Point>> &contours,
                         std::vector<cv::RotatedRect> &possibleFacelets,
                         std::vector<Circle> &possibleFaceletsInnerCircles) const;
+
+    float getSmallestMargin(Circle referenceCircle, std::vector<Circle> validCircles);
 
     std::vector<Circle> findPotentialFacelets(const Circle &referenceCircle,
                                               const std::vector<Circle> &innerCircles,
@@ -138,17 +83,8 @@ private:
     void fillMissingFacelets(const std::vector<Circle> &facelets,
                              std::vector<std::vector<Circle>> &vector);
 
-    std::vector<std::vector<RubikFacelet::Color>> detectFacetColors(const cv::Mat &currentFrame,
-                                                    const std::vector<std::vector<Circle>> facetModel);
-
-    std::vector<std::vector<RubikFacelet>> createResult(const std::vector<std::vector<RubikFacelet::Color>> &colors,
-                                                        const std::vector<std::vector<Circle>> &model);
-
-    void drawFoundFaceletsCircles(cv::Mat &procRgbaFrame,
-                                  std::vector<std::vector<RubikFacelet>> &facetModel);
-
-    void drawFoundFaceletsRectangles(cv::Mat &procRgbaFrame,
-                                     std::vector<std::vector<RubikFacelet>> &facetModel);
+    std::vector<std::vector<RubikFacelet>>
+    createResult(const std::vector<std::vector<Circle>> &model);
 
     void saveWholeFrame(const cv::Mat &currentFrame, int frameNr) const;
 
@@ -161,12 +97,11 @@ private:
                        const Circle &referenceCircle,
                        const std::vector<Circle> &potentialFacelets,
                        const std::vector<Circle> &estimatedFacelets,
-                       const std::vector<std::vector<RubikFacelet::Color>> colors);
+                       const std::vector<std::vector<RubikFacelet::Color>> colors,
+                       const int frameNumber);
 
     void drawRectangleToMat(const cv::Mat &currentFrame, const cv::RotatedRect &rotatedRect,
                             const cv::Scalar color = cv::Scalar(0, 255, 0)) const;
-
-    float getSmallestMargin(Circle referenceCircle, std::vector<Circle> validCircles);
 
 };
 

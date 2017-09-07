@@ -20,7 +20,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.catalinjurjiu.rubikdetector.RubikDetector;
-import com.catalinjurjiu.rubikdetector.RubikDetectorUtils;
+import com.catalinjurjiu.rubikdetector.config.DrawConfig;
 import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
 
 import java.io.ByteArrayOutputStream;
@@ -72,6 +72,7 @@ public class ContinuousProcessingActivity extends Activity implements SurfaceHol
 //        rubikDetector = new RubikDetector("/storage/emulated/0/RubikResults");
         rubikDetector = new RubikDetector.Builder()
                 .debuggable(true)
+                .drawConfig(DrawConfig.Circles(6))
                 .inputFrameFormat(androidImageFormat)
                 .inputFrameSize(PREVIEW_WIDTH, PREVIEW_HEIGHT)
                 .build();
@@ -110,10 +111,16 @@ public class ContinuousProcessingActivity extends Activity implements SurfaceHol
 
     @Override
     protected void onDestroy() {
-        Log.d("CATAMEM", "onDestroy - cleanup.");
+        Log.d("RubikJniPart.cpp", "onDestroy - cleanup.");
         surfaceHolder.removeCallback(this);
         processingThread.quit();
-        rubikDetector.releaseResources();
+        try {
+            processingThread.join();
+        } catch (InterruptedException e) {
+            Log.d("RubikJniPart.cpp", "onDestroy - exception when waiting for the processing thread to finish.", e);
+        } finally {
+            rubikDetector.releaseResources();
+        }
         super.onDestroy();
     }
 

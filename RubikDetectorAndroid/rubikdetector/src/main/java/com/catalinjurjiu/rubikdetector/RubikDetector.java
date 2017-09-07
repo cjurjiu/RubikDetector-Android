@@ -3,6 +3,7 @@ package com.catalinjurjiu.rubikdetector;
 import android.support.annotation.IntDef;
 import android.util.Log;
 
+import com.catalinjurjiu.rubikdetector.config.DrawConfig;
 import com.catalinjurjiu.rubikdetector.model.Point2d;
 import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
 
@@ -33,21 +34,47 @@ public class RubikDetector {
     private int inputFrameBufferOffset;
     private OnCubeDetectionResultListener listener;
 
-    private RubikDetector(ImageProperties properties, DrawParams drawParams) {
-        this(properties, drawParams, null);
+    private RubikDetector(ImageProperties properties, DrawConfig drawConfig) {
+        this(properties, drawConfig, null);
     }
 
-    private RubikDetector(ImageProperties properties, DrawParams drawParams, String storagePath) {
-        cubeDetectorHandle = createNativeObject(storagePath);
-        setImageProperties(properties.width, properties.height, properties.inputImageFormat);
-        nativeSetDrawFoundFacelets(cubeDetectorHandle, true);
+    private RubikDetector(ImageProperties properties, DrawConfig drawConfig, String storagePath) {
+        this.cubeDetectorHandle = createNativeDetector(properties, drawConfig, storagePath);
+        this.frameWidth = properties.width;
+        this.frameHeight = properties.height;
+        syncWithNativeObject();
     }
 
-    public void setImageProperties(int width, int height, @ImageFormat int imageFormat) {
+    private long createNativeDetector(ImageProperties properties, DrawConfig drawConfig, String storagePath) {
+
+        return nativeCreateRubikDetector(properties.width,
+                properties.height,
+                properties.inputImageFormat,
+                drawConfig.getDrawMode(),
+                drawConfig.getStrokeWidth(),
+                drawConfig.isFillShape(),
+                storagePath);
+    }
+
+    public void updateImageProperties(ImageProperties properties) {
+        applyImageProperties(properties.width, properties.height, properties.inputImageFormat);
+    }
+
+    public void updateImageProperties(int width, int height, @ImageFormat int imageFormat) {
+        applyImageProperties(width, height, imageFormat);
+    }
+
+    private void applyImageProperties(int width, int height, @ImageFormat int imageFormat) {
         if (isActive()) {
             nativeSetImageProperties(cubeDetectorHandle, width, height, imageFormat);
             this.frameWidth = width;
             this.frameHeight = height;
+            syncWithNativeObject();
+        }
+    }
+
+    private void syncWithNativeObject() {
+        if (isActive()) {
             this.requiredMemory = nativeGetRequiredMemory(cubeDetectorHandle);
             this.resultFrameBufferOffset = nativeGetRgbaImageOffset(cubeDetectorHandle);
             this.resultFrameByteCount = nativeGetRgbaImageSize(cubeDetectorHandle);
@@ -73,7 +100,7 @@ public class RubikDetector {
 
     public RubikFacelet[][] findCube(byte[] imageData) {
         if (isActive()) {
-            int[] nativeResult = findCubeNativeImageData(cubeDetectorHandle, imageData);
+            int[] nativeResult = nativeFindCubeImageData(cubeDetectorHandle, imageData);
             return decodeResult(nativeResult);
         }
         return null;
@@ -84,7 +111,7 @@ public class RubikDetector {
             throw new IllegalArgumentException("The image data buffer needs to be a direct buffer.");
         }
         if (isActive()) {
-            int[] nativeResult = findCubeNativeImageDataBuffer(cubeDetectorHandle, imageDataBuffer);
+            int[] nativeResult = nativeFindCubeImageDataBuffer(cubeDetectorHandle, imageDataBuffer);
             return decodeResult(nativeResult);
         }
         return null;
@@ -112,14 +139,20 @@ public class RubikDetector {
         }
     }
 
-    private native void nativeOverrideInputFrameWithResultFrame(long nativeDetectorRef, byte[] data);
-
     public int getInputFrameBufferOffset() {
         return inputFrameBufferOffset;
     }
 
     public int getInputFrameByteCount() {
         return inputFrameByteCount;
+    }
+
+    public int getFrameWidth() {
+        return frameWidth;
+    }
+
+    public int getFrameHeight() {
+        return frameHeight;
     }
 
     /**
@@ -154,15 +187,17 @@ public class RubikDetector {
         return result;
     }
 
-    private native long createNativeObject(String storagePath);
+    private native long nativeCreateRubikDetector(int frameWidth, int frameHeight, int inputImageFormat, int drawMode, int strokeWidth, boolean fillShape, String storagePath);
 
     private native void nativeSetDebuggable(long nativeDetectorRef, boolean debuggable);
 
     private native void nativeSetDrawFoundFacelets(long nativeDetectorRef, boolean shouldDrawFoundFacelets);
 
-    private native int[] findCubeNativeImageData(long nativeDetectorRef, byte[] imageData);
+    private native int[] nativeFindCubeImageData(long nativeDetectorRef, byte[] imageData);
 
-    private native int[] findCubeNativeImageDataBuffer(long nativeDetectorRef, ByteBuffer imageDataBuffer);
+    private native int[] nativeFindCubeImageDataBuffer(long nativeDetectorRef, ByteBuffer imageDataBuffer);
+
+    private native void nativeOverrideInputFrameWithResultFrame(long nativeDetectorRef, byte[] data);
 
     private native void nativeReleaseCubeDetector(long nativeDetectorRef);
 
@@ -178,15 +213,7 @@ public class RubikDetector {
 
     private native int nativeGetNv21ImageOffset(long cubeDetectorHandle);
 
-    public int getFrameWidth() {
-        return frameWidth;
-    }
-
-    public int getFrameHeight() {
-        return frameHeight;
-    }
-
-    private void setDrawParams(DrawParams drawParams) {
+    private void setDrawParams(DrawConfig drawConfig) {
 
     }
 
@@ -213,14 +240,6 @@ public class RubikDetector {
         void onCubeDetectionResult(RubikFacelet facelets[][]);
     }
 
-    @IntDef
-    public @interface DrawMode {
-        int DO_NOT_DRAW = 0,
-                DRAW_RECTANGLES = 1,
-                DRAW_CIRCLES = 2;
-
-    }
-
     public static class ImageProperties {
         public final int width;
         public final int height;
@@ -235,31 +254,8 @@ public class RubikDetector {
         }
     }
 
-    public static class DrawParams {
-        public final int strokeWidth;
-        public final boolean fillShape;
-        @DrawMode
-        public final int drawMode;
-
-        public DrawParams(int drawMode, int strokeWidth) {
-            this.drawMode = drawMode;
-            this.strokeWidth = strokeWidth;
-            this.fillShape = false;
-        }
-
-        public DrawParams(int drawMode, boolean fillShape) {
-            this.drawMode = drawMode;
-            this.strokeWidth = 1;
-            this.fillShape = fillShape;
-        }
-
-        public static DrawParams DEFAULT() {
-            return new DrawParams(DrawMode.DRAW_CIRCLES, 2);
-        }
-    }
-
     public static class Builder {
-        private DrawParams drawParams;
+        private DrawConfig drawConfig;
         private boolean debuggable;
         private String imageSavePath = null;
         private int inputFrameWidth = 320;
@@ -278,8 +274,8 @@ public class RubikDetector {
             return this;
         }
 
-        public Builder drawParams(DrawParams drawParams) {
-            this.drawParams = drawParams;
+        public Builder drawConfig(DrawConfig drawConfig) {
+            this.drawConfig = drawConfig;
             return this;
         }
 
@@ -295,10 +291,10 @@ public class RubikDetector {
 
         public RubikDetector build() {
             ImageProperties imageProperties = new ImageProperties(inputFrameWidth, inputFrameHeight, inputFrameFormat);
-            if (drawParams == null) {
-                drawParams = DrawParams.DEFAULT();
+            if (drawConfig == null) {
+                drawConfig = DrawConfig.Default();
             }
-            RubikDetector rubikDetector = new RubikDetector(imageProperties, drawParams, imageSavePath);
+            RubikDetector rubikDetector = new RubikDetector(imageProperties, drawConfig, imageSavePath);
             rubikDetector.setDebuggable(debuggable);
             return rubikDetector;
         }

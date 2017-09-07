@@ -14,15 +14,15 @@ HistogramColorDetector::HistogramColorDetector(std::shared_ptr<ImageSaver> image
                 new HistogramColorDetectorBehavior(imageSaver))) {}
 
 HistogramColorDetector::~HistogramColorDetector() {
-    if (colorDetectorBehavior->isDebuggable()) {
+    if (isDebuggable()) {
         LOG_DEBUG("RubikJniPart.cpp", "HistogramColorDetector - destructor.");
     }
 }
 
 RubikFacelet::Color HistogramColorDetector::detectColor(const cv::Mat &image,
-                                        const float whiteRatio,
-                                        const int regionInfo,
-                                        const int frameNr) {
+                                                        const float whiteRatio,
+                                                        const int regionInfo,
+                                                        const int frameNr) {
     return colorDetectorBehavior->detectColor(image, whiteRatio, regionInfo, frameNr);
 }
 

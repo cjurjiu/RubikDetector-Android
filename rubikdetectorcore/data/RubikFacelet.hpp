@@ -17,11 +17,14 @@ public:
 
     RubikFacelet();
 
-    RubikFacelet(Color color, Point2d center, float width, float height, float angle);
+    RubikFacelet(Point2d center, float width, float height, float angle,
+                 Color color = Color::WHITE);
 
     ~RubikFacelet();
 
-    std::vector<Point2d> getPoints();
+    std::vector<Point2d> corners();
+
+    float innerCircleRadius();
 
     Color color;
 

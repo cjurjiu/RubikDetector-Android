@@ -8,6 +8,7 @@
 #include "../data/Circle.hpp"
 #include "../data/RubikFacelet.hpp"
 #include "../detectors/faceletsdetector/FaceletsDetector.hpp"
+#include "../data/DrawConfig.hpp"
 
 namespace cv {
     class Mat;
@@ -52,6 +53,9 @@ namespace utils {
 
     RubikFacelet::Color colorFromInt(const int val);
 
-    FaceletsDetector::ImageFormat imageFormatFromInt(const int val);
+    ImageProcessor::ImageFormat imageFormatFromInt(const int val);
+
+    DrawConfig::DrawMode drawModeFromInt(const int val);
+
 }
 #endif //RUBIKDETECTORDEMO_UTILS_HPP

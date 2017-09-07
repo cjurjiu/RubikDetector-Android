@@ -54,7 +54,7 @@ public class SinglePhotoActivity extends Activity {
                 .imageSavePath(null)
 //                .imageSavePath("/storage/emulated/0/RubikResults")
                 .debuggable(true)
-                .drawParams(null)
+                .drawConfig(null)
                 .build();
     }
 
@@ -71,7 +71,7 @@ public class SinglePhotoActivity extends Activity {
 
                 Bitmap photoBitmap = BitmapFactory.decodeFile(mCurrentPhotoPath);
 
-                rubikDetector.setImageProperties(photoBitmap.getWidth(), photoBitmap.getHeight(), RubikDetector.ImageFormat.ARGB_8888);
+                rubikDetector.updateImageProperties(photoBitmap.getWidth(), photoBitmap.getHeight(), RubikDetector.ImageFormat.ARGB_8888);
 
                 ByteBuffer byteBuffer = ByteBuffer.allocateDirect(rubikDetector.getRequiredMemory());
                 photoBitmap.copyPixelsToBuffer(byteBuffer);
