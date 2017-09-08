@@ -72,7 +72,7 @@ public class ContinuousProcessingActivity extends Activity implements SurfaceHol
 //        rubikDetector = new RubikDetector("/storage/emulated/0/RubikResults");
         rubikDetector = new RubikDetector.Builder()
                 .debuggable(true)
-                .drawConfig(DrawConfig.Circles(6))
+                .drawConfig(DrawConfig.FilledCircles())
                 .inputFrameFormat(androidImageFormat)
                 .inputFrameSize(PREVIEW_WIDTH, PREVIEW_HEIGHT)
                 .build();

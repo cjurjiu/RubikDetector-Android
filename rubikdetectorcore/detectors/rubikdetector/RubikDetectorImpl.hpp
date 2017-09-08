@@ -25,10 +25,10 @@ class RubikFacelet;
 class RubikDetectorImpl : ImageProcessor {
 public:
     RubikDetectorImpl(const ImageProperties imageProperties,
-                          std::unique_ptr<FaceletsDetector> faceletsDetector,
-                          std::unique_ptr<ColorDetector> colorDetector,
-                          std::unique_ptr<FaceletsDrawController> faceletsDrawController,
-                          std::shared_ptr<ImageSaver> imageSaver);
+                      std::unique_ptr<FaceletsDetector> faceletsDetector,
+                      std::unique_ptr<ColorDetector> colorDetector,
+                      std::unique_ptr<FaceletsDrawController> faceletsDrawController,
+                      std::shared_ptr<ImageSaver> imageSaver);
 
     virtual ~RubikDetectorImpl();
 

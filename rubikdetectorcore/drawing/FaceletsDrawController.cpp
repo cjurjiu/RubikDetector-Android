@@ -26,16 +26,10 @@ void FaceletsDrawController::drawResultToMat(cv::Mat &frame,
             }
             return;
         case DrawConfig::DrawMode::DRAW_RECTANGLES:
-            if (debuggable) {
-                LOG_DEBUG("RubikJniPart.cpp", "FaceletsDrawController - DRAW_RECTANGLES.");
-            }
             drawFoundFaceletsRectangles(frame, result, drawConfig.getStrokeWidth(),
                                         drawConfig.isFillShape());
             break;
         case DrawConfig::DrawMode::DRAW_CIRCLES:
-            if (debuggable) {
-                LOG_DEBUG("RubikJniPart.cpp", "FaceletsDrawController - DRAW_CIRCLES.");
-            }
             drawFoundFaceletsCircles(frame, result, drawConfig.getStrokeWidth(),
                                      drawConfig.isFillShape());
             break;
@@ -58,6 +52,13 @@ void FaceletsDrawController::drawFoundFaceletsCircles(cv::Mat &outputFrame,
                                                       const std::vector<std::vector<RubikFacelet>> facetModel,
                                                       const int strokeWidth,
                                                       const bool fillShape) const {
+
+    if (debuggable) {
+        LOG_DEBUG("RubikJniPart.cpp",
+                  "FaceletsDrawController - DRAW_CIRCLES. strokeWidth: %d, isFill: %d", strokeWidth,
+                  fillShape);
+    }
+
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             RubikFacelet facelet = facetModel[i][j];
@@ -74,12 +75,18 @@ void FaceletsDrawController::drawFoundFaceletsRectangles(cv::Mat &outputFrame,
                                                          const std::vector<std::vector<RubikFacelet>> facetModel,
                                                          const int strokeWidth,
                                                          const bool fillShape) const {
+    //TODO add support for filled rectangles
+    if (debuggable) {
+        LOG_DEBUG("RubikJniPart.cpp",
+                  "FaceletsDrawController - DRAW_RECTANGLES. strokeWidth: %d, isFill: %d",
+                  strokeWidth,
+                  fillShape);
+    }
 
     if (fillShape || strokeWidth <= 0) {
         //don't draw anything if fill shape is desired, or if stroke width is non-positive
         return;
     }
-    //TODO add support for filled rectangles
     cv::Point points[4];
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {

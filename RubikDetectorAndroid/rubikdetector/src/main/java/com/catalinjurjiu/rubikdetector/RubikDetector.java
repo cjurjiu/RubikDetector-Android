@@ -187,7 +187,13 @@ public class RubikDetector {
         return result;
     }
 
-    private native long nativeCreateRubikDetector(int frameWidth, int frameHeight, int inputImageFormat, int drawMode, int strokeWidth, boolean fillShape, String storagePath);
+    private native long nativeCreateRubikDetector(int frameWidth,
+                                                  int frameHeight,
+                                                  int inputImageFormat,
+                                                  int drawMode,
+                                                  int strokeWidth,
+                                                  boolean fillShape,
+                                                  String storagePath);
 
     private native void nativeSetDebuggable(long nativeDetectorRef, boolean debuggable);
 

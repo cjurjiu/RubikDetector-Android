@@ -10,10 +10,10 @@
 
 /**##### PUBLIC API #####**/
 RubikDetectorImpl::RubikDetectorImpl(const ImageProperties imageProperties,
-                                             std::unique_ptr<FaceletsDetector> faceletsDetector,
-                                             std::unique_ptr<ColorDetector> colorDetector,
-                                             std::unique_ptr<FaceletsDrawController> faceletsDrawController,
-                                             std::shared_ptr<ImageSaver> imageSaver) :
+                                     std::unique_ptr<FaceletsDetector> faceletsDetector,
+                                     std::unique_ptr<ColorDetector> colorDetector,
+                                     std::unique_ptr<FaceletsDrawController> faceletsDrawController,
+                                     std::shared_ptr<ImageSaver> imageSaver) :
         faceletsDetector(std::move(faceletsDetector)),
         colorDetector(std::move(colorDetector)),
         faceletsDrawController(std::move(faceletsDrawController)),
@@ -559,7 +559,7 @@ std::vector<std::vector<RubikFacelet::Color>> RubikDetectorImpl::detectFacetColo
 }
 
 void RubikDetectorImpl::applyColorsToResult(std::vector<std::vector<RubikFacelet>> &facelets,
-                                                const std::vector<std::vector<RubikFacelet::Color>> colors) {
+                                            const std::vector<std::vector<RubikFacelet::Color>> colors) {
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             facelets[i][j].color = colors[i][j];

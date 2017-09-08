@@ -24,7 +24,7 @@ public class DrawConfig {
     private DrawConfig(int drawMode, int strokeWidth, boolean fillShape) {
         this.drawMode = drawMode;
         this.strokeWidth = strokeWidth;
-        this.fillShape = false;
+        this.fillShape = fillShape;
     }
 
     public static DrawConfig Default() {
