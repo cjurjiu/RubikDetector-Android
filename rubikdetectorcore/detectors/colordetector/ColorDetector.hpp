@@ -2,8 +2,8 @@
 // Created by catalin on 04.09.2017.
 //
 
-#ifndef RUBIKDETECTORANDROID_COLORDETECTOR_HPP
-#define RUBIKDETECTORANDROID_COLORDETECTOR_HPP
+#ifndef RUBIKDETECTOR_COLORDETECTOR_HPP
+#define RUBIKDETECTOR_COLORDETECTOR_HPP
 
 #include "../../misc/Debuggable.hpp"
 #include "../../data/RubikFacelet.hpp"
@@ -25,4 +25,4 @@ public:
 };
 
 
-#endif //RUBIKDETECTORANDROID_COLORDETECTOR_HPP
+#endif //RUBIKDETECTOR_COLORDETECTOR_HPP

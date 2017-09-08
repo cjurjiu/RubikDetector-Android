@@ -2,8 +2,8 @@
 // Created by catalin on 18.08.2017.
 //
 
-#ifndef RUBIKDETECTORANDROID_POINT2D_HPP
-#define RUBIKDETECTORANDROID_POINT2D_HPP
+#ifndef RUBIKDETECTOR_POINT2D_HPP
+#define RUBIKDETECTOR_POINT2D_HPP
 
 
 class Point2d {
@@ -15,8 +15,9 @@ public:
     ~Point2d();
 
     float x;
+
     float y;
 };
 
 
-#endif //RUBIKDETECTORANDROID_POINT2D_HPP
+#endif //RUBIKDETECTOR_POINT2D_HPP

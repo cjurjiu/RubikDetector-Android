@@ -2,14 +2,14 @@
 //
 
 #include <math.h>
-#include "RubikDetectorBehavior.hpp"
+#include "RubikDetectorImpl.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "../../utils/Utils.hpp"
 #include "../../utils/CrossLog.hpp"
 
 /**##### PUBLIC API #####**/
-RubikDetectorBehavior::RubikDetectorBehavior(const ImageProperties imageProperties,
+RubikDetectorImpl::RubikDetectorImpl(const ImageProperties imageProperties,
                                              std::unique_ptr<FaceletsDetector> faceletsDetector,
                                              std::unique_ptr<ColorDetector> colorDetector,
                                              std::unique_ptr<FaceletsDrawController> faceletsDrawController,
@@ -21,22 +21,22 @@ RubikDetectorBehavior::RubikDetectorBehavior(const ImageProperties imageProperti
     applyImageProperties(imageProperties);
 }
 
-RubikDetectorBehavior::~RubikDetectorBehavior() {
+RubikDetectorImpl::~RubikDetectorImpl() {
     if (debuggable) {
         LOG_DEBUG("RubikJniPart.cpp", "RubikDetectorBehavior - destructor.");
     }
 }
 
-std::vector<std::vector<RubikFacelet>>
-RubikDetectorBehavior::process(const uint8_t *imageData) {
+std::vector<std::vector<RubikFacelet>> RubikDetectorImpl::process(
+        const uint8_t *imageData) {
     return findCubeInternal(imageData);
 }
 
-void RubikDetectorBehavior::updateImageProperties(const ImageProperties &newProperties) {
+void RubikDetectorImpl::updateImageProperties(const ImageProperties &newProperties) {
     applyImageProperties(newProperties);
 }
 
-void RubikDetectorBehavior::overrideInputFrameWithResultFrame(const uint8_t *imageData) {
+void RubikDetectorImpl::overrideInputFrameWithResultFrame(const uint8_t *imageData) {
     if (inputImageFormat == ImageProcessor::ImageFormat::RGBA8888) {
         //input frame is equal to output frame already, this would have no effect.
         return;
@@ -68,7 +68,7 @@ void RubikDetectorBehavior::overrideInputFrameWithResultFrame(const uint8_t *ima
     }
 }
 
-void RubikDetectorBehavior::setDebuggable(const bool isDebuggable) {
+void RubikDetectorImpl::setDebuggable(const bool isDebuggable) {
     if (debuggable) {
         LOG_DEBUG("RUBIK_JNI_PART.cpp", "setDebuggable. current:%d, new: %d, frameNumber: %d",
                   debuggable, isDebuggable, frameNumber);
@@ -82,38 +82,38 @@ void RubikDetectorBehavior::setDebuggable(const bool isDebuggable) {
     faceletsDrawController->setDebuggable(isDebuggable);
 }
 
-bool RubikDetectorBehavior::isDebuggable() const {
+bool RubikDetectorImpl::isDebuggable() const {
     return debuggable;
 }
 
-int RubikDetectorBehavior::getRequiredMemory() {
+int RubikDetectorImpl::getRequiredMemory() {
     return totalRequiredMemory;
 }
 
-int RubikDetectorBehavior::getOutputFrameBufferOffset() {
+int RubikDetectorImpl::getOutputFrameBufferOffset() {
     return outputRgbaImageOffset;
 }
 
-int RubikDetectorBehavior::getOutputFrameByteCount() {
+int RubikDetectorImpl::getOutputFrameByteCount() {
     return outputRgbaImageByteCount;
 }
 
-int RubikDetectorBehavior::getInputFrameByteCount() {
+int RubikDetectorImpl::getInputFrameByteCount() {
     return inputImageByteCount;
 }
 
-int RubikDetectorBehavior::getInputFrameBufferOffset() {
+int RubikDetectorImpl::getInputFrameBufferOffset() {
     return inputImageOffset;
 }
 
-void RubikDetectorBehavior::updateDrawConfig(DrawConfig drawConfig) {
+void RubikDetectorImpl::updateDrawConfig(DrawConfig drawConfig) {
     faceletsDrawController->updateDrawConfig(drawConfig);
 }
 /**##### END PUBLIC API #####**/
 /**##### PRIVATE MEMBERS FROM HERE #####**/
 
-void RubikDetectorBehavior::applyImageProperties(const ImageProperties &properties) {
-    RubikDetectorBehavior::inputImageFormat = properties.inputImageFormat;
+void RubikDetectorImpl::applyImageProperties(const ImageProperties &properties) {
+    RubikDetectorImpl::inputImageFormat = properties.inputImageFormat;
     switch (inputImageFormat) {
         case ImageProcessor::ImageFormat::YUV_NV21:
             cvColorConversionCode = cv::COLOR_YUV2RGBA_NV21;
@@ -128,7 +128,7 @@ void RubikDetectorBehavior::applyImageProperties(const ImageProperties &properti
             cvColorConversionCode = cv::COLOR_YUV2RGBA_YV12;
             break;
         case ImageProcessor::ImageFormat::RGBA8888:
-            cvColorConversionCode = RubikDetectorBehavior::NO_CONVERSION_NEEDED;
+            cvColorConversionCode = RubikDetectorImpl::NO_CONVERSION_NEEDED;
             break;
     }
     imageWidth = properties.width;
@@ -164,7 +164,7 @@ void RubikDetectorBehavior::applyImageProperties(const ImageProperties &properti
         outputRgbaImageByteCount = imageWidth * imageHeight * 4;
         outputRgbaImageOffset = imageWidth * (imageHeight + imageHeight / 2);
         inputImageByteCount = imageWidth * (imageHeight + imageHeight / 2);
-        inputImageOffset = RubikDetectorBehavior::NO_OFFSET;
+        inputImageOffset = RubikDetectorImpl::NO_OFFSET;
 
         if (needsResize) {
             processingRgbaImageOffset = outputRgbaImageByteCount + inputImageByteCount;
@@ -180,7 +180,7 @@ void RubikDetectorBehavior::applyImageProperties(const ImageProperties &properti
         }
     } else {
         inputImageByteCount = outputRgbaImageByteCount = imageWidth * imageHeight * 4;
-        inputImageOffset = outputRgbaImageOffset = RubikDetectorBehavior::NO_OFFSET;
+        inputImageOffset = outputRgbaImageOffset = RubikDetectorImpl::NO_OFFSET;
 
         if (needsResize) {
             processingRgbaImageOffset = outputRgbaImageByteCount;
@@ -199,7 +199,7 @@ void RubikDetectorBehavior::applyImageProperties(const ImageProperties &properti
     }
 }
 
-std::vector<std::vector<RubikFacelet>> RubikDetectorBehavior::findCubeInternal(
+std::vector<std::vector<RubikFacelet>> RubikDetectorImpl::findCubeInternal(
         const uint8_t *imageData) {
 
     frameNumber++;
@@ -511,9 +511,9 @@ std::vector<std::vector<RubikFacelet>> RubikDetectorBehavior::findCubeInternal(
     return facelets;
 }
 
-std::vector<std::vector<RubikFacelet::Color>>
-RubikDetectorBehavior::detectFacetColors(const cv::Mat &currentFrame,
-                                         const std::vector<std::vector<RubikFacelet>> facetModel) {
+std::vector<std::vector<RubikFacelet::Color>> RubikDetectorImpl::detectFacetColors(
+        const cv::Mat &currentFrame,
+        const std::vector<std::vector<RubikFacelet>> facetModel) {
     std::vector<std::vector<RubikFacelet::Color>> colors(3, std::vector<RubikFacelet::Color>(3));
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
@@ -558,9 +558,8 @@ RubikDetectorBehavior::detectFacetColors(const cv::Mat &currentFrame,
     return colors;
 }
 
-void
-RubikDetectorBehavior::applyColorsToResult(std::vector<std::vector<RubikFacelet>> &facelets,
-                                           const std::vector<std::vector<RubikFacelet::Color>> colors) {
+void RubikDetectorImpl::applyColorsToResult(std::vector<std::vector<RubikFacelet>> &facelets,
+                                                const std::vector<std::vector<RubikFacelet::Color>> colors) {
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             facelets[i][j].color = colors[i][j];
@@ -568,8 +567,7 @@ RubikDetectorBehavior::applyColorsToResult(std::vector<std::vector<RubikFacelet>
     }
 }
 
-void RubikDetectorBehavior::upscaleResult(
-        std::vector<std::vector<RubikFacelet>> &facelets) {
+void RubikDetectorImpl::upscaleResult(std::vector<std::vector<RubikFacelet>> &facelets) {
 
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {

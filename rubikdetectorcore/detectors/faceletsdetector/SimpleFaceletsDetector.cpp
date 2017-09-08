@@ -3,14 +3,14 @@
 //
 
 #include "SimpleFaceletsDetector.hpp"
-#include "SimpleFaceletsDetectorBehavior.hpp"
+#include "SimpleFaceletsDetectorImpl.hpp"
 #include "../../utils/CrossLog.hpp"
 
 SimpleFaceletsDetector::SimpleFaceletsDetector() : SimpleFaceletsDetector(nullptr) {}
 
 SimpleFaceletsDetector::SimpleFaceletsDetector(const std::shared_ptr<ImageSaver> imageSaver)
-        : behavior(std::unique_ptr<SimpleFaceletsDetectorBehavior>(
-        new SimpleFaceletsDetectorBehavior(imageSaver))) {}
+        : behavior(std::unique_ptr<SimpleFaceletsDetectorImpl>(
+        new SimpleFaceletsDetectorImpl(imageSaver))) {}
 
 SimpleFaceletsDetector::~SimpleFaceletsDetector() {
     if (isDebuggable()) {
@@ -18,8 +18,9 @@ SimpleFaceletsDetector::~SimpleFaceletsDetector() {
     }
 }
 
-std::vector<std::vector<RubikFacelet>>
-SimpleFaceletsDetector::findFacelets(cv::Mat &frameRgba, cv::Mat &frameGray, const int frameNumber) {
+std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetector::findFacelets(cv::Mat &frameRgba,
+                                                                            cv::Mat &frameGray,
+                                                                            const int frameNumber) {
     return behavior->findFacelets(frameRgba, frameGray, frameNumber);
 }
 

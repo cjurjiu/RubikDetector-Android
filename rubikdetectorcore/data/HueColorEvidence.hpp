@@ -2,19 +2,21 @@
 // Created by catalin on 13.07.2017.
 //
 
-#ifndef RUBIKDETECTORDEMO_HUECOLOREVIDENCE_H
-#define RUBIKDETECTORDEMO_HUECOLOREVIDENCE_H
+#ifndef RUBIKDETECTOR_HUECOLOREVIDENCE_HPP
+#define RUBIKDETECTOR_HUECOLOREVIDENCE_HPP
 
 #include "RubikFacelet.hpp"
 
 class HueColorEvidence {
 
 public:
+    HueColorEvidence(const RubikFacelet::Color color);
+
     RubikFacelet::Color color;
+
     int evidence;
 
-    HueColorEvidence(const RubikFacelet::Color color);
 };
 
 
-#endif //RUBIKDETECTORDEMO_HUECOLOREVIDENCE_H
+#endif //RUBIKDETECTOR_HUECOLOREVIDENCE_HPP

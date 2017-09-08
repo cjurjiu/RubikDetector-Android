@@ -2,7 +2,7 @@
 // Created by catalin on 26.07.2017.
 //
 
-#include "HistogramColorDetectorBehavior.hpp"
+#include "HistogramColorDetectorImpl.hpp"
 
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -10,27 +10,27 @@
 #include "../../utils/CrossLog.hpp"
 #include "../../utils/Utils.hpp"
 
-HistogramColorDetectorBehavior::HistogramColorDetectorBehavior() : HistogramColorDetectorBehavior(
+HistogramColorDetectorImpl::HistogramColorDetectorImpl() : HistogramColorDetectorImpl(
         nullptr) {
 
 }
 
-HistogramColorDetectorBehavior::HistogramColorDetectorBehavior(
+HistogramColorDetectorImpl::HistogramColorDetectorImpl(
         std::shared_ptr<ImageSaver> imageSaver) : imageSaver(
         imageSaver) {
 
 }
 
-HistogramColorDetectorBehavior::~HistogramColorDetectorBehavior() {
+HistogramColorDetectorImpl::~HistogramColorDetectorImpl() {
     if (debuggable) {
         LOG_DEBUG("RubikJniPart.cpp", "HistogramColorDetectorBehavior - destructor.");
     }
 }
 
-RubikFacelet::Color HistogramColorDetectorBehavior::detectColor(const cv::Mat &image,
-                                                                const float whiteRatio,
-                                                                const int regionInfo,
-                                                                const int frameNr) {
+RubikFacelet::Color HistogramColorDetectorImpl::detectColor(const cv::Mat &image,
+                                                            const float whiteRatio,
+                                                            const int regionInfo,
+                                                            const int frameNr) {
 
     std::vector<cv::Mat> hsvChannels;
     split(image, hsvChannels);
@@ -110,20 +110,20 @@ RubikFacelet::Color HistogramColorDetectorBehavior::detectColor(const cv::Mat &i
     }
 }
 
-void HistogramColorDetectorBehavior::setDebuggable(bool debuggable) {
-    HistogramColorDetectorBehavior::debuggable = debuggable;
+void HistogramColorDetectorImpl::setDebuggable(bool debuggable) {
+    HistogramColorDetectorImpl::debuggable = debuggable;
 }
 
-bool HistogramColorDetectorBehavior::isDebuggable() const {
+bool HistogramColorDetectorImpl::isDebuggable() const {
     return debuggable;
 }
 
 /**
 Print the histogram and also specify the row & column of the printed sticker
 */
-void HistogramColorDetectorBehavior::printOwnHistogram(const int hist[], const int histogramSize,
-                                                       const int frameNumber,
-                                                       const int regionId) const {
+void HistogramColorDetectorImpl::printOwnHistogram(const int hist[], const int histogramSize,
+                                                   const int frameNumber,
+                                                   const int regionId) const {
     if (imageSaver == nullptr) {
         //do nothing
         return;
@@ -145,9 +145,9 @@ void HistogramColorDetectorBehavior::printOwnHistogram(const int hist[], const i
 }
 
 void
-HistogramColorDetectorBehavior::computeSaturationHistogram(const std::vector<cv::Mat> &hsvChannels,
-                                                           int *saturationHistogram,
-                                                           int &nrNonWhiteNonGrayPixels) const {
+HistogramColorDetectorImpl::computeSaturationHistogram(const std::vector<cv::Mat> &hsvChannels,
+                                                       int *saturationHistogram,
+                                                       int &nrNonWhiteNonGrayPixels) const {
     uchar pixelHsvSaturation, pixelHsvValue;
     for (int i = 0; i < SATURATION_HISTOGRAM_SIZE; i++) {
         saturationHistogram[i] = 0;

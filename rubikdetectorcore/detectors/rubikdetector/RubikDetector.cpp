@@ -3,7 +3,7 @@
 //
 
 #include "RubikDetector.hpp"
-#include "RubikDetectorBehavior.hpp"
+#include "RubikDetectorImpl.hpp"
 #include "../../utils/CrossLog.hpp"
 
 RubikDetector::RubikDetector(const ImageProperties imageProperties,
@@ -11,13 +11,12 @@ RubikDetector::RubikDetector(const ImageProperties imageProperties,
                              std::unique_ptr<ColorDetector> colorDetector,
                              std::unique_ptr<FaceletsDrawController> faceletsDrawController,
                              std::shared_ptr<ImageSaver> imageSaver)
-        : behavior(
-        std::unique_ptr<RubikDetectorBehavior>(
-                new RubikDetectorBehavior(imageProperties,
-                                          std::move(faceletsDetector),
-                                          std::move(colorDetector),
-                                          std::move(faceletsDrawController),
-                                          imageSaver))) {}
+        : behavior(std::unique_ptr<RubikDetectorImpl>(
+        new RubikDetectorImpl(imageProperties,
+                              std::move(faceletsDetector),
+                              std::move(colorDetector),
+                              std::move(faceletsDrawController),
+                              imageSaver))) {}
 
 RubikDetector::~RubikDetector() {
     if (isDebuggable()) {

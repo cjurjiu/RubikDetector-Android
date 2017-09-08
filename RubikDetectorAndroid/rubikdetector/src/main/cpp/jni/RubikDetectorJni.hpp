@@ -5,8 +5,8 @@
 #include <cstdlib>
 #include "../rubikdetectorcore/data/RubikFacelet.hpp"
 
-#ifndef RUBIKDETECTORDEMO_RUBIKDETECTORJNI_HPP
-#define RUBIKDETECTORDEMO_RUBIKDETECTORJNI_HPP
+#ifndef RUBIKDETECTORJNI_RUBIKDETECTORJNI_HPP
+#define RUBIKDETECTORJNI_RUBIKDETECTORJNI_HPP
 
 #ifdef __cplusplus
 extern "C" {
@@ -97,4 +97,4 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetNv21ImageOffset(JNIE
 
 jintArray processResult(const std::vector<std::vector<RubikFacelet>> &result, _JNIEnv *env);
 
-#endif //RUBIKDETECTORDEMO_RUBIKDETECTORJNI_HPP
+#endif //RUBIKDETECTORJNI_RUBIKDETECTORJNI_HPP

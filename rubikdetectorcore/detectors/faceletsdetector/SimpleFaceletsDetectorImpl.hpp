@@ -2,8 +2,8 @@
 // Created by catalin on 12.07.2017.
 //
 
-#ifndef RUBIKDETECTORDEMO_CUBEDETECTORBEHAVIOR_HPP
-#define RUBIKDETECTORDEMO_CUBEDETECTORBEHAVIOR_HPP
+#ifndef RUBIKDETECTOR_SIMPLEFACELETSDETECTORIMPL_HPP
+#define RUBIKDETECTOR_SIMPLEFACELETSDETECTORIMPL_HPP
 
 #include <opencv2/core/core.hpp>
 #include "../../data/Circle.hpp"
@@ -18,16 +18,17 @@ class OnCubeDetectionResultListener;
 
 class RubikFacelet;
 
-class SimpleFaceletsDetectorBehavior : FaceletsDetector {
+class SimpleFaceletsDetectorImpl : FaceletsDetector {
 public:
-    SimpleFaceletsDetectorBehavior();
+    SimpleFaceletsDetectorImpl();
 
-    SimpleFaceletsDetectorBehavior(std::shared_ptr<ImageSaver> imageSaver);
+    SimpleFaceletsDetectorImpl(std::shared_ptr<ImageSaver> imageSaver);
 
-    virtual ~SimpleFaceletsDetectorBehavior();
+    virtual ~SimpleFaceletsDetectorImpl();
 
-    std::vector<std::vector<RubikFacelet>>
-    findFacelets(cv::Mat &frameRgba, cv::Mat &frameGray, const int frameNumber = 0) override;
+    std::vector<std::vector<RubikFacelet>> findFacelets(cv::Mat &frameRgba,
+                                                        cv::Mat &frameGray,
+                                                        const int frameNumber = 0) override;
 
     void onFrameSizeSelected(int processingWidth, int processingHeight) override;
 
@@ -36,27 +37,6 @@ public:
     bool isDebuggable() const override;
 
 private:
-
-    static constexpr float MIN_VALID_SHAPE_TO_IMAGE_AREA_RATIO = 0.0025f;
-
-    static constexpr float MIN_VALID_SHAPE_TO_IMAGE_SIDE_SIZE_RATIO = 0.25f;
-
-    static constexpr int CIRCLE_DISTANCE_BUFFER = 2 * 10;
-
-    static constexpr int BLUR_KERNEL_SIZE = 5;
-
-    static constexpr int CANNY_LOW_THRESHOLD = 80;
-
-    static constexpr int CANNY_THRESHOLD_RATIO = 3;
-
-    static constexpr int CANNY_APERTURE_SIZE = 5;
-
-    std::shared_ptr<ImageSaver> imageSaver;
-
-    bool debuggable = false;
-
-    int maxShapeSideSize;
-    int minValidShapeArea;
 
     std::vector<std::vector<cv::Point>> detectContours(const cv::Mat &frameGray) const;
 
@@ -83,8 +63,8 @@ private:
     void fillMissingFacelets(const std::vector<Circle> &facelets,
                              std::vector<std::vector<Circle>> &vector);
 
-    std::vector<std::vector<RubikFacelet>>
-    createResult(const std::vector<std::vector<Circle>> &model);
+    std::vector<std::vector<RubikFacelet>> createResult(
+            const std::vector<std::vector<Circle>> &model);
 
     void saveWholeFrame(const cv::Mat &currentFrame, int frameNr) const;
 
@@ -103,6 +83,28 @@ private:
     void drawRectangleToMat(const cv::Mat &currentFrame, const cv::RotatedRect &rotatedRect,
                             const cv::Scalar color = cv::Scalar(0, 255, 0)) const;
 
+    static constexpr float MIN_VALID_SHAPE_TO_IMAGE_AREA_RATIO = 0.0025f;
+
+    static constexpr float MIN_VALID_SHAPE_TO_IMAGE_SIDE_SIZE_RATIO = 0.25f;
+
+    static constexpr int CIRCLE_DISTANCE_BUFFER = 2 * 10;
+
+    static constexpr int BLUR_KERNEL_SIZE = 5;
+
+    static constexpr int CANNY_LOW_THRESHOLD = 80;
+
+    static constexpr int CANNY_THRESHOLD_RATIO = 3;
+
+    static constexpr int CANNY_APERTURE_SIZE = 5;
+
+    std::shared_ptr<ImageSaver> imageSaver;
+
+    bool debuggable = false;
+
+    int maxShapeSideSize;
+
+    int minValidShapeArea;
+
 };
 
-#endif //RUBIKDETECTORDEMO_CUBEDETECTORBEHAVIOR_HPP
+#endif //RUBIKDETECTOR_SIMPLEFACELETSDETECTORIMPL_HPP

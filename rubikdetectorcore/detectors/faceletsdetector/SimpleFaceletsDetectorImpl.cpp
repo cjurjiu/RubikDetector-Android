@@ -2,7 +2,7 @@
 //
 
 #include <math.h>
-#include "SimpleFaceletsDetectorBehavior.hpp"
+#include "SimpleFaceletsDetectorImpl.hpp"
 #include "SimpleFaceletsDetector.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -10,25 +10,26 @@
 #include "../../utils/CrossLog.hpp"
 
 /**##### PUBLIC API #####**/
-SimpleFaceletsDetectorBehavior::SimpleFaceletsDetectorBehavior() :
-        SimpleFaceletsDetectorBehavior(nullptr) {
+SimpleFaceletsDetectorImpl::SimpleFaceletsDetectorImpl() :
+        SimpleFaceletsDetectorImpl(nullptr) {
     //empty default constructor
 }
 
-SimpleFaceletsDetectorBehavior::SimpleFaceletsDetectorBehavior(
+SimpleFaceletsDetectorImpl::SimpleFaceletsDetectorImpl(
         std::shared_ptr<ImageSaver> imageSaver) :
         imageSaver(imageSaver) {
 }
 
-SimpleFaceletsDetectorBehavior::~SimpleFaceletsDetectorBehavior() {
+SimpleFaceletsDetectorImpl::~SimpleFaceletsDetectorImpl() {
     if (debuggable) {
         LOG_DEBUG("RubikJniPart.cpp", "SimpleFaceletsDetectorBehavior - destructor.");
     }
 }
 
-std::vector<std::vector<RubikFacelet>>
-SimpleFaceletsDetectorBehavior::findFacelets(cv::Mat &frameRgba, cv::Mat &frameGray,
-                                             const int frameNumber) {
+std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorImpl::findFacelets(
+        cv::Mat &frameRgba,
+        cv::Mat &frameGray,
+        const int frameNumber) {
     if (debuggable) {
         LOG_DEBUG("RubikJniPart.cpp",
                   "SimpleFaceletsDetectorBehavior - findFacelets. isDebuggable:%d", debuggable);
@@ -129,23 +130,23 @@ SimpleFaceletsDetectorBehavior::findFacelets(cv::Mat &frameRgba, cv::Mat &frameG
     //end
 }
 
-void
-SimpleFaceletsDetectorBehavior::onFrameSizeSelected(int processingWidth, int processingHeight) {
+void SimpleFaceletsDetectorImpl::onFrameSizeSelected(int processingWidth,
+                                                         int processingHeight) {
     minValidShapeArea = (int) (processingWidth * processingHeight *
                                MIN_VALID_SHAPE_TO_IMAGE_AREA_RATIO);
     maxShapeSideSize = (int) (std::max(processingWidth, processingHeight) *
                               MIN_VALID_SHAPE_TO_IMAGE_SIDE_SIZE_RATIO);
 }
 
-void SimpleFaceletsDetectorBehavior::setDebuggable(const bool isDebuggable) {
+void SimpleFaceletsDetectorImpl::setDebuggable(const bool isDebuggable) {
     debuggable = isDebuggable;
 }
 
-bool SimpleFaceletsDetectorBehavior::isDebuggable() const {
+bool SimpleFaceletsDetectorImpl::isDebuggable() const {
     return debuggable;
 }
 
-std::vector<std::vector<cv::Point>> SimpleFaceletsDetectorBehavior::detectContours(
+std::vector<std::vector<cv::Point>> SimpleFaceletsDetectorImpl::detectContours(
         const cv::Mat &frameGray) const {
     /// Reduce noise with a kernel
     cv::blur(frameGray, frameGray, cv::Size(BLUR_KERNEL_SIZE, BLUR_KERNEL_SIZE));
@@ -159,7 +160,7 @@ std::vector<std::vector<cv::Point>> SimpleFaceletsDetectorBehavior::detectContou
     return contours;
 }
 
-void SimpleFaceletsDetectorBehavior::filterContours(const cv::Mat &currentFrame,
+void SimpleFaceletsDetectorImpl::filterContours(const cv::Mat &currentFrame,
                                                     const std::vector<std::vector<cv::Point>> &contours,
                                                     std::vector<cv::RotatedRect> &possibleFacelets,
                                                     std::vector<Circle> &possibleFaceletsInnerCircles) const {
@@ -187,8 +188,7 @@ void SimpleFaceletsDetectorBehavior::filterContours(const cv::Mat &currentFrame,
 //    utils::quickSaveImage(drawing, "/storage/emulated/0/RubikResults", frameNumber, 1811);
 }
 
-
-float SimpleFaceletsDetectorBehavior::getSmallestMargin(Circle referenceCircle,
+float SimpleFaceletsDetectorImpl::getSmallestMargin(Circle referenceCircle,
                                                         std::vector<Circle> validCircles) {
     float margin = 320.0f;
     for (int i = 0; i < validCircles.size(); i++) {
@@ -213,10 +213,10 @@ float SimpleFaceletsDetectorBehavior::getSmallestMargin(Circle referenceCircle,
     return (margin >= 320.0f || margin >= referenceCircle.radius) ? 10.f : margin;
 }
 
-std::vector<Circle>
-SimpleFaceletsDetectorBehavior::findPotentialFacelets(const Circle &referenceCircle,
-                                                      const std::vector<Circle> &innerCircles,
-                                                      int referenceCircleIndex) const {
+std::vector<Circle> SimpleFaceletsDetectorImpl::findPotentialFacelets(
+        const Circle &referenceCircle,
+        const std::vector<Circle> &innerCircles,
+        int referenceCircleIndex) const {
     //only have rectangles that have an area similar to the initial one
     Circle testedCircle;
     std::vector<Circle> foundCircles;
@@ -238,7 +238,7 @@ SimpleFaceletsDetectorBehavior::findPotentialFacelets(const Circle &referenceCir
     return foundCircles;
 }
 
-std::vector<Circle> SimpleFaceletsDetectorBehavior::estimateRemainingFaceletsPositions(
+std::vector<Circle> SimpleFaceletsDetectorImpl::estimateRemainingFaceletsPositions(
         const Circle &referenceCircle,
         float margin) const {
     //draw the remaining rectangles
@@ -281,7 +281,7 @@ std::vector<Circle> SimpleFaceletsDetectorBehavior::estimateRemainingFaceletsPos
 }
 
 std::vector<std::vector<Circle>>
-SimpleFaceletsDetectorBehavior::matchEstimatedWithPotentialFacelets(
+SimpleFaceletsDetectorImpl::matchEstimatedWithPotentialFacelets(
         const std::vector<Circle> &potentialFacelets,
         const std::vector<Circle> &estimatedFacelets) {
 
@@ -316,7 +316,7 @@ SimpleFaceletsDetectorBehavior::matchEstimatedWithPotentialFacelets(
     return facetModel;
 }
 
-bool SimpleFaceletsDetectorBehavior::verifyIfCubeFound(
+bool SimpleFaceletsDetectorImpl::verifyIfCubeFound(
         const std::vector<std::vector<Circle>> &cubeFacet) const {
     bool cubeFound = false;
     //verify if valid cube model
@@ -357,9 +357,9 @@ bool SimpleFaceletsDetectorBehavior::verifyIfCubeFound(
     return cubeFound;
 }
 
-void
-SimpleFaceletsDetectorBehavior::fillMissingFacelets(const std::vector<Circle> &estimatedFacelets,
-                                                    std::vector<std::vector<Circle>> &facetModel) {
+void SimpleFaceletsDetectorImpl::fillMissingFacelets(
+        const std::vector<Circle> &estimatedFacelets,
+        std::vector<std::vector<Circle>> &facetModel) {
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             if (facetModel[i][j].isEmpty()) {
@@ -370,7 +370,7 @@ SimpleFaceletsDetectorBehavior::fillMissingFacelets(const std::vector<Circle> &e
     }
 }
 
-std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorBehavior::createResult(
+std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorImpl::createResult(
         const std::vector<std::vector<Circle>> &faceModel) {
 
     std::vector<std::vector<RubikFacelet>> result(3, std::vector<RubikFacelet>(3));
@@ -386,14 +386,14 @@ std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorBehavior::createRes
     return result;
 }
 
-void
-SimpleFaceletsDetectorBehavior::saveWholeFrame(const cv::Mat &currentFrame, int frameNr) const {
+void SimpleFaceletsDetectorImpl::saveWholeFrame(const cv::Mat &currentFrame,
+                                                    int frameNr) const {
     cv::Mat bgr;
     cvtColor(currentFrame, bgr, CV_RGBA2BGR);
     imageSaver->saveImage(bgr, frameNr, "full_frame");
 }
 
-cv::Mat SimpleFaceletsDetectorBehavior::saveFilteredRectangles(const cv::Mat &currentFrame,
+cv::Mat SimpleFaceletsDetectorImpl::saveFilteredRectangles(const cv::Mat &currentFrame,
                                                                const std::vector<cv::RotatedRect> &filteredRectangles,
                                                                int frameNr) const {
     cv::Mat drawing = (cv::Mat) cv::Mat::zeros(currentFrame.size(), CV_8UC3);
@@ -409,7 +409,7 @@ cv::Mat SimpleFaceletsDetectorBehavior::saveFilteredRectangles(const cv::Mat &cu
     return drawing;
 }
 
-void SimpleFaceletsDetectorBehavior::saveDebugData(const cv::Mat &frame,
+void SimpleFaceletsDetectorImpl::saveDebugData(const cv::Mat &frame,
                                                    const std::vector<cv::RotatedRect> &filteredRectangles,
                                                    const Circle &referenceCircle,
                                                    const std::vector<Circle> &potentialFacelets,
@@ -420,8 +420,9 @@ void SimpleFaceletsDetectorBehavior::saveDebugData(const cv::Mat &frame,
         return;
     }
     LOG_DEBUG("RUBIK_JNI_PART.cpp",
-              "SimpleFaceletsDetectorBehavior - savingDebugData. imageSaver!=null: %d", imageSaver !=
-                                                                                      nullptr);
+              "SimpleFaceletsDetectorBehavior - savingDebugData. imageSaver!=null: %d",
+              imageSaver !=
+              nullptr);
     ///BEGIN PRINT
     if (imageSaver != nullptr) {
         ///save whole frame
@@ -476,7 +477,7 @@ void SimpleFaceletsDetectorBehavior::saveDebugData(const cv::Mat &frame,
 //    end debug data saving
 }
 
-void SimpleFaceletsDetectorBehavior::drawRectangleToMat(const cv::Mat &currentFrame,
+void SimpleFaceletsDetectorImpl::drawRectangleToMat(const cv::Mat &currentFrame,
                                                         const cv::RotatedRect &rotatedRect,
                                                         const cv::Scalar color) const {
     // rotated rectangle

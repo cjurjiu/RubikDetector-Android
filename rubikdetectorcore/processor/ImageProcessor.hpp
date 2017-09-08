@@ -2,8 +2,8 @@
 // Created by catalin on 05.09.2017.
 //
 
-#ifndef RUBIKDETECTORANDROID_IMAGEPROCESSOR_HPP
-#define RUBIKDETECTORANDROID_IMAGEPROCESSOR_HPP
+#ifndef RUBIKDETECTOR_IMAGEPROCESSOR_HPP
+#define RUBIKDETECTOR_IMAGEPROCESSOR_HPP
 
 #include <cstdint>
 #include "../misc/Debuggable.hpp"
@@ -38,4 +38,4 @@ public:
     virtual int getInputFrameBufferOffset()=0;
 };
 
-#endif //RUBIKDETECTORANDROID_IMAGEPROCESSOR_HPP
+#endif //RUBIKDETECTOR_IMAGEPROCESSOR_HPP

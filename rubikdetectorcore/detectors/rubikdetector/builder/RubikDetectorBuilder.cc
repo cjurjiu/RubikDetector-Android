@@ -32,14 +32,14 @@ RubikDetectorBuilder &RubikDetectorBuilder::drawConfig(DrawConfig drawConfig) {
     return *this;
 }
 
-RubikDetectorBuilder &
-RubikDetectorBuilder::colorDetector(std::unique_ptr<ColorDetector> colorDetector) {
+RubikDetectorBuilder &RubikDetectorBuilder::colorDetector(
+        std::unique_ptr<ColorDetector> colorDetector) {
     mColorDetector = std::move(colorDetector);
     return *this;
 }
 
-RubikDetectorBuilder &
-RubikDetectorBuilder::faceletsDetector(std::unique_ptr<FaceletsDetector> faceletsDetector) {
+RubikDetectorBuilder &RubikDetectorBuilder::faceletsDetector(
+        std::unique_ptr<FaceletsDetector> faceletsDetector) {
     mFaceletsDetector = std::move(faceletsDetector);
     return *this;
 }

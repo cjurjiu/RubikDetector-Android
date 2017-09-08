@@ -2,8 +2,8 @@
 // Created by catalin on 12.07.2017.
 //
 
-#ifndef RUBIKDETECTORDEMO_RUBIKDETECTOR_HPP
-#define RUBIKDETECTORDEMO_RUBIKDETECTOR_HPP
+#ifndef RUBIKDETECTOR_RUBIKDETECTOR_HPP
+#define RUBIKDETECTOR_RUBIKDETECTOR_HPP
 
 #include <vector>
 #include <cstdint>
@@ -18,21 +18,13 @@
 
 class OnCubeDetectionResultListener;
 
-class RubikDetectorBehavior;
+class RubikDetectorImpl;
 
 class ImageSaver;
 
 class RubikDetectorBuilder;
 
 class RubikDetector : public ImageProcessor {
-    friend class RubikDetectorBuilder;
-
-private:
-    RubikDetector(const ImageProperties imageProperties,
-                  std::unique_ptr<FaceletsDetector> faceletsDetector,
-                  std::unique_ptr<ColorDetector> colorDetector,
-                  std::unique_ptr<FaceletsDrawController> drawController,
-                  std::shared_ptr<ImageSaver> imageSaver);
 
 public:
     virtual ~RubikDetector();
@@ -61,7 +53,15 @@ public:
     void updateDrawConfig(DrawConfig drawConfig);
 
 private:
-    std::unique_ptr<RubikDetectorBehavior> behavior;
+    friend class RubikDetectorBuilder;
+
+    RubikDetector(const ImageProperties imageProperties,
+                  std::unique_ptr<FaceletsDetector> faceletsDetector,
+                  std::unique_ptr<ColorDetector> colorDetector,
+                  std::unique_ptr<FaceletsDrawController> drawController,
+                  std::shared_ptr<ImageSaver> imageSaver);
+
+    std::unique_ptr<RubikDetectorImpl> behavior;
 };
 
-#endif //RUBIKDETECTORDEMO_RUBIKDETECTOR_HPP
+#endif //RUBIKDETECTOR_RUBIKDETECTOR_HPP

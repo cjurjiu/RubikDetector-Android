@@ -2,8 +2,8 @@
 // Created by catalin on 05.09.2017.
 //
 
-#ifndef RUBIKDETECTORANDROID_DEBUGGABLE_HPP
-#define RUBIKDETECTORANDROID_DEBUGGABLE_HPP
+#ifndef RUBIKDETECTOR_DEBUGGABLE_HPP
+#define RUBIKDETECTOR_DEBUGGABLE_HPP
 
 class Debuggable {
 public:
@@ -16,4 +16,4 @@ public:
     virtual bool isDebuggable() const =0;
 };
 
-#endif //RUBIKDETECTORANDROID_DEBUGGABLE_HPP
+#endif //RUBIKDETECTOR_DEBUGGABLE_HPP

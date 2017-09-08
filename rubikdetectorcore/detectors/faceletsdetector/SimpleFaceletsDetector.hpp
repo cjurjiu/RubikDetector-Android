@@ -2,8 +2,8 @@
 // Created by catalin on 12.07.2017.
 //
 
-#ifndef RUBIKDETECTORDEMO_CUBEDETECTOR_HPP
-#define RUBIKDETECTORDEMO_CUBEDETECTOR_HPP
+#ifndef RUBIKDETECTOR_SIMPLEFACELETSDETECTOR_HPP
+#define RUBIKDETECTOR_SIMPLEFACELETSDETECTOR_HPP
 
 #include <vector>
 #include <cstdint>
@@ -17,7 +17,7 @@ namespace cv {
 
 class OnCubeDetectionResultListener;
 
-class SimpleFaceletsDetectorBehavior;
+class SimpleFaceletsDetectorImpl;
 
 class ImageSaver;
 
@@ -29,8 +29,9 @@ public:
 
     virtual ~SimpleFaceletsDetector();
 
-    virtual std::vector<std::vector<RubikFacelet>>
-    findFacelets(cv::Mat &frameRgba, cv::Mat &frameGray, const int frameNumber = 0) override;
+    virtual std::vector<std::vector<RubikFacelet>> findFacelets(cv::Mat &frameRgba,
+                                                                cv::Mat &frameGray,
+                                                                const int frameNumber = 0) override;
 
     void onFrameSizeSelected(int width, int height) override;
 
@@ -39,7 +40,7 @@ public:
     bool isDebuggable() const override;
 
 private:
-    std::unique_ptr<SimpleFaceletsDetectorBehavior> behavior;
+    std::unique_ptr<SimpleFaceletsDetectorImpl> behavior;
 };
 
-#endif //RUBIKDETECTORDEMO_CUBEDETECTOR_HPP
+#endif //RUBIKDETECTOR_SIMPLEFACELETSDETECTOR_HPP

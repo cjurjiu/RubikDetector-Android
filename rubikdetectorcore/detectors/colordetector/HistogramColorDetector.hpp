@@ -2,8 +2,8 @@
 // Created by catalin on 26.07.2017.
 //
 
-#ifndef RUBIKDETECTORDEMO_COLORDETECTOR_HPP
-#define RUBIKDETECTORDEMO_COLORDETECTOR_HPP
+#ifndef RUBIKDETECTOR_HISTOGRAMCOLORDETECTOR_HPP
+#define RUBIKDETECTOR_HISTOGRAMCOLORDETECTOR_HPP
 
 #include <memory>
 #include "ColorDetector.hpp"
@@ -12,7 +12,7 @@ namespace cv {
     class Mat;
 }
 
-class HistogramColorDetectorBehavior;
+class HistogramColorDetectorImpl;
 
 class ImageSaver;
 
@@ -34,8 +34,8 @@ public:
     bool isDebuggable() const override;
 
 private:
-    std::unique_ptr<HistogramColorDetectorBehavior> colorDetectorBehavior;
+    std::unique_ptr<HistogramColorDetectorImpl> colorDetectorBehavior;
 };
 
 
-#endif //RUBIKDETECTORDEMO_COLORDETECTOR_HPP
+#endif //RUBIKDETECTOR_HISTOGRAMCOLORDETECTOR_HPP

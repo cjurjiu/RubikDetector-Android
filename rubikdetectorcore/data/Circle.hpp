@@ -2,20 +2,13 @@
 // Created by catalin on 13.07.2017.
 //
 
-#ifndef RUBIKDETECTORDEMO_CIRCLE_H
-#define RUBIKDETECTORDEMO_CIRCLE_H
+#ifndef RUBIKDETECTOR_CIRCLE_HPP
+#define RUBIKDETECTOR_CIRCLE_HPP
 
 #include <opencv2/core/core.hpp>
 
 class Circle {
 public:
-    cv::Point2f center;
-    float radius;
-    int area;
-    float angle;
-    float originalRectWidth;
-    float originalRectHeight;
-
     Circle();
 
     Circle(const Circle &original);
@@ -30,9 +23,21 @@ public:
 
     bool isEmpty() const;
 
+    cv::Point2f center;
+
+    float radius;
+
+    int area;
+
+    float angle;
+
+    float originalRectWidth;
+
+    float originalRectHeight;
+
 private:
     float computeAngle(const cv::Point2f points[]);
 };
 
 
-#endif //RUBIKDETECTORDEMO_CIRCLE_H
+#endif //RUBIKDETECTOR_CIRCLE_HPP

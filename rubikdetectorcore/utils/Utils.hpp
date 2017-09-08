@@ -2,8 +2,8 @@
 // Created by catalin on 26.07.2017.
 //
 
-#ifndef RUBIKDETECTORDEMO_UTILS_HPP
-#define RUBIKDETECTORDEMO_UTILS_HPP
+#ifndef RUBIKDETECTOR_UTILS_HPP
+#define RUBIKDETECTOR_UTILS_HPP
 
 #include "../data/Circle.hpp"
 #include "../data/RubikFacelet.hpp"
@@ -58,4 +58,4 @@ namespace utils {
     DrawConfig::DrawMode drawModeFromInt(const int val);
 
 }
-#endif //RUBIKDETECTORDEMO_UTILS_HPP
+#endif //RUBIKDETECTOR_UTILS_HPP

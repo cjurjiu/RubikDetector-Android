@@ -2,8 +2,8 @@
 // Created by catalin on 31.07.2017.
 //
 
-#ifndef RUBIKDETECTORANDROID_IMAGESAVER_H
-#define RUBIKDETECTORANDROID_IMAGESAVER_H
+#ifndef RUBIKDETECTOR_IMAGESAVER_HPP
+#define RUBIKDETECTOR_IMAGESAVER_HPP
 
 #include <string>
 #include "../misc/Debuggable.hpp"
@@ -32,4 +32,4 @@ private:
 };
 
 
-#endif //RUBIKDETECTORANDROID_IMAGESAVER_H
+#endif //RUBIKDETECTOR_IMAGESAVER_HPP

@@ -3,15 +3,15 @@
 //
 
 #include "HistogramColorDetector.hpp"
-#include "HistogramColorDetectorBehavior.hpp"
+#include "HistogramColorDetectorImpl.hpp"
 #include "../../utils/CrossLog.hpp"
 
 HistogramColorDetector::HistogramColorDetector() : HistogramColorDetector(nullptr) {}
 
 HistogramColorDetector::HistogramColorDetector(std::shared_ptr<ImageSaver> imageSaver)
         : colorDetectorBehavior(
-        std::unique_ptr<HistogramColorDetectorBehavior>(
-                new HistogramColorDetectorBehavior(imageSaver))) {}
+        std::unique_ptr<HistogramColorDetectorImpl>(
+                new HistogramColorDetectorImpl(imageSaver))) {}
 
 HistogramColorDetector::~HistogramColorDetector() {
     if (isDebuggable()) {

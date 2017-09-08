@@ -2,8 +2,8 @@
 // Created by catalin on 06.09.2017.
 //
 
-#ifndef RUBIKDETECTORANDROID_IMAGEPROPERTIES_HPP
-#define RUBIKDETECTORANDROID_IMAGEPROPERTIES_HPP
+#ifndef RUBIKDETECTOR_IMAGEPROPERTIES_HPP
+#define RUBIKDETECTOR_IMAGEPROPERTIES_HPP
 
 #include "../processor/ImageProcessor.hpp"
 
@@ -14,10 +14,13 @@ public:
                     const ImageProcessor::ImageFormat inputImageFormat);
 
     const int width;
+
     const int height;
+
     const ImageProcessor::ImageFormat inputImageFormat;
+
     const ImageProcessor::ImageFormat outputImageFormat;
 };
 
 
-#endif //RUBIKDETECTORANDROID_IMAGEPROPERTIES_HPP
+#endif //RUBIKDETECTOR_IMAGEPROPERTIES_HPP
