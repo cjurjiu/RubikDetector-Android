@@ -4,11 +4,9 @@
 #include <jni.h>
 #include <vector>
 #include "../include/RubikDetectorJni.hpp"
-#include "../include/OnCubeDetectionJniBridgeListener.hpp"
 #include "../../rubikdetectorcore/include/rubikdetector/imagesaver/public/ImageSaver.hpp"
 #include "../../rubikdetectorcore/include/rubikdetector/utils/public/CrossLog.hpp"
 #include "../../rubikdetectorcore/include/rubikdetector/utils/public/Utils.hpp"
-#include "../../rubikdetectorcore/include/rubikdetector/data/config/public/ImageProperties.hpp"
 #include "../../rubikdetectorcore/include/rubikdetector/detectors/rubikdetector/builder/public/RubikDetectorBuilder.hpp"
 
 JNIEXPORT jlong JNICALL
@@ -21,21 +19,21 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeCreateRubikDetector(JNI
                                                                              jint strokeWidth,
                                                                              jboolean fillShape,
                                                                              jstring storagePath) {
-    std::shared_ptr<ImageSaver> imageSaver;
+    std::shared_ptr<rbdt::ImageSaver> imageSaver;
     if (storagePath != NULL) {
         const char *cppStoragePath = env->GetStringUTFChars(storagePath, 0);
-        imageSaver = std::make_shared<ImageSaver>(cppStoragePath);
+        imageSaver = std::make_shared<rbdt::ImageSaver>(cppStoragePath);
         env->ReleaseStringUTFChars(storagePath, cppStoragePath);
     } else {
         imageSaver = nullptr;
     }
 
-    RubikDetector *rubikDetector = RubikDetectorBuilder()
+    rbdt::RubikDetector *rubikDetector = rbdt::RubikDetectorBuilder()
             .inputFrameSize((int) frameWidth, (int) frameHeight)
-            .inputFrameFormat(utils::imageFormatFromInt(inputImageFormat))
-            .drawConfig(DrawConfig(utils::drawModeFromInt((int) drawMode),
-                                   (int) strokeWidth,
-                                   (bool) fillShape))
+            .inputFrameFormat(rbdt::imageFormatFromInt(inputImageFormat))
+            .drawConfig(rbdt::DrawConfig(rbdt::drawModeFromInt((int) drawMode),
+                                         (int) strokeWidth,
+                                         (bool) fillShape))
             .imageSaver(imageSaver)
             .build();
     return reinterpret_cast<jlong>(rubikDetector);
@@ -47,7 +45,7 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeReleaseCubeDetector(JNI
                                                                              jobject instance,
                                                                              jlong cubeDetectorHandle) {
 
-    RubikDetector &cubeDetector = *reinterpret_cast<RubikDetector *>(cubeDetectorHandle);
+    rbdt::RubikDetector &cubeDetector = *reinterpret_cast<rbdt::RubikDetector *>(cubeDetectorHandle);
     if (cubeDetector.isDebuggable()) {
         LOG_DEBUG("RUBIK_JNI_PART.cpp", "nativeReleaseCube");
     }
@@ -59,7 +57,7 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetDebuggable(JNIEnv *e
                                                                        jobject instance,
                                                                        jlong cubeDetectorHandle,
                                                                        jboolean debuggable) {
-    RubikDetector &cubeDetector = *reinterpret_cast<RubikDetector *>(cubeDetectorHandle);
+    rbdt::RubikDetector &cubeDetector = *reinterpret_cast<rbdt::RubikDetector *>(cubeDetectorHandle);
     cubeDetector.setDebuggable(static_cast<bool>(debuggable));
 }
 
@@ -70,10 +68,10 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetDrawFoundFacelets(JN
                                                                               jint drawMode,
                                                                               jint strokeWidth,
                                                                               jboolean fillShape) {
-    RubikDetector &cubeDetector = *reinterpret_cast<RubikDetector *>(cubeDetectorHandle);
-    cubeDetector.updateDrawConfig(DrawConfig(utils::drawModeFromInt((int) drawMode),
-                                             (int) strokeWidth,
-                                             (bool) fillShape));
+    rbdt::RubikDetector &cubeDetector = *reinterpret_cast<rbdt::RubikDetector *>(cubeDetectorHandle);
+    cubeDetector.updateDrawConfig(rbdt::DrawConfig(rbdt::drawModeFromInt((int) drawMode),
+                                                   (int) strokeWidth,
+                                                   (bool) fillShape));
 }
 
 JNIEXPORT jintArray  JNICALL
@@ -81,7 +79,7 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeFindCubeImageData(JNIEn
                                                                            jobject instance,
                                                                            jlong cubeDetectorHandle,
                                                                            jbyteArray imageByteData) {
-    RubikDetector &cubeDetector = *reinterpret_cast<RubikDetector *>(cubeDetectorHandle);
+    rbdt::RubikDetector &cubeDetector = *reinterpret_cast<rbdt::RubikDetector *>(cubeDetectorHandle);
 
     jboolean isCopy = 3; //some arbitrary value
     void *ptr = env->GetPrimitiveArrayCritical(imageByteData, &isCopy);
@@ -89,7 +87,7 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeFindCubeImageData(JNIEn
     if (ptr) {
         uint8_t *ptrAsInt = reinterpret_cast<uint8_t *>(ptr);
         env->ReleasePrimitiveArrayCritical(imageByteData, ptr, JNI_ABORT);
-        std::vector<std::vector<RubikFacelet>> result = cubeDetector.process(ptrAsInt);
+        std::vector<std::vector<rbdt::RubikFacelet>> result = cubeDetector.process(ptrAsInt);
         return processResult(result, env);
     } else {
         LOG_WARN("RUBIK_JNI_PART.cpp",
@@ -103,12 +101,12 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeFindCubeImageDataBuffer
                                                                                  jobject instance,
                                                                                  jlong cubeDetectorHandle,
                                                                                  jobject imageDataDirectBuffer) {
-    RubikDetector &cubeDetector = *reinterpret_cast<RubikDetector *>(cubeDetectorHandle);
+    rbdt::RubikDetector &cubeDetector = *reinterpret_cast<rbdt::RubikDetector *>(cubeDetectorHandle);
 
     void *ptr = env->GetDirectBufferAddress(imageDataDirectBuffer);
     if (ptr) {
         uint8_t *ptrAsInt = reinterpret_cast<uint8_t *>(ptr);
-        std::vector<std::vector<RubikFacelet>> result = cubeDetector.process(ptrAsInt);
+        std::vector<std::vector<rbdt::RubikFacelet>> result = cubeDetector.process(ptrAsInt);
         return processResult(result, env);
     } else {
         LOG_WARN("RUBIK_JNI_PART.cpp",
@@ -125,7 +123,7 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeOverrideInputFrameWithR
         jlong cubeDetectorHandle,
         jbyteArray imageByteData) {
 
-    RubikDetector &cubeDetector = *reinterpret_cast<RubikDetector *>(cubeDetectorHandle);
+    rbdt::RubikDetector &cubeDetector = *reinterpret_cast<rbdt::RubikDetector *>(cubeDetectorHandle);
 
     jboolean isCopy = 3;
     void *ptr = env->GetPrimitiveArrayCritical(imageByteData, &isCopy);
@@ -146,16 +144,17 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetImageProperties(JNIE
                                                                             jint width,
                                                                             jint height,
                                                                             jint imageFormat) {
-    RubikDetector &cubeDetector = *reinterpret_cast<RubikDetector *>(cubeDetectorHandle);
-    cubeDetector.updateImageProperties(ImageProperties((int) width, (int) height,
-                                                       utils::imageFormatFromInt(imageFormat)));
+    rbdt::RubikDetector &cubeDetector = *reinterpret_cast<rbdt::RubikDetector *>(cubeDetectorHandle);
+    cubeDetector.updateImageProperties(rbdt::ImageProperties((int) width, (int) height,
+                                                             rbdt::imageFormatFromInt(
+                                                                     imageFormat)));
 }
 
 JNIEXPORT jint JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetRequiredMemory(JNIEnv *env,
                                                                            jobject instance,
                                                                            jlong cubeDetectorHandle) {
-    RubikDetector &cubeDetector = *reinterpret_cast<RubikDetector *>(cubeDetectorHandle);
+    rbdt::RubikDetector &cubeDetector = *reinterpret_cast<rbdt::RubikDetector *>(cubeDetectorHandle);
     return cubeDetector.getRequiredMemory();
 }
 
@@ -163,7 +162,7 @@ JNIEXPORT jint JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetRgbaImageOffset(JNIEnv *env,
                                                                             jobject instance,
                                                                             jlong cubeDetectorHandle) {
-    RubikDetector &cubeDetector = *reinterpret_cast<RubikDetector *>(cubeDetectorHandle);
+    rbdt::RubikDetector &cubeDetector = *reinterpret_cast<rbdt::RubikDetector *>(cubeDetectorHandle);
     return cubeDetector.getOutputFrameBufferOffset();
 }
 
@@ -171,7 +170,7 @@ JNIEXPORT jint JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetRgbaImageSize(JNIEnv *env,
                                                                           jobject instance,
                                                                           jlong cubeDetectorHandle) {
-    RubikDetector &cubeDetector = *reinterpret_cast<RubikDetector *>(cubeDetectorHandle);
+    rbdt::RubikDetector &cubeDetector = *reinterpret_cast<rbdt::RubikDetector *>(cubeDetectorHandle);
     return cubeDetector.getOutputFrameByteCount();
 }
 
@@ -179,7 +178,7 @@ JNIEXPORT jint JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetNv21ImageSize(JNIEnv *env,
                                                                           jobject instance,
                                                                           jlong cubeDetectorHandle) {
-    RubikDetector &cubeDetector = *reinterpret_cast<RubikDetector *>(cubeDetectorHandle);
+    rbdt::RubikDetector &cubeDetector = *reinterpret_cast<rbdt::RubikDetector *>(cubeDetectorHandle);
     return cubeDetector.getInputFrameByteCount();
 }
 
@@ -187,18 +186,18 @@ JNIEXPORT jint JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetNv21ImageOffset(JNIEnv *env,
                                                                             jobject instance,
                                                                             jlong cubeDetectorHandle) {
-    RubikDetector &cubeDetector = *reinterpret_cast<RubikDetector *>(cubeDetectorHandle);
+    rbdt::RubikDetector &cubeDetector = *reinterpret_cast<rbdt::RubikDetector *>(cubeDetectorHandle);
     return cubeDetector.getInputFrameBufferOffset();
 }
 
-jintArray processResult(const std::vector<std::vector<RubikFacelet>> &result, _JNIEnv *env) {
+jintArray processResult(const std::vector<std::vector<rbdt::RubikFacelet>> &result, _JNIEnv *env) {
     if (result.size() != 0) {
         size_t data_size = 9 * 6;
         jint flattenedResult[data_size];
         jint *currentPos = flattenedResult;
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                *(currentPos++) = utils::asInt(result[i][j].color);
+                *(currentPos++) = rbdt::asInt(result[i][j].color);
                 *(currentPos++) = (int) (result[i][j].center.x * 100000);
                 *(currentPos++) = (int) (result[i][j].center.y * 100000);
                 *(currentPos++) = (int) (result[i][j].width * 100000);

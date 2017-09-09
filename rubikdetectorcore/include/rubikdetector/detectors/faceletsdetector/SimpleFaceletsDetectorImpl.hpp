@@ -14,6 +14,8 @@
 #include <iostream>
 #include <memory>
 
+namespace rbdt {
+
 class OnCubeDetectionResultListener;
 
 class RubikFacelet;
@@ -109,6 +111,5 @@ private:
 
 };
 
+} //namespace rbdt
 #endif //RUBIKDETECTOR_SIMPLEFACELETSDETECTORIMPL_HPP
-
-//} //namespace rbdt

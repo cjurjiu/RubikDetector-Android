@@ -7,7 +7,7 @@
 
 #include <opencv2/core/core.hpp>
 
-//namespace rbdt {
+namespace rbdt {
 
 class Circle {
 public:
@@ -41,6 +41,6 @@ private:
     float computeAngle(const cv::Point2f points[]);
 };
 
-//} //namespace rbdt
+} //namespace rbdt
 
 #endif //RUBIKDETECTOR_CIRCLE_HPP

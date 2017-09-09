@@ -7,6 +7,8 @@
 #include "../../include/rubikdetector/imagesaver/public/ImageSaver.hpp"
 #include "../../include/rubikdetector/utils/public/CrossLog.hpp"
 
+namespace rbdt {
+
 ImageSaver::ImageSaver(const std::string saveLocation) : path(saveLocation) {}
 
 ImageSaver::~ImageSaver() {
@@ -36,3 +38,5 @@ void ImageSaver::setDebuggable(const bool debuggable) {
 bool ImageSaver::isDebuggable() const {
     return ImageSaver::debuggable;
 }
+
+} //end namespace rbdt

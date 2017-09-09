@@ -5,6 +5,8 @@
 #include <cmath>
 #include "../../../include/rubikdetector/data/processing/public/RubikFacelet.hpp"
 
+namespace rbdt {
+
 RubikFacelet::RubikFacelet() : RubikFacelet(Point2d(0, 0), 0, 0, 0, Color::WHITE) {}
 
 RubikFacelet::RubikFacelet(Point2d center, float width, float height, float angle, Color color)
@@ -38,3 +40,5 @@ std::vector<Point2d> RubikFacelet::corners() {
 float RubikFacelet::innerCircleRadius() {
     return std::min(width, height) / 2;
 }
+
+} //end namespace rbdt

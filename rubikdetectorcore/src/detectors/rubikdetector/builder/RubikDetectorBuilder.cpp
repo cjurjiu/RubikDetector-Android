@@ -6,6 +6,8 @@
 #include "../../../../include/rubikdetector/detectors/faceletsdetector/public/SimpleFaceletsDetector.hpp"
 #include "../../../../include/rubikdetector/detectors/colordetector/public/HistogramColorDetector.hpp"
 
+namespace rbdt {
+
 RubikDetectorBuilder::RubikDetectorBuilder() :
         mFrameWidth(DEFAULT_WIDTH),
         mFrameHeight(DEFAULT_HEIGHT),
@@ -81,3 +83,5 @@ RubikDetector *RubikDetectorBuilder::build() {
     rubikDetector->setDebuggable(mDebuggable);
     return rubikDetector;
 }
+
+} //end namespace rbdt

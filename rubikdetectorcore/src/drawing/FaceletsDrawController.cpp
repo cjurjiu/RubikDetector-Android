@@ -7,6 +7,8 @@
 #include "../../include/rubikdetector/utils/public/Utils.hpp"
 #include "../../include/rubikdetector/utils/public/CrossLog.hpp"
 
+namespace rbdt {
+
 FaceletsDrawController::FaceletsDrawController(DrawConfig drawConfig) : drawConfig(drawConfig) {}
 
 FaceletsDrawController::~FaceletsDrawController() {
@@ -65,7 +67,7 @@ void FaceletsDrawController::drawFoundFaceletsCircles(cv::Mat &outputFrame,
             cv::circle(outputFrame,
                        cv::Point2f(facelet.center.x, facelet.center.y),
                        (int) roundf(std::min(facelet.width, facelet.height) / 2),
-                       utils::getColorAsScalar(facelet.color),
+                       rbdt::getColorAsScalar(facelet.color),
                        fillShape ? -1 : strokeWidth, CV_AA);
         }
     }
@@ -95,7 +97,7 @@ void FaceletsDrawController::drawFoundFaceletsRectangles(cv::Mat &outputFrame,
             for (int k = 0; k < 4; k++) {
                 points[k] = cv::Point2d(faceletContour[k].x, faceletContour[k].y);
             }
-            cv::Scalar color = utils::getColorAsScalar(facelet.color);
+            cv::Scalar color = rbdt::getColorAsScalar(facelet.color);
             //draw contour
             cv::line(outputFrame, points[0], points[1], color, strokeWidth, CV_AA);
             cv::line(outputFrame, points[1], points[2], color, strokeWidth, CV_AA);
@@ -104,3 +106,4 @@ void FaceletsDrawController::drawFoundFaceletsRectangles(cv::Mat &outputFrame,
         }
     }
 }
+} //end namespace rbdt

@@ -9,8 +9,9 @@
 #include "../../misc/public/Debuggable.hpp"
 
 namespace cv {
-    class Mat;
+class Mat;
 }
+namespace rbdt {
 
 class ImageSaver : Debuggable {
 public:
@@ -31,5 +32,5 @@ private:
     bool debuggable;
 };
 
-
+} //end namespace rbdt
 #endif //RUBIKDETECTOR_IMAGESAVER_HPP

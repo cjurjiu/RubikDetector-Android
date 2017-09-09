@@ -9,7 +9,7 @@
 #include "../../../include/rubikdetector/utils/public/Utils.hpp"
 #include "../../../include/rubikdetector/utils/public/CrossLog.hpp"
 
-//namespace rbdt {
+namespace rbdt {
 /**##### PUBLIC API #####**/
 SimpleFaceletsDetectorImpl::SimpleFaceletsDetectorImpl() :
         SimpleFaceletsDetectorImpl(nullptr) {
@@ -69,16 +69,16 @@ std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorImpl::findFacelets(
             cv::Mat drawing = saveFilteredRectangles(frameRgba, filteredRectangles,
                                                      frameNumber * 10 + i + 1);
 
-            utils::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80));
-            utils::drawCircles(drawing, facetModel, cv::Scalar(255, 0, 0));
-            utils::drawCircle(drawing, referenceCircle, cv::Scalar(255, 0, 0));
-            utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), 1, 2, true);
+            rbdt::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80));
+            rbdt::drawCircles(drawing, facetModel, cv::Scalar(255, 0, 0));
+            rbdt::drawCircle(drawing, referenceCircle, cv::Scalar(255, 0, 0));
+            rbdt::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), 1, 2, true);
             imageSaver->saveImage(drawing, frameNumber * 10 + i + 1, "matched_pot_est_facelets1");
 
             ///save just the facelets which matched with the estimated ones
             drawing = cv::Mat::zeros(frameRgba.size(), CV_8UC3);
-            utils::drawCircles(drawing, facetModel, cv::Scalar(0, 255, 80));
-            utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), 1, 2, true);
+            rbdt::drawCircles(drawing, facetModel, cv::Scalar(0, 255, 80));
+            rbdt::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), 1, 2, true);
             imageSaver->saveImage(drawing, frameNumber * 10 + i + 1, "matched_potential_facelets1");
 
         }
@@ -181,7 +181,7 @@ void SimpleFaceletsDetectorImpl::filterContours(const cv::Mat &currentFrame,
             possibleFaceletsInnerCircles.push_back(Circle(currentRect));
         }
     }
-//    utils::quickSaveImage(drawing, "/storage/emulated/0/RubikResults", frameNumber, 1811);
+//    rbdt::quickSaveImage(drawing, "/storage/emulated/0/RubikResults", frameNumber, 1811);
 }
 
 float SimpleFaceletsDetectorImpl::getSmallestMargin(Circle referenceCircle,
@@ -199,7 +199,7 @@ float SimpleFaceletsDetectorImpl::getSmallestMargin(Circle referenceCircle,
             //TODO replace magic number 2*10(pixels)
             continue;
         }
-        float currentMargin = utils::pointsDistance(referenceCircle.center, testedCircle.center) -
+        float currentMargin = rbdt::pointsDistance(referenceCircle.center, testedCircle.center) -
                               referenceCircle.radius - testedCircle.radius;
         if (currentMargin < margin && currentMargin > 0) {
             margin = currentMargin;
@@ -290,7 +290,7 @@ SimpleFaceletsDetectorImpl::matchEstimatedWithPotentialFacelets(
 
                 float R = std::max(testedCircle.radius, potentialFacelets[j].radius);
                 float r = std::min(testedCircle.radius, potentialFacelets[j].radius);
-                float d = utils::pointsDistance(testedCircle.center, potentialFacelets[j].center);
+                float d = rbdt::pointsDistance(testedCircle.center, potentialFacelets[j].center);
 
                 float part1 = r * r * std::acos((d * d + r * r - R * R) / (2 * d * r));
                 float part2 = R * R * std::acos((d * d + R * R - r * r) / (2 * d * R));
@@ -429,14 +429,14 @@ void SimpleFaceletsDetectorImpl::saveDebugData(const cv::Mat &frame,
 
         ///save potential facelets
         drawing = cv::Mat::zeros(frame.size(), CV_8UC3);
-        utils::drawCircles(drawing, potentialFacelets, cv::Scalar(255, 0, 0));
-        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255));
+        rbdt::drawCircles(drawing, potentialFacelets, cv::Scalar(255, 0, 0));
+        rbdt::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255));
         imageSaver->saveImage(drawing, frameNumber * 10, "potential_facelets");
 
         ///save estimated facelets
         drawing = cv::Mat::zeros(frame.size(), CV_8UC3);
-        utils::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80));
-        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255));
+        rbdt::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80));
+        rbdt::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255));
         imageSaver->saveImage(drawing, frameNumber * 10, "estimated_facelets");
 
         ///save potential & estimated facelets which match
@@ -446,30 +446,30 @@ void SimpleFaceletsDetectorImpl::saveDebugData(const cv::Mat &frame,
                 potentialFacelets, estimatedFacelets);
 
         drawing = cv::Mat::zeros(frame.size(), CV_8UC3);
-        utils::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80));
-        utils::drawCircles(drawing, faceletIncompleteModel, cv::Scalar(255, 0, 0));
-        utils::drawCircle(drawing, referenceCircle, cv::Scalar(255, 0, 0));
-        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), 1, 2, true);
+        rbdt::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80));
+        rbdt::drawCircles(drawing, faceletIncompleteModel, cv::Scalar(255, 0, 0));
+        rbdt::drawCircle(drawing, referenceCircle, cv::Scalar(255, 0, 0));
+        rbdt::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), 1, 2, true);
         imageSaver->saveImage(drawing, frameNumber * 10, "matched_pot_est_facelets");
 
         ///save just the facelets which matched with the estimated ones
         drawing = cv::Mat::zeros(frame.size(), CV_8UC3);
-        utils::drawCircles(drawing, faceletIncompleteModel, cv::Scalar(0, 255, 80));
-        utils::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), 1, 2, true);
+        rbdt::drawCircles(drawing, faceletIncompleteModel, cv::Scalar(0, 255, 80));
+        rbdt::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), 1, 2, true);
         imageSaver->saveImage(drawing, frameNumber * 10, "matched_potential_facelets");
     }
 
     LOG_DEBUG("RUBIK_JNI_PART.cpp",
               "COLORS: [1]:{ %d %d %d } [2]:{ %d %d %d } [3]:{ %d %d %d }",
-              utils::asInt(colors[0][0]),
-              utils::asInt(colors[0][1]),
-              utils::asInt(colors[0][2]),
-              utils::asInt(colors[1][0]),
-              utils::asInt(colors[1][1]),
-              utils::asInt(colors[1][2]),
-              utils::asInt(colors[2][0]),
-              utils::asInt(colors[2][1]),
-              utils::asInt(colors[2][2]));
+              rbdt::asInt(colors[0][0]),
+              rbdt::asInt(colors[0][1]),
+              rbdt::asInt(colors[0][2]),
+              rbdt::asInt(colors[1][0]),
+              rbdt::asInt(colors[1][1]),
+              rbdt::asInt(colors[1][2]),
+              rbdt::asInt(colors[2][0]),
+              rbdt::asInt(colors[2][1]),
+              rbdt::asInt(colors[2][2]));
 //    end debug data saving
 }
 
@@ -484,4 +484,4 @@ void SimpleFaceletsDetectorImpl::drawRectangleToMat(const cv::Mat &currentFrame,
              color, 1, CV_AA);
 }
 
-//} //namespace rbdt
+} //namespace rbdt

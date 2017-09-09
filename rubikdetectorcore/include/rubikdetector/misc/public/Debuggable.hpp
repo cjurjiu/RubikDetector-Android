@@ -4,6 +4,7 @@
 
 #ifndef RUBIKDETECTOR_DEBUGGABLE_HPP
 #define RUBIKDETECTOR_DEBUGGABLE_HPP
+namespace rbdt {
 
 class Debuggable {
 public:
@@ -15,5 +16,5 @@ public:
 
     virtual bool isDebuggable() const =0;
 };
-
+} //end namespace rbdt
 #endif //RUBIKDETECTOR_DEBUGGABLE_HPP

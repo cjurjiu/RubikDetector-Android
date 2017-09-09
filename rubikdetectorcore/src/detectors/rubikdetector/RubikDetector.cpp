@@ -6,6 +6,8 @@
 #include "../../../include/rubikdetector/detectors/rubikdetector/RubikDetectorImpl.hpp"
 #include "../../../include/rubikdetector/utils/public/CrossLog.hpp"
 
+namespace rbdt {
+
 RubikDetector::RubikDetector(const ImageProperties imageProperties,
                              std::unique_ptr<FaceletsDetector> faceletsDetector,
                              std::unique_ptr<ColorDetector> colorDetector,
@@ -67,3 +69,4 @@ int RubikDetector::getInputFrameBufferOffset() {
 void RubikDetector::updateDrawConfig(DrawConfig drawConfig) {
     behavior->updateDrawConfig(drawConfig);
 }
+} //end namespace rbdt

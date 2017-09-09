@@ -16,6 +16,8 @@
 #include "../../../data/config/public/DrawConfig.hpp"
 #include "../../../drawing/public/FaceletsDrawController.hpp"
 
+namespace rbdt {
+
 class OnCubeDetectionResultListener;
 
 class RubikDetectorImpl;
@@ -63,5 +65,5 @@ private:
 
     std::unique_ptr<RubikDetectorImpl> behavior;
 };
-
+} //end namespace rbdt
 #endif //RUBIKDETECTOR_RUBIKDETECTOR_HPP

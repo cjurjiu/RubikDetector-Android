@@ -7,6 +7,8 @@
 
 #include "../../../processor/public/ImageProcessor.hpp"
 
+namespace rbdt {
+
 class ImageProperties {
 public:
     ImageProperties(const int width,
@@ -22,5 +24,5 @@ public:
     const ImageProcessor::ImageFormat outputImageFormat;
 };
 
-
+} //end namespace rbdt
 #endif //RUBIKDETECTOR_IMAGEPROPERTIES_HPP

@@ -4,6 +4,8 @@
 
 #include "../../../include/rubikdetector/data/config/public/DrawConfig.hpp"
 
+namespace rbdt {
+
 DrawConfig::DrawConfig() : drawMode(DrawMode::DO_NOT_DRAW), strokeWidth(0), fillShape(false) {}
 
 DrawConfig::DrawConfig(DrawConfig::DrawMode drawMode, int strokeWidth, bool fillShape) :
@@ -40,3 +42,5 @@ DrawConfig DrawConfig::FilledCircles() {
 DrawConfig DrawConfig::Rectangles(int strokeWidth) {
     return DrawConfig(DrawMode::DRAW_RECTANGLES, strokeWidth, false);
 }
+
+} //end namespace rbdt

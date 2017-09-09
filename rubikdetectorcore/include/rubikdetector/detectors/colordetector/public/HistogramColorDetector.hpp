@@ -9,8 +9,10 @@
 #include "ColorDetector.hpp"
 
 namespace cv {
-    class Mat;
+class Mat;
 }
+
+namespace rbdt {
 
 class HistogramColorDetectorImpl;
 
@@ -37,5 +39,5 @@ private:
     std::unique_ptr<HistogramColorDetectorImpl> colorDetectorBehavior;
 };
 
-
+} //end namespace rbdt
 #endif //RUBIKDETECTOR_HISTOGRAMCOLORDETECTOR_HPP

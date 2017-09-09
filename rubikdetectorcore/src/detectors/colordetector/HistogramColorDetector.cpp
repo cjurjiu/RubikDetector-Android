@@ -6,6 +6,8 @@
 #include "../../../include/rubikdetector/detectors/colordetector/HistogramColorDetectorImpl.hpp"
 #include "../../../include/rubikdetector/utils/public/CrossLog.hpp"
 
+namespace rbdt {
+
 HistogramColorDetector::HistogramColorDetector() : HistogramColorDetector(nullptr) {}
 
 HistogramColorDetector::HistogramColorDetector(std::shared_ptr<ImageSaver> imageSaver)
@@ -33,3 +35,5 @@ void HistogramColorDetector::setDebuggable(const bool debuggable) {
 bool HistogramColorDetector::isDebuggable() const {
     return colorDetectorBehavior->isDebuggable();
 }
+
+} //end namespace rbdt

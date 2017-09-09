@@ -7,6 +7,8 @@
 
 #include "public/RubikFacelet.hpp"
 
+namespace rbdt {
+
 class HueColorEvidence {
 
 public:
@@ -18,5 +20,5 @@ public:
 
 };
 
-
+} //namespace rbdt
 #endif //RUBIKDETECTOR_HUECOLOREVIDENCE_HPP

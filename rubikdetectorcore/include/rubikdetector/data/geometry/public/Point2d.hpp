@@ -5,6 +5,7 @@
 #ifndef RUBIKDETECTOR_POINT2D_HPP
 #define RUBIKDETECTOR_POINT2D_HPP
 
+namespace rbdt {
 
 class Point2d {
 public:
@@ -19,5 +20,5 @@ public:
     float y;
 };
 
-
+} //end namespace rbdt
 #endif //RUBIKDETECTOR_POINT2D_HPP

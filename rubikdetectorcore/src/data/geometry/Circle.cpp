@@ -5,7 +5,7 @@
 #include "opencv2/core/core.hpp"
 #include "../../../include/rubikdetector/data/geometry/Circle.hpp"
 
-//namespace rbdt {
+namespace rbdt {
 
 Circle::Circle() : center(cv::Point2i(0, 0)), radius(0),
                    area(0), angle(0), originalRectWidth(0),
@@ -68,4 +68,4 @@ float Circle::computeAngle(const cv::Point2f points[]) {
     return angle;
 }
 
-//} //namespace rbdt
+} //namespace rbdt

@@ -8,6 +8,8 @@
 #include <vector>
 #include "../../geometry/public/Point2d.hpp"
 
+namespace rbdt {
+
 class RubikFacelet {
 public:
 
@@ -37,5 +39,5 @@ public:
     float angle;
 };
 
-
+} //end namespace rbdt
 #endif //RUBIKDETECTOR_RUBIKFACELET_HPP

@@ -14,6 +14,8 @@
 #include "../../public/RubikDetector.hpp"
 #include "../../../../data/config/public/DrawConfig.hpp"
 
+namespace rbdt {
+
 class RubikDetectorBuilder {
 
 public:
@@ -61,5 +63,5 @@ private:
     bool mDebuggable;
 };
 
-
+} //end namespace rbdt
 #endif //RUBIKDETECTOR_RUBIKDETECTORBUILDER_HPP

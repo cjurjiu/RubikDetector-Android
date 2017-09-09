@@ -5,6 +5,7 @@
 #ifndef RUBIKDETECTOR_DRAWCONFIG_HPP
 #define RUBIKDETECTOR_DRAWCONFIG_HPP
 
+namespace rbdt {
 
 class DrawConfig {
 
@@ -41,5 +42,5 @@ private:
     bool fillShape;
 };
 
-
+} //end namespace rbdt
 #endif //RUBIKDETECTOR_DRAWCONFIG_HPP

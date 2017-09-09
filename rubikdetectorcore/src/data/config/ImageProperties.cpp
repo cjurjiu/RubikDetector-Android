@@ -4,6 +4,8 @@
 
 #include "../../../include/rubikdetector/data/config/public/ImageProperties.hpp"
 
+namespace rbdt {
+
 ImageProperties::ImageProperties(const int width,
                                  const int height,
                                  const ImageProcessor::ImageFormat inputImageFormat) :
@@ -13,3 +15,5 @@ ImageProperties::ImageProperties(const int width,
         outputImageFormat(ImageProcessor::ImageFormat::RGBA8888) {
     //empty
 }
+
+} //end namespace rbdt

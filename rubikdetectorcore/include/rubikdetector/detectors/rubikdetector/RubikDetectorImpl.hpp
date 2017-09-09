@@ -18,6 +18,7 @@
 #include <iostream>
 #include <memory>
 
+namespace rbdt {
 class OnCubeDetectionResultListener;
 
 class RubikFacelet;
@@ -127,4 +128,5 @@ private:
     int cvColorConversionCode;
 };
 
+} //namespace rbdt
 #endif //RUBIKDETECTOR_RUBIKDETECTORIMPL_HPP

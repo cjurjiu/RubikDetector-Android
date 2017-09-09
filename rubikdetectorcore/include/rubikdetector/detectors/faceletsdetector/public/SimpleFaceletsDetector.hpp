@@ -12,8 +12,10 @@
 #include "FaceletsDetector.hpp"
 
 namespace cv {
-    class Mat;
+class Mat;
 }
+
+namespace rbdt {
 
 class OnCubeDetectionResultListener;
 
@@ -42,5 +44,5 @@ public:
 private:
     std::unique_ptr<SimpleFaceletsDetectorImpl> behavior;
 };
-
+} //end namespace rbdt
 #endif //RUBIKDETECTOR_SIMPLEFACELETSDETECTOR_HPP

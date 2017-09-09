@@ -12,8 +12,9 @@
 #include "public/ColorDetector.hpp"
 
 namespace cv {
-    class Mat;
+class Mat;
 }
+namespace rbdt {
 
 class HistogramColorDetectorImpl : ColorDetector {
 
@@ -63,5 +64,5 @@ private:
     std::shared_ptr<ImageSaver> imageSaver;
 };
 
-
+} //namespace rbdt
 #endif //RUBIKDETECTOR_HISTOGRAMCOLORDETECTORIMPL_HPP

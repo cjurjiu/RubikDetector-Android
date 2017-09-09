@@ -9,6 +9,8 @@
 #include "../../misc/public/Debuggable.hpp"
 #include "../../data/processing/public/RubikFacelet.hpp"
 
+namespace rbdt {
+
 class ImageProperties;
 
 class ImageProcessor : public Debuggable {
@@ -37,5 +39,5 @@ public:
 
     virtual int getInputFrameBufferOffset()=0;
 };
-
+} //end namespace rbdt
 #endif //RUBIKDETECTOR_IMAGEPROCESSOR_HPP

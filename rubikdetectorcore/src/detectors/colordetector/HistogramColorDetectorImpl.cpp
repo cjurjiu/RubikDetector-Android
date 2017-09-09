@@ -10,6 +10,8 @@
 #include "../../../include/rubikdetector/utils/public/CrossLog.hpp"
 #include "../../../include/rubikdetector/utils/public/Utils.hpp"
 
+namespace rbdt {
+
 HistogramColorDetectorImpl::HistogramColorDetectorImpl() : HistogramColorDetectorImpl(
         nullptr) {
 
@@ -79,19 +81,19 @@ RubikFacelet::Color HistogramColorDetectorImpl::detectColor(const cv::Mat &image
 
         for (int i = 0; i < HUE_HISTOGRAM_SIZE; i++) {
             if (i >= 4 && i <= 18) {
-                colorEvidence[utils::asInt(RubikFacelet::Color::ORANGE)]
+                colorEvidence[rbdt::asInt(RubikFacelet::Color::ORANGE)]
                         .evidence += hueHistogram[i];
             } else if (i > 18 && i <= 39) {
-                colorEvidence[utils::asInt(RubikFacelet::Color::YELLOW)]
+                colorEvidence[rbdt::asInt(RubikFacelet::Color::YELLOW)]
                         .evidence += hueHistogram[i];
             } else if (i > 39 && i <= 76) {
-                colorEvidence[utils::asInt(RubikFacelet::Color::GREEN)]
+                colorEvidence[rbdt::asInt(RubikFacelet::Color::GREEN)]
                         .evidence += hueHistogram[i];
             } else if (i > 76 && i <= 136) {
-                colorEvidence[utils::asInt(RubikFacelet::Color::BLUE)]
+                colorEvidence[rbdt::asInt(RubikFacelet::Color::BLUE)]
                         .evidence += hueHistogram[i];
             } else if ((i >= 171 && i <= 179) || (i >= 0 && i < 4)) {
-                colorEvidence[utils::asInt(RubikFacelet::Color::RED)]
+                colorEvidence[rbdt::asInt(RubikFacelet::Color::RED)]
                         .evidence += hueHistogram[i];
             }
         }
@@ -167,3 +169,5 @@ HistogramColorDetectorImpl::computeSaturationHistogram(const std::vector<cv::Mat
         }
     }
 }
+
+}//namespace rbdt

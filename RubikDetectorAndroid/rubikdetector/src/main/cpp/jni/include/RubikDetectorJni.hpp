@@ -95,6 +95,6 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeGetNv21ImageOffset(JNIE
 }
 #endif
 
-jintArray processResult(const std::vector<std::vector<RubikFacelet>> &result, _JNIEnv *env);
+jintArray processResult(const std::vector<std::vector<rbdt::RubikFacelet>> &result, _JNIEnv *env);
 
 #endif //RUBIKDETECTORJNI_RUBIKDETECTORJNI_HPP

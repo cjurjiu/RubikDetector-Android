@@ -10,8 +10,9 @@
 #include "../../misc/public/Debuggable.hpp"
 
 namespace cv {
-    class Mat;
+class Mat;
 }
+namespace rbdt {
 
 class FaceletsDrawController : Debuggable {
 
@@ -44,5 +45,5 @@ private:
                                      const bool fillShape) const;
 };
 
-
+} //end namespace rbdt
 #endif //RUBIKDETECTOR_FACELETSDRAWCONTROLLER_HPP

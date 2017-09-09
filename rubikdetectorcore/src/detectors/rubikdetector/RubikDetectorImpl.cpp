@@ -7,6 +7,7 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "../../../include/rubikdetector/utils/public/Utils.hpp"
 #include "../../../include/rubikdetector/utils/public/CrossLog.hpp"
+namespace rbdt {
 
 /**##### PUBLIC API #####**/
 RubikDetectorImpl::RubikDetectorImpl(const ImageProperties imageProperties,
@@ -61,9 +62,9 @@ void RubikDetectorImpl::overrideInputFrameWithResultFrame(const uint8_t *imageDa
         cv::cvtColor(rgbaFrame, yuvFrame, reverseColorConversionCode);
     } else {
         if (inputImageFormat == ImageProcessor::ImageFormat::YUV_NV21) {
-            utils::encodeNV21(rgbaFrame, yuvFrame, imageWidth, imageHeight);
+            rbdt::encodeNV21(rgbaFrame, yuvFrame, imageWidth, imageHeight);
         } else if (inputImageFormat == ImageProcessor::ImageFormat::YUV_NV12) {
-            utils::encodeNV12(rgbaFrame, yuvFrame, imageWidth, imageHeight);
+            rbdt::encodeNV12(rgbaFrame, yuvFrame, imageWidth, imageHeight);
         }
     }
 }
@@ -203,7 +204,7 @@ std::vector<std::vector<RubikFacelet>> RubikDetectorImpl::findCubeInternal(
         const uint8_t *imageData) {
 
     frameNumber++;
-    double processingStart = utils::getCurrentTimeMillis();
+    double processingStart = rbdt::getCurrentTimeMillis();
 
     cv::Mat outputFrameRgba(imageHeight, imageWidth, CV_8UC4,
                             (uchar *) imageData + outputRgbaImageOffset);
@@ -458,15 +459,15 @@ std::vector<std::vector<RubikFacelet>> RubikDetectorImpl::findCubeInternal(
         if (isDebuggable()) {
             LOG_DEBUG("RubikJniPart.cpp",
                       "RubikDetector - Detected colors: {%c, %c, %c} {%c, %c, %c} {%c, %c, %c}",
-                      utils::colorIntToChar(colors[0][0]),
-                      utils::colorIntToChar(colors[0][1]),
-                      utils::colorIntToChar(colors[0][2]),
-                      utils::colorIntToChar(colors[1][0]),
-                      utils::colorIntToChar(colors[1][1]),
-                      utils::colorIntToChar(colors[1][2]),
-                      utils::colorIntToChar(colors[2][0]),
-                      utils::colorIntToChar(colors[2][1]),
-                      utils::colorIntToChar(colors[2][2])
+                      rbdt::colorIntToChar(colors[0][0]),
+                      rbdt::colorIntToChar(colors[0][1]),
+                      rbdt::colorIntToChar(colors[0][2]),
+                      rbdt::colorIntToChar(colors[1][0]),
+                      rbdt::colorIntToChar(colors[1][1]),
+                      rbdt::colorIntToChar(colors[1][2]),
+                      rbdt::colorIntToChar(colors[2][0]),
+                      rbdt::colorIntToChar(colors[2][1]),
+                      rbdt::colorIntToChar(colors[2][2])
             );
         }
         if (isDebuggable()) {
@@ -494,7 +495,7 @@ std::vector<std::vector<RubikFacelet>> RubikDetectorImpl::findCubeInternal(
             LOG_DEBUG("RubikJniPart.cpp", "RubikDetector - No cube found.");
         }
     }
-    double processingEnd = utils::getCurrentTimeMillis();
+    double processingEnd = rbdt::getCurrentTimeMillis();
     //BASICALLY DONE
     double delta = processingEnd - processingStart;
     double fps = 1000 / delta;
@@ -579,3 +580,4 @@ void RubikDetectorImpl::upscaleResult(std::vector<std::vector<RubikFacelet>> &fa
     }
 }
 
+} //namespace rbdt

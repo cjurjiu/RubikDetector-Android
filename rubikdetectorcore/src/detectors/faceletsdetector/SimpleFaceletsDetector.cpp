@@ -6,6 +6,8 @@
 #include "../../../include/rubikdetector/detectors/faceletsdetector/SimpleFaceletsDetectorImpl.hpp"
 #include "../../../include/rubikdetector/utils/public/CrossLog.hpp"
 
+namespace rbdt {
+
 SimpleFaceletsDetector::SimpleFaceletsDetector() : SimpleFaceletsDetector(nullptr) {}
 
 SimpleFaceletsDetector::SimpleFaceletsDetector(const std::shared_ptr<ImageSaver> imageSaver)
@@ -35,3 +37,5 @@ void SimpleFaceletsDetector::setDebuggable(const bool debuggable) {
 bool SimpleFaceletsDetector::isDebuggable() const {
     return behavior->isDebuggable();
 }
+
+} //end namespace rbdt

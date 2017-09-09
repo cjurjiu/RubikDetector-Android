@@ -7,12 +7,12 @@
 
 #include <cstdint>
 #include "../../../misc/public/Debuggable.hpp"
-#include "OnCubeDetectionResultListener.hpp"
 #include "../../../processor/public/ImageProcessor.hpp"
 
 namespace cv {
-    class Mat;
+class Mat;
 }
+namespace rbdt {
 
 class FaceletsDetector : public Debuggable {
 public:
@@ -28,5 +28,5 @@ public:
     virtual void
     onFrameSizeSelected(int width, int height)=0;
 };
-
+} //end namespace rbdt
 #endif //RUBIKDETECTOR_FACELETSDETECTOR_HPP

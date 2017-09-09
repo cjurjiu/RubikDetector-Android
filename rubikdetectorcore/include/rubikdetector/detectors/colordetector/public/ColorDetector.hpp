@@ -11,6 +11,7 @@
 namespace cv {
 class Mat;
 }
+namespace rbdt {
 
 class ColorDetector : public Debuggable {
 public:
@@ -24,5 +25,5 @@ public:
                                             const int frameNr = -1) = 0;
 };
 
-
+} //end namespace rbdt
 #endif //RUBIKDETECTOR_COLORDETECTOR_HPP
