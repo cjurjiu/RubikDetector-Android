@@ -8,13 +8,13 @@
 #include <vector>
 #include <cstdint>
 #include <memory>
-#include "../../../data/processing/public/RubikFacelet.hpp"
-#include "../../../processor/public/ImageProcessor.hpp"
-#include "../../colordetector/public/ColorDetector.hpp"
-#include "../../faceletsdetector/public/FaceletsDetector.hpp"
-#include "../../../data/config/public/ImageProperties.hpp"
-#include "../../../data/config/public/DrawConfig.hpp"
-#include "../../../drawing/public/FaceletsDrawController.hpp"
+#include "../../data/processing/RubikFacelet.hpp"
+#include "../../processor/ImageProcessor.hpp"
+#include "../colordetector/ColorDetector.hpp"
+#include "../faceletsdetector/FaceletsDetector.hpp"
+#include "../../data/config/ImageProperties.hpp"
+#include "../../data/config/DrawConfig.hpp"
+#include "../../drawing/FaceletsDrawController.hpp"
 
 namespace rbdt {
 

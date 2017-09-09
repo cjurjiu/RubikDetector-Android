@@ -2,7 +2,7 @@
 // Created by catalin on 07.09.2017.
 //
 
-#include "../../../include/rubikdetector/data/config/public/DrawConfig.hpp"
+#include "../../../include/rubikdetector/data/config/DrawConfig.hpp"
 
 namespace rbdt {
 

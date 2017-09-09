@@ -2,12 +2,12 @@
 //
 
 #include <math.h>
-#include "../../../include/rubikdetector/detectors/faceletsdetector/SimpleFaceletsDetectorImpl.hpp"
-#include "../../../include/rubikdetector/detectors/faceletsdetector/public/SimpleFaceletsDetector.hpp"
+#include "../../../include/rubikdetector/detectors/faceletsdetector/internal/SimpleFaceletsDetectorImpl.hpp"
+#include "../../../include/rubikdetector/detectors/faceletsdetector/SimpleFaceletsDetector.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
-#include "../../../include/rubikdetector/utils/public/Utils.hpp"
-#include "../../../include/rubikdetector/utils/public/CrossLog.hpp"
+#include "../../../include/rubikdetector/utils/Utils.hpp"
+#include "../../../include/rubikdetector/utils/CrossLog.hpp"
 
 namespace rbdt {
 /**##### PUBLIC API #####**/

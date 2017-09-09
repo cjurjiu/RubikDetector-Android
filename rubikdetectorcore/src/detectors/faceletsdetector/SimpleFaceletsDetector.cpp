@@ -2,9 +2,9 @@
 // Created by catalin on 12.07.2017.
 //
 
-#include "../../../include/rubikdetector/detectors/faceletsdetector/public/SimpleFaceletsDetector.hpp"
-#include "../../../include/rubikdetector/detectors/faceletsdetector/SimpleFaceletsDetectorImpl.hpp"
-#include "../../../include/rubikdetector/utils/public/CrossLog.hpp"
+#include "../../../include/rubikdetector/detectors/faceletsdetector/SimpleFaceletsDetector.hpp"
+#include "../../../include/rubikdetector/detectors/faceletsdetector/internal/SimpleFaceletsDetectorImpl.hpp"
+#include "../../../include/rubikdetector/utils/CrossLog.hpp"
 
 namespace rbdt {
 

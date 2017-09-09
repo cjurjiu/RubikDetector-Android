@@ -2,13 +2,13 @@
 // Created by catalin on 26.07.2017.
 //
 
-#include "../../../include/rubikdetector/detectors/colordetector/HistogramColorDetectorImpl.hpp"
+#include "../../../include/rubikdetector/detectors/colordetector/internal/HistogramColorDetectorImpl.hpp"
 
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
-#include "../../../include/rubikdetector/data/processing/HueColorEvidence.hpp"
-#include "../../../include/rubikdetector/utils/public/CrossLog.hpp"
-#include "../../../include/rubikdetector/utils/public/Utils.hpp"
+#include "../../../include/rubikdetector/data/processing/internal/HueColorEvidence.hpp"
+#include "../../../include/rubikdetector/utils/CrossLog.hpp"
+#include "../../../include/rubikdetector/utils/Utils.hpp"
 
 namespace rbdt {
 

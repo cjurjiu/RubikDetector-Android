@@ -3,7 +3,7 @@
 //
 #include <jni.h>
 #include <cstdlib>
-#include "../../rubikdetectorcore/include/rubikdetector/data/processing/public/RubikFacelet.hpp"
+#include "../../rubikdetectorcore/include/rubikdetector/data/processing/RubikFacelet.hpp"
 
 #ifndef RUBIKDETECTORJNI_RUBIKDETECTORJNI_HPP
 #define RUBIKDETECTORJNI_RUBIKDETECTORJNI_HPP

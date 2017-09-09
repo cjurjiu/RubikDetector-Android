@@ -4,10 +4,10 @@
 #include <jni.h>
 #include <vector>
 #include "../include/RubikDetectorJni.hpp"
-#include "../../rubikdetectorcore/include/rubikdetector/imagesaver/public/ImageSaver.hpp"
-#include "../../rubikdetectorcore/include/rubikdetector/utils/public/CrossLog.hpp"
-#include "../../rubikdetectorcore/include/rubikdetector/utils/public/Utils.hpp"
-#include "../../rubikdetectorcore/include/rubikdetector/detectors/rubikdetector/builder/public/RubikDetectorBuilder.hpp"
+#include "../../rubikdetectorcore/include/rubikdetector/imagesaver/ImageSaver.hpp"
+#include "../../rubikdetectorcore/include/rubikdetector/utils/CrossLog.hpp"
+#include "../../rubikdetectorcore/include/rubikdetector/utils/Utils.hpp"
+#include "../../rubikdetectorcore/include/rubikdetector/detectors/rubikdetector/builder/RubikDetectorBuilder.hpp"
 
 JNIEXPORT jlong JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeCreateRubikDetector(JNIEnv *env,

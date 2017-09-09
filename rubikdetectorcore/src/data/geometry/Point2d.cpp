@@ -2,7 +2,7 @@
 // Created by catalin on 18.08.2017.
 //
 
-#include "../../../include/rubikdetector/data/geometry/public/Point2d.hpp"
+#include "../../../include/rubikdetector/data/geometry/Point2d.hpp"
 
 namespace rbdt {
 

@@ -5,10 +5,10 @@
 #ifndef RUBIKDETECTOR_UTILS_HPP
 #define RUBIKDETECTOR_UTILS_HPP
 
-#include "../../data/geometry/Circle.hpp"
-#include "../../data/processing/public/RubikFacelet.hpp"
-#include "../../detectors/faceletsdetector/public/FaceletsDetector.hpp"
-#include "../../data/config/public/DrawConfig.hpp"
+#include "../data/geometry/internal/Circle.hpp"
+#include "../data/processing/RubikFacelet.hpp"
+#include "../detectors/faceletsdetector/FaceletsDetector.hpp"
+#include "../data/config/DrawConfig.hpp"
 
 namespace cv {
 class Mat;

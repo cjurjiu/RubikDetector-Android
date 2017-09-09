@@ -3,7 +3,7 @@
 //
 
 #include "opencv2/core/core.hpp"
-#include "../../../include/rubikdetector/data/geometry/Circle.hpp"
+#include "../../../include/rubikdetector/data/geometry/internal/Circle.hpp"
 
 namespace rbdt {
 

@@ -2,9 +2,9 @@
 // Created by catalin on 26.07.2017.
 //
 
-#include "../../../include/rubikdetector/detectors/colordetector/public/HistogramColorDetector.hpp"
-#include "../../../include/rubikdetector/detectors/colordetector/HistogramColorDetectorImpl.hpp"
-#include "../../../include/rubikdetector/utils/public/CrossLog.hpp"
+#include "../../../include/rubikdetector/detectors/colordetector/HistogramColorDetector.hpp"
+#include "../../../include/rubikdetector/detectors/colordetector/internal/HistogramColorDetectorImpl.hpp"
+#include "../../../include/rubikdetector/utils/CrossLog.hpp"
 
 namespace rbdt {
 

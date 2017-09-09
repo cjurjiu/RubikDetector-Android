@@ -3,7 +3,7 @@
 //
 
 #include <cmath>
-#include "../../../include/rubikdetector/data/processing/public/RubikFacelet.hpp"
+#include "../../../include/rubikdetector/data/processing/RubikFacelet.hpp"
 
 namespace rbdt {
 

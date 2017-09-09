@@ -2,9 +2,9 @@
 // Created by catalin on 12.07.2017.
 //
 
-#include "../../../include/rubikdetector/detectors/rubikdetector/public/RubikDetector.hpp"
-#include "../../../include/rubikdetector/detectors/rubikdetector/RubikDetectorImpl.hpp"
-#include "../../../include/rubikdetector/utils/public/CrossLog.hpp"
+#include "../../../include/rubikdetector/detectors/rubikdetector/RubikDetector.hpp"
+#include "../../../include/rubikdetector/detectors/rubikdetector/internal/RubikDetectorImpl.hpp"
+#include "../../../include/rubikdetector/utils/CrossLog.hpp"
 
 namespace rbdt {
 

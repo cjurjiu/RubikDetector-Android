@@ -4,8 +4,8 @@
 
 #include <sstream>
 #include <opencv2/highgui/highgui.hpp>
-#include "../../include/rubikdetector/imagesaver/public/ImageSaver.hpp"
-#include "../../include/rubikdetector/utils/public/CrossLog.hpp"
+#include "../../include/rubikdetector/imagesaver/ImageSaver.hpp"
+#include "../../include/rubikdetector/utils/CrossLog.hpp"
 
 namespace rbdt {
 

@@ -7,9 +7,9 @@
 
 #include <vector>
 #include <memory>
-#include "../../imagesaver/public/ImageSaver.hpp"
-#include "../../data/processing/public/RubikFacelet.hpp"
-#include "public/ColorDetector.hpp"
+#include "../../../imagesaver/ImageSaver.hpp"
+#include "../../../data/processing/RubikFacelet.hpp"
+#include "../ColorDetector.hpp"
 
 namespace cv {
 class Mat;

@@ -5,7 +5,7 @@
 #ifndef RUBIKDETECTOR_HUECOLOREVIDENCE_HPP
 #define RUBIKDETECTOR_HUECOLOREVIDENCE_HPP
 
-#include "public/RubikFacelet.hpp"
+#include "../RubikFacelet.hpp"
 
 namespace rbdt {
 

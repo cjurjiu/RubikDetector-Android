@@ -6,11 +6,11 @@
 #define RUBIKDETECTOR_SIMPLEFACELETSDETECTORIMPL_HPP
 
 #include <opencv2/core/core.hpp>
-#include "../../data/geometry/Circle.hpp"
-#include "../../data/processing/HueColorEvidence.hpp"
-#include "../colordetector/public/HistogramColorDetector.hpp"
-#include "../../imagesaver/public/ImageSaver.hpp"
-#include "public/FaceletsDetector.hpp"
+#include "../../../data/geometry/internal/Circle.hpp"
+#include "../../../data/processing/internal/HueColorEvidence.hpp"
+#include "../../colordetector/HistogramColorDetector.hpp"
+#include "../../../imagesaver/ImageSaver.hpp"
+#include "../FaceletsDetector.hpp"
 #include <iostream>
 #include <memory>
 

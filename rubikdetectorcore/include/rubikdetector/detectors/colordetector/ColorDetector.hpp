@@ -5,8 +5,8 @@
 #ifndef RUBIKDETECTOR_COLORDETECTOR_HPP
 #define RUBIKDETECTOR_COLORDETECTOR_HPP
 
-#include "../../../misc/public/Debuggable.hpp"
-#include "../../../data/processing/public/RubikFacelet.hpp"
+#include "../../misc/Debuggable.hpp"
+#include "../../data/processing/RubikFacelet.hpp"
 
 namespace cv {
 class Mat;

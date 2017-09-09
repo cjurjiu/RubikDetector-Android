@@ -2,7 +2,7 @@
 // Created by catalin on 06.09.2017.
 //
 
-#include "../../../include/rubikdetector/data/config/public/ImageProperties.hpp"
+#include "../../../include/rubikdetector/data/config/ImageProperties.hpp"
 
 namespace rbdt {
 

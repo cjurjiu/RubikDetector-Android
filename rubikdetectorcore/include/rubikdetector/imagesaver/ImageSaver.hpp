@@ -6,7 +6,7 @@
 #define RUBIKDETECTOR_IMAGESAVER_HPP
 
 #include <string>
-#include "../../misc/public/Debuggable.hpp"
+#include "../misc/Debuggable.hpp"
 
 namespace cv {
 class Mat;

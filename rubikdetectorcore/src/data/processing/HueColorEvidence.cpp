@@ -2,7 +2,7 @@
 // Created by catalin on 13.07.2017.
 //
 
-#include "../../../include/rubikdetector/data/processing/HueColorEvidence.hpp"
+#include "../../../include/rubikdetector/data/processing/internal/HueColorEvidence.hpp"
 
 namespace rbdt {
 

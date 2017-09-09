@@ -6,8 +6,8 @@
 #define RUBIKDETECTOR_FACELETSDETECTOR_HPP
 
 #include <cstdint>
-#include "../../../misc/public/Debuggable.hpp"
-#include "../../../processor/public/ImageProcessor.hpp"
+#include "../../misc/Debuggable.hpp"
+#include "../../processor/ImageProcessor.hpp"
 
 namespace cv {
 class Mat;

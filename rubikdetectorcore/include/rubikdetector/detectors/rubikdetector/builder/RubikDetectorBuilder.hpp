@@ -8,11 +8,11 @@
 
 #include <bits/unique_ptr.h>
 #include <memory>
-#include "../../../colordetector/public/ColorDetector.hpp"
-#include "../../../faceletsdetector/public/FaceletsDetector.hpp"
-#include "../../../../imagesaver/public/ImageSaver.hpp"
-#include "../../public/RubikDetector.hpp"
-#include "../../../../data/config/public/DrawConfig.hpp"
+#include "../../colordetector/ColorDetector.hpp"
+#include "../../faceletsdetector/FaceletsDetector.hpp"
+#include "../../../imagesaver/ImageSaver.hpp"
+#include "../RubikDetector.hpp"
+#include "../../../data/config/DrawConfig.hpp"
 
 namespace rbdt {
 

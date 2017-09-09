@@ -5,7 +5,7 @@
 #ifndef RUBIKDETECTOR_IMAGEPROPERTIES_HPP
 #define RUBIKDETECTOR_IMAGEPROPERTIES_HPP
 
-#include "../../../processor/public/ImageProcessor.hpp"
+#include "../../processor/ImageProcessor.hpp"
 
 namespace rbdt {
 

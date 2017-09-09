@@ -5,7 +5,7 @@
 #include <cmath>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc.hpp>
-#include "../../include/rubikdetector/utils/public/Utils.hpp"
+#include "../../include/rubikdetector/utils/Utils.hpp"
 
 namespace rbdt {
 float pointsDistance(const cv::Point2f &firstPoint, const cv::Point2f &secondPoint) {

@@ -5,9 +5,9 @@
 #ifndef RUBIKDETECTOR_FACELETSDRAWCONTROLLER_HPP
 #define RUBIKDETECTOR_FACELETSDRAWCONTROLLER_HPP
 
-#include "../../data/config/public/DrawConfig.hpp"
-#include "../../data/processing/public/RubikFacelet.hpp"
-#include "../../misc/public/Debuggable.hpp"
+#include "../data/config/DrawConfig.hpp"
+#include "../data/processing/RubikFacelet.hpp"
+#include "../misc/Debuggable.hpp"
 
 namespace cv {
 class Mat;

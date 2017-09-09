@@ -3,9 +3,9 @@
 //
 
 #include <opencv2/imgproc.hpp>
-#include "../../include/rubikdetector/drawing/public/FaceletsDrawController.hpp"
-#include "../../include/rubikdetector/utils/public/Utils.hpp"
-#include "../../include/rubikdetector/utils/public/CrossLog.hpp"
+#include "../../include/rubikdetector/drawing/FaceletsDrawController.hpp"
+#include "../../include/rubikdetector/utils/Utils.hpp"
+#include "../../include/rubikdetector/utils/CrossLog.hpp"
 
 namespace rbdt {
 

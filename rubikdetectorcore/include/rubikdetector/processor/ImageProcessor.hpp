@@ -6,8 +6,8 @@
 #define RUBIKDETECTOR_IMAGEPROCESSOR_HPP
 
 #include <cstdint>
-#include "../../misc/public/Debuggable.hpp"
-#include "../../data/processing/public/RubikFacelet.hpp"
+#include "../misc/Debuggable.hpp"
+#include "../data/processing/RubikFacelet.hpp"
 
 namespace rbdt {
 

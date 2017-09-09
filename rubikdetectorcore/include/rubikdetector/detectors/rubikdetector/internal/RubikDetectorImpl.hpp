@@ -6,15 +6,15 @@
 #define RUBIKDETECTOR_RUBIKDETECTORIMPL_HPP
 
 #include <opencv2/core/core.hpp>
-#include "../../processor/public/ImageProcessor.hpp"
-#include "../faceletsdetector/public/FaceletsDetector.hpp"
-#include "../colordetector/public/ColorDetector.hpp"
-#include "../../data/geometry/Circle.hpp"
-#include "../../data/processing/HueColorEvidence.hpp"
-#include "../../imagesaver/public/ImageSaver.hpp"
-#include "../../data/config/public/ImageProperties.hpp"
-#include "../../data/config/public/DrawConfig.hpp"
-#include "../../drawing/public/FaceletsDrawController.hpp"
+#include "../../../processor/ImageProcessor.hpp"
+#include "../../faceletsdetector/FaceletsDetector.hpp"
+#include "../../colordetector/ColorDetector.hpp"
+#include "../../../data/geometry/internal/Circle.hpp"
+#include "../../../data/processing/internal/HueColorEvidence.hpp"
+#include "../../../imagesaver/ImageSaver.hpp"
+#include "../../../data/config/ImageProperties.hpp"
+#include "../../../data/config/DrawConfig.hpp"
+#include "../../../drawing/FaceletsDrawController.hpp"
 #include <iostream>
 #include <memory>
 

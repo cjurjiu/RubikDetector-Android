@@ -6,7 +6,7 @@
 #define RUBIKDETECTOR_RUBIKFACELET_HPP
 
 #include <vector>
-#include "../../geometry/public/Point2d.hpp"
+#include "../geometry/Point2d.hpp"
 
 namespace rbdt {
 

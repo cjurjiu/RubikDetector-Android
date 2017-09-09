@@ -8,7 +8,7 @@
 #include <vector>
 #include <cstdint>
 #include <memory>
-#include "../../../data/processing/public/RubikFacelet.hpp"
+#include "../../data/processing/RubikFacelet.hpp"
 #include "FaceletsDetector.hpp"
 
 namespace cv {
