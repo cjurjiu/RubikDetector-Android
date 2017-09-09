@@ -1,38 +1,17 @@
 #include <iostream>
+#include <memory>
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
-#include "rubikdetectorcore/detectors/cubedetector/CubeDetector.hpp"
-#include "rubikdetectorcore/detectors/cubedetector/OnCubeDetectionResultListener.hpp"
-#include "rubikdetectorcore/utils/Utils.hpp"
-#include "rubikdetectorcore/utils/CrossLog.hpp"
-#include "rubikdetectorcore/helpers/ImageSaver.hpp"
+#include "rubikdetectorcore/include/rubikdetector/imagesaver/ImageSaver.hpp"
+#include "rubikdetectorcore/include/rubikdetector/utils/Utils.hpp"
+#include "rubikdetectorcore/include/rubikdetector/utils/CrossLog.hpp"
+#include "rubikdetectorcore/include/rubikdetector/detectors/rubikdetector/RubikDetector.hpp"
+#include "rubikdetectorcore/include/rubikdetector/detectors/rubikdetector/builder/RubikDetectorBuilder.hpp"
 
 void performProcessingOnVideo();
 
 void imageNV21Test();
-
-class ResultListener : public OnCubeDetectionResultListener {
-public:
-
-    ResultListener() {};
-
-    ~ResultListener() {}
-
-    void onCubeDetectionResult(const std::vector<std::vector<int>> result) const {
-        LOG_DEBUG("RUBIK_JNI_PART.cpp",
-                  "COLORS: [1]:{ %c %c %c } [2]:{ %c %c %c } [3]:{ %c %c %c }",
-                  utils::colorIntToChar(result[0][0]),
-                  utils::colorIntToChar(result[0][1]),
-                  utils::colorIntToChar(result[0][2]),
-                  utils::colorIntToChar(result[1][0]),
-                  utils::colorIntToChar(result[1][1]),
-                  utils::colorIntToChar(result[1][2]),
-                  utils::colorIntToChar(result[2][0]),
-                  utils::colorIntToChar(result[2][1]),
-                  utils::colorIntToChar(result[2][2]));
-    }
-};
 
 int main() {
     std::cout << "Starting video processing." << std::endl;
@@ -51,12 +30,17 @@ void performProcessingOnVideo() {
         return;
     }
 
-    std::shared_ptr<ImageSaver> imageSaver = std::make_shared<ImageSaver>(
-            ImageSaver(std::string("../debug_images")));
+    std::shared_ptr<rbdt::ImageSaver> imageSaver = std::make_shared<rbdt::ImageSaver>(
+            rbdt::ImageSaver(std::string("../debug_images")));
+    imageSaver->setDebuggable(true);
+    rbdt::RubikDetector &rubikDetector = *rbdt::RubikDetectorBuilder()
+            .inputFrameSize(720, 480)
+            .inputFrameFormat(rbdt::ImageProcessor::ImageFormat::RGBA8888)
+            .drawConfig(rbdt::DrawConfig::Circles(4))
+            .imageSaver(imageSaver)
+            .debuggable(true)
+            .build();
 
-    CubeDetector rubikDetector(imageSaver);
-    rubikDetector.setImageProperties(720, 480, ImageFormat::RGBA8888);
-    rubikDetector.setDebuggable(true);
 
     uchar largeBuffer[rubikDetector.getRequiredMemory()];
 
@@ -70,19 +54,19 @@ void performProcessingOnVideo() {
             largeBuffer[i] = *nv21Ptr++;
         }
 
-        std::vector<std::vector<RubikFacelet>> result = rubikDetector.findCube(largeBuffer);
+        std::vector<std::vector<rbdt::RubikFacelet>> result = rubikDetector.process(largeBuffer);
         if (result.size() != 0) {
             LOG_DEBUG("RUBIK_JNI_PART.cpp",
                       "COLORS: [1]:{ %c %c %c } [2]:{ %c %c %c } [3]:{ %c %c %c }",
-                      utils::colorIntToChar(result[0][0].color),
-                      utils::colorIntToChar(result[0][1].color),
-                      utils::colorIntToChar(result[0][2].color),
-                      utils::colorIntToChar(result[1][0].color),
-                      utils::colorIntToChar(result[1][1].color),
-                      utils::colorIntToChar(result[1][2].color),
-                      utils::colorIntToChar(result[2][0].color),
-                      utils::colorIntToChar(result[2][1].color),
-                      utils::colorIntToChar(result[2][2].color));
+                      rbdt::colorIntToChar(result[0][0].color),
+                      rbdt::colorIntToChar(result[0][1].color),
+                      rbdt::colorIntToChar(result[0][2].color),
+                      rbdt::colorIntToChar(result[1][0].color),
+                      rbdt::colorIntToChar(result[1][1].color),
+                      rbdt::colorIntToChar(result[1][2].color),
+                      rbdt::colorIntToChar(result[2][0].color),
+                      rbdt::colorIntToChar(result[2][1].color),
+                      rbdt::colorIntToChar(result[2][2].color));
         }
     }
     std::cout << "Finished processing." << std::endl;
@@ -104,9 +88,9 @@ void imageNV21Test() {
                       "dataStart: %p,\n"
                       "dataEnd: %p,\n"
                       "dataLimit: %p,\n"
-                      "sizeWEnd: %d\n"
-                      "sizeWLimit: %d\n"
-                      "computedSize: %d\n",
+                      "sizeWEnd: %ld\n"
+                      "sizeWLimit: %ld\n"
+                      "computedSize: %ld\n",
               ssGray.channels(),
               ssGray.cols,
               ssGray.rows,
@@ -136,9 +120,9 @@ void imageNV21Test() {
                       "dataStart: %p,\n"
                       "dataEnd: %p,\n"
                       "dataLimit: %p,\n"
-                      "sizeWEnd: %d\n"
-                      "sizeWLimit: %d\n"
-                      "computedSize: %d\n"
+                      "sizeWEnd: %ld\n"
+                      "sizeWLimit: %ld\n"
+                      "computedSize: %ld\n"
                       "largeBufBegin: %p\n"
                       "largeBufEnd: %p",
               frameNV21.channels(),
@@ -163,9 +147,9 @@ void imageNV21Test() {
                       "dataStart: %p,\n"
                       "dataEnd: %p,\n"
                       "dataLimit: %p,\n"
-                      "sizeWEnd: %d\n"
-                      "sizeWLimit: %d\n"
-                      "computedSize: %d",
+                      "sizeWEnd: %ld\n"
+                      "sizeWLimit: %ld\n"
+                      "computedSize: %ld",
               frameRGBA.channels(),
               frameRGBA.cols,
               frameRGBA.rows,
@@ -188,9 +172,9 @@ void imageNV21Test() {
                       "dataStart: %p,\n"
                       "dataEnd: %p,\n"
                       "dataLimit: %p,\n"
-                      "sizeWEnd: %d\n"
-                      "sizeWLimit: %d\n"
-                      "computedSize: %d",
+                      "sizeWEnd: %ld\n"
+                      "sizeWLimit: %ld\n"
+                      "computedSize: %ld",
               frameRGBA.channels(),
               frameRGBA.cols,
               frameRGBA.rows,
