@@ -50,12 +50,5 @@ auto asInt(const Enumeration value)
 -> typename std::underlying_type<Enumeration>::type {
     return static_cast<typename std::underlying_type<Enumeration>::type>(value);
 }
-
-RubikFacelet::Color colorFromInt(const int val);
-
-ImageProcessor::ImageFormat imageFormatFromInt(const int val);
-
-DrawConfig::DrawMode drawModeFromInt(const int val);
-
 } //end namespace rbdt
 #endif //RUBIKDETECTOR_UTILS_HPP

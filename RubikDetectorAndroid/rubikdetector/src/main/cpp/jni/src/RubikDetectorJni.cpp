@@ -8,6 +8,7 @@
 #include "../../rubikdetectorcore/include/rubikdetector/utils/CrossLog.hpp"
 #include "../../rubikdetectorcore/include/rubikdetector/utils/Utils.hpp"
 #include "../../rubikdetectorcore/include/rubikdetector/detectors/rubikdetector/builder/RubikDetectorBuilder.hpp"
+#include "../include/RubikDetectorJniUtils.hpp"
 
 JNIEXPORT jlong JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeCreateRubikDetector(JNIEnv *env,
@@ -30,8 +31,8 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeCreateRubikDetector(JNI
 
     rbdt::RubikDetector *rubikDetector = rbdt::RubikDetectorBuilder()
             .inputFrameSize((int) frameWidth, (int) frameHeight)
-            .inputFrameFormat(rbdt::imageFormatFromInt(inputImageFormat))
-            .drawConfig(rbdt::DrawConfig(rbdt::drawModeFromInt((int) drawMode),
+            .inputFrameFormat(rbdt_jni::imageFormatFromInt(inputImageFormat))
+            .drawConfig(rbdt::DrawConfig(rbdt_jni::drawModeFromInt((int) drawMode),
                                          (int) strokeWidth,
                                          (bool) fillShape))
             .imageSaver(imageSaver)
@@ -69,7 +70,7 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetDrawFoundFacelets(JN
                                                                               jint strokeWidth,
                                                                               jboolean fillShape) {
     rbdt::RubikDetector &cubeDetector = *reinterpret_cast<rbdt::RubikDetector *>(cubeDetectorHandle);
-    cubeDetector.updateDrawConfig(rbdt::DrawConfig(rbdt::drawModeFromInt((int) drawMode),
+    cubeDetector.updateDrawConfig(rbdt::DrawConfig(rbdt_jni::drawModeFromInt((int) drawMode),
                                                    (int) strokeWidth,
                                                    (bool) fillShape));
 }
@@ -146,7 +147,7 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeSetImageProperties(JNIE
                                                                             jint imageFormat) {
     rbdt::RubikDetector &cubeDetector = *reinterpret_cast<rbdt::RubikDetector *>(cubeDetectorHandle);
     cubeDetector.updateImageProperties(rbdt::ImageProperties((int) width, (int) height,
-                                                             rbdt::imageFormatFromInt(
+                                                             rbdt_jni::imageFormatFromInt(
                                                                      imageFormat)));
 }
 

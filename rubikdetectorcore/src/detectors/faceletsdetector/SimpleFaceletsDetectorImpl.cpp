@@ -460,16 +460,16 @@ void SimpleFaceletsDetectorImpl::saveDebugData(const cv::Mat &frame,
     }
 
     LOG_DEBUG("RUBIK_JNI_PART.cpp",
-              "COLORS: [1]:{ %d %d %d } [2]:{ %d %d %d } [3]:{ %d %d %d }",
-              rbdt::asInt(colors[0][0]),
-              rbdt::asInt(colors[0][1]),
-              rbdt::asInt(colors[0][2]),
-              rbdt::asInt(colors[1][0]),
-              rbdt::asInt(colors[1][1]),
-              rbdt::asInt(colors[1][2]),
-              rbdt::asInt(colors[2][0]),
-              rbdt::asInt(colors[2][1]),
-              rbdt::asInt(colors[2][2]));
+              "COLORS: [1]:{ %c %c %c } [2]:{ %c %c %c } [3]:{ %c %c %c }",
+              rbdt::colorIntToChar(colors[0][0]),
+              rbdt::colorIntToChar(colors[0][1]),
+              rbdt::colorIntToChar(colors[0][2]),
+              rbdt::colorIntToChar(colors[1][0]),
+              rbdt::colorIntToChar(colors[1][1]),
+              rbdt::colorIntToChar(colors[1][2]),
+              rbdt::colorIntToChar(colors[2][0]),
+              rbdt::colorIntToChar(colors[2][1]),
+              rbdt::colorIntToChar(colors[2][2]));
 //    end debug data saving
 }
 
