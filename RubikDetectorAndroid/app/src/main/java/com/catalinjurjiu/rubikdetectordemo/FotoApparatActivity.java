@@ -5,8 +5,8 @@ import android.os.Bundle;
 
 import com.catalinjurjiu.rubikdetector.RubikDetector;
 import com.catalinjurjiu.rubikdetector.fotoapparatconnector.RubikDetectorFrameProcessor;
-import com.catalinjurjiu.rubikdetector.fotoapparatconnector.RubikDetectorResultView;
 import com.catalinjurjiu.rubikdetector.fotoapparatconnector.RubikDetectorSizeSelector;
+import com.catalinjurjiu.rubikdetector.fotoapparatconnector.view.RubikDetectorResultView;
 
 import io.fotoapparat.Fotoapparat;
 
@@ -28,7 +28,7 @@ public class FotoApparatActivity extends Activity {
                 .debuggable(true)
                 .build();
 
-        RubikDetectorResultView rubikDetectorResultView = (RubikDetectorResultView) findViewById(R.id.rubik_results_view);
+        RubikDetectorResultView rubikDetectorResultView = findViewById(R.id.rubik_results_view);
         RubikDetectorFrameProcessor rubikFrameProcessor = new RubikDetectorFrameProcessor(rubikDetector, rubikDetectorResultView);
         RubikDetectorSizeSelector rubikDetectorSizeSelector = new RubikDetectorSizeSelector(biggestSize(), rubikFrameProcessor);
 

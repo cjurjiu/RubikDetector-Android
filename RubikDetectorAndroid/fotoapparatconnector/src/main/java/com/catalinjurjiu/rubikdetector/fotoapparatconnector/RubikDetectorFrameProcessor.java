@@ -5,6 +5,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.catalinjurjiu.rubikdetector.RubikDetector;
+import com.catalinjurjiu.rubikdetector.fotoapparatconnector.data.RubikResultWrapper;
 import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
 
 import java.nio.ByteBuffer;

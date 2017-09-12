@@ -1,57 +1,25 @@
-# For more information about using CMake with Android Studio, read the
-# documentation: https://d.android.com/studio/projects/add-native-code.html
-
-# Sets the minimum version of CMake required to build the native library.
-
 cmake_minimum_required(VERSION 3.4.1)
 
-# Creates and names a library, sets it as either STATIC
-# or SHARED, and provides the relative paths to its source code.
-# You can define multiple libraries, and CMake builds them for you.
-# Gradle automatically packages shared libraries with your APK.
+# OpenCV rubikdetector_native
+SET(OpenCV_STATIC ON)
+#environmental variable not working it seems...use hardcoded path for now...
+SET(OpenCV_DIR "/media/catalin/SSD/DevUtils/opencv-3.2.0-android-sdk/sdk/native/jni/")
+FIND_PACKAGE(OpenCV REQUIRED)
 
-file(GLOB_RECURSE JNI_SOURCES FOLLOW_SYMLINKS "src/main/cpp/*")
+#Enables logging with tags to logcat in c++
+FIND_LIBRARY(android-log-lib log)
 
-add_library( # Sets the name of the library.
-             native_processing
+#Select all c++ files
+FILE(GLOB_RECURSE JNI_SOURCES FOLLOW_SYMLINKS "src/main/cpp/*")
 
-             # Sets the library as a shared library.
-             SHARED
+#Define the rubikdetector library as a shared lib, with the sources selected earlier
+ADD_LIBRARY( rubikdetector_native  SHARED ${JNI_SOURCES} )
 
-             # Provides a relative path to your source file(s).
-             ${JNI_SOURCES} )
+#link opencv & the android logging lib against the rubikdetector native library
+TARGET_LINK_LIBRARIES ( rubikdetector_native
 
-include_directories( /media/catalin/SSD/DevUtils/opencv-3.2.0-android-sdk/sdk/native/jni/include/ )
-add_library( opencv_3_2_0 SHARED IMPORTED )
-set_target_properties( opencv_3_2_0
-            PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libopencv_java3.so
-            )
-
-message(AUTHOR_WARNING "Hello CMake, hello Android. JNI SOURCES:${JNI_SOURCES}")
-
-# Searches for a specified prebuilt library and stores the path as a
-# variable. Because CMake includes system libraries in the search path by
-# default, you only need to specify the name of the public NDK library
-# you want to add. CMake verifies that the library exists before
-# completing its build.
-
-find_library( # Sets the name of the path variable.
-              log-lib
-
-              # Specifies the name of the NDK library that
-              # you want CMake to locate.
-              log )
-
-# Specifies libraries CMake should link to your target library. You
-# can link multiple libraries, such as libraries you define in this
-# build script, prebuilt third-party libraries, or system libraries.
-
-target_link_libraries( # Specifies the target library.
-                       native_processing
-
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib}
+                       #android logging in c++
+                       ${android-log-lib}
 
                        #open-cv
-                       opencv_3_2_0 )
+                       ${OpenCV_LIBS} )

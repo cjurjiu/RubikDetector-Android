@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+jint JNI_OnLoad(JavaVM *vm, void *reserved);
+
 JNIEXPORT jlong JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeCreateRubikDetector(JNIEnv *env,
                                                                              jobject instance,

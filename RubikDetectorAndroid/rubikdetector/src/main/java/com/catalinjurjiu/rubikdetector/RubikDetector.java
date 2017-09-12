@@ -16,12 +16,11 @@ import java.nio.ByteBuffer;
 @SuppressWarnings("unused")
 public class RubikDetector {
 
-    public static final int NATIVE_DETECTOR_RELEASED = -1;
-    public static final int DATA_SIZE = 6;
+    private static final int NATIVE_DETECTOR_RELEASED = -1;
+    private static final int DATA_SIZE = 6;
 
     static {
-        System.loadLibrary("opencv_java3");
-        System.loadLibrary("native_processing");
+        System.loadLibrary("rubikdetector_native");
     }
 
     private long cubeDetectorHandle = -1;

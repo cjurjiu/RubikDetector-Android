@@ -1,4 +1,4 @@
-package com.catalinjurjiu.rubikdetector.fotoapparatconnector;
+package com.catalinjurjiu.rubikdetector.fotoapparatconnector.data;
 
 import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
 

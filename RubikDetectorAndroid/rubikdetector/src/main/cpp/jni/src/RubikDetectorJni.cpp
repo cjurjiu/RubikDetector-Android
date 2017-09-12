@@ -10,6 +10,10 @@
 #include "../../rubikdetectorcore/include/rubikdetector/detectors/rubikdetector/builder/RubikDetectorBuilder.hpp"
 #include "../include/RubikDetectorJniUtils.hpp"
 
+jint JNI_OnLoad(JavaVM *vm, void *reserved) {
+    return JNI_VERSION_1_6;
+}
+
 JNIEXPORT jlong JNICALL
 Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeCreateRubikDetector(JNIEnv *env,
                                                                              jobject instance,

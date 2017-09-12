@@ -1,4 +1,4 @@
-package com.catalinjurjiu.rubikdetector.fotoapparatconnector;
+package com.catalinjurjiu.rubikdetector.fotoapparatconnector.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
 
+import com.catalinjurjiu.rubikdetector.fotoapparatconnector.data.RubikResultWrapper;
 import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
 
 import static com.catalinjurjiu.rubikdetector.RubikDetectorUtils.getAndroidColor;

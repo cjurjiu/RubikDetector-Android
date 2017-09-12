@@ -1,4 +1,4 @@
-package com.catalinjurjiu.rubikdetector.fotoapparatconnector;
+package com.catalinjurjiu.rubikdetector.fotoapparatconnector.view;
 
 import android.content.Context;
 import android.support.annotation.AttrRes;
@@ -9,6 +9,9 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+
+import com.catalinjurjiu.rubikdetector.fotoapparatconnector.RubikDetectorFrameProcessor;
+import com.catalinjurjiu.rubikdetector.fotoapparatconnector.data.RubikResultWrapper;
 
 import io.fotoapparat.view.CameraView;
 
