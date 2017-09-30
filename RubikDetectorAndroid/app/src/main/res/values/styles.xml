@@ -5,6 +5,10 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="NoActionBar" parent="android:Theme.Holo.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+    </style>
+
     <style name="TransparentActionBarAppTheme" parent="android:Theme.Holo.Light">
         <item name="colorPrimary">@android:color/transparent</item>
         <item name="actionBarStyle">@style/TransparentActionBarBackground</item>

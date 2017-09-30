@@ -29,13 +29,13 @@
 
         <activity
             android:name=".FotoApparatActivity"
-            android:screenOrientation="reversePortrait"
+            android:screenOrientation="portrait"
             android:theme="@style/HoloLight">
         </activity>
 
         <activity
             android:name=".SinglePhotoActivity"
-            android:theme="@style/TranslucentDecorNoActionBar">
+            android:theme="@style/NoActionBar">
         </activity>
 
         <provider

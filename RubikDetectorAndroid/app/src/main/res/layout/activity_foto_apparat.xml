@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:rubik="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,6 +10,8 @@
     <com.catalinjurjiu.rubikdetector.fotoapparatconnector.view.RubikDetectorResultView
         android:id="@+id/rubik_results_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        rubik:strokeWidth="3dp"
+        rubik:faceletsDrawMode="doNotDraw"/>
 
 </FrameLayout>
