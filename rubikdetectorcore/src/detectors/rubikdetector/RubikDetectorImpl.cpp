@@ -7,6 +7,7 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "../../../include/rubikdetector/utils/Utils.hpp"
 #include "../../../include/rubikdetector/utils/CrossLog.hpp"
+
 namespace rbdt {
 
 /**##### PUBLIC API #####**/
@@ -198,6 +199,7 @@ void RubikDetectorImpl::applyImageProperties(const ImageProperties &properties) 
             totalRequiredMemory = outputRgbaImageByteCount + processingGrayImageSize;
         }
     }
+    faceletsDetector->onFrameSizeSelected(processingWidth, processingHeight);
 }
 
 std::vector<std::vector<RubikFacelet>> RubikDetectorImpl::findCubeInternal(
@@ -216,6 +218,38 @@ std::vector<std::vector<RubikFacelet>> RubikDetectorImpl::findCubeInternal(
         //YUV image, need to convert the output & processing frames to RGBA8888
         cv::Mat frameYuv(imageHeight + imageHeight / 2, imageWidth, CV_8UC1,
                          (uchar *) imageData);
+
+        LOG_DEBUG("RubikMemoryInfo",
+                  "frameYuv: width: %d,\n"
+                          "height: %d,\n"
+                          "depth: %d,\n"
+                          "dataStart: %p,\n"
+                          "dataEnd: %p,\n"
+                          "dataLimit: %p,\n"
+                          "computedSize: %d\n"
+                          "GRAY: width: %d,\n"
+                          "height: %d,\n"
+                          "depth: %d,\n"
+                          "dataStart: %p,\n"
+                          "dataEnd: %p,\n"
+                          "dataLimit: %p,\n"
+                          "computedSize: %d\n",
+                  frameYuv.cols,
+                  frameYuv.rows,
+                  frameYuv.depth(),
+                  (void *) frameYuv.datastart,
+                  (void *) frameYuv.dataend,
+                  (void *) frameYuv.datalimit,
+                  frameYuv.total() * outputFrameRgba.elemSize(),
+                  frameYuv.cols,
+                  frameYuv.rows,
+                  frameYuv.depth(),
+                  (void *) frameYuv.datastart,
+                  (void *) frameYuv.dataend,
+                  (void *) frameYuv.datalimit,
+                  frameYuv.total() * frameYuv.elemSize());
+
+
         cv::cvtColor(frameYuv, outputFrameRgba, cvColorConversionCode);
 
         if (needsResize) {
@@ -229,6 +263,98 @@ std::vector<std::vector<RubikFacelet>> RubikDetectorImpl::findCubeInternal(
         } else {
             processingFrameRgba = cv::Mat(outputFrameRgba);
             processingFrameGrey = frameYuv(cv::Rect(0, 0, imageWidth, imageHeight));
+        }
+
+        if (debuggable) {
+            LOG_DEBUG("RubikMemoryInfo",
+                      "outputFrameRgba: width: %d,\n"
+                              "height: %d,\n"
+                              "depth: %d,\n"
+                              "dataStart: %p,\n"
+                              "dataEnd: %p,\n"
+                              "dataLimit: %p,\n"
+                              "computedSize: %d\n"
+                              "GRAY: width: %d,\n"
+                              "height: %d,\n"
+                              "depth: %d,\n"
+                              "dataStart: %p,\n"
+                              "dataEnd: %p,\n"
+                              "dataLimit: %p,\n"
+                              "computedSize: %d\n",
+                      outputFrameRgba.cols,
+                      outputFrameRgba.rows,
+                      outputFrameRgba.depth(),
+                      (void *) outputFrameRgba.datastart,
+                      (void *) outputFrameRgba.dataend,
+                      (void *) outputFrameRgba.datalimit,
+                      outputFrameRgba.total() * outputFrameRgba.elemSize(),
+                      outputFrameRgba.cols,
+                      outputFrameRgba.rows,
+                      outputFrameRgba.depth(),
+                      (void *) outputFrameRgba.datastart,
+                      (void *) outputFrameRgba.dataend,
+                      (void *) outputFrameRgba.datalimit,
+                      outputFrameRgba.total() * outputFrameRgba.elemSize());
+
+            LOG_DEBUG("RubikMemoryInfo",
+                      "processingFrameGrey after alloc: width: %d,\n"
+                              "height: %d,\n"
+                              "depth: %d,\n"
+                              "dataStart: %p,\n"
+                              "dataEnd: %p,\n"
+                              "dataLimit: %p,\n"
+                              "computedSize: %d\n"
+                              "GRAY: width: %d,\n"
+                              "height: %d,\n"
+                              "depth: %d,\n"
+                              "dataStart: %p,\n"
+                              "dataEnd: %p,\n"
+                              "dataLimit: %p,\n"
+                              "computedSize: %d\n",
+                      processingFrameGrey.cols,
+                      processingFrameGrey.rows,
+                      processingFrameGrey.depth(),
+                      (void *) processingFrameGrey.datastart,
+                      (void *) processingFrameGrey.dataend,
+                      (void *) processingFrameGrey.datalimit,
+                      processingFrameGrey.total() * processingFrameGrey.elemSize(),
+                      processingFrameGrey.cols,
+                      processingFrameGrey.rows,
+                      processingFrameGrey.depth(),
+                      (void *) processingFrameGrey.datastart,
+                      (void *) processingFrameGrey.dataend,
+                      (void *) processingFrameGrey.datalimit,
+                      processingFrameGrey.total() * processingFrameGrey.elemSize());
+
+            LOG_DEBUG("RubikMemoryInfo",
+                      "processingFrameRGBA after alloc: width: %d,\n"
+                              "height: %d,\n"
+                              "depth: %d,\n"
+                              "dataStart: %p,\n"
+                              "dataEnd: %p,\n"
+                              "dataLimit: %p,\n"
+                              "computedSize: %d\n"
+                              "GRAY: width: %d,\n"
+                              "height: %d,\n"
+                              "depth: %d,\n"
+                              "dataStart: %p,\n"
+                              "dataEnd: %p,\n"
+                              "dataLimit: %p,\n"
+                              "computedSize: %d\n",
+                      processingFrameRgba.cols,
+                      processingFrameRgba.rows,
+                      processingFrameRgba.depth(),
+                      (void *) processingFrameRgba.datastart,
+                      (void *) processingFrameRgba.dataend,
+                      (void *) processingFrameRgba.datalimit,
+                      processingFrameRgba.total() * processingFrameRgba.elemSize(),
+                      processingFrameRgba.cols,
+                      processingFrameRgba.rows,
+                      processingFrameRgba.depth(),
+                      (void *) processingFrameRgba.datastart,
+                      (void *) processingFrameRgba.dataend,
+                      (void *) processingFrameRgba.datalimit,
+                      processingFrameRgba.total() * processingFrameRgba.elemSize());
         }
 
     } else {

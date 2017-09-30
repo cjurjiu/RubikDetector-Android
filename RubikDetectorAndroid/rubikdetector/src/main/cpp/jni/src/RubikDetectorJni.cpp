@@ -88,7 +88,6 @@ Java_com_catalinjurjiu_rubikdetector_RubikDetector_nativeFindCubeImageData(JNIEn
 
     jboolean isCopy = 3; //some arbitrary value
     void *ptr = env->GetPrimitiveArrayCritical(imageByteData, &isCopy);
-
     if (ptr) {
         uint8_t *ptrAsInt = reinterpret_cast<uint8_t *>(ptr);
         env->ReleasePrimitiveArrayCritical(imageByteData, ptr, JNI_ABORT);

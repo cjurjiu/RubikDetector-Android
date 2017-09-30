@@ -18,6 +18,7 @@ public class RubikDetector {
 
     private static final int NATIVE_DETECTOR_RELEASED = -1;
     private static final int DATA_SIZE = 6;
+    private static final String TAG = RubikDetector.class.getSimpleName();
 
     static {
         System.loadLibrary("rubikdetector_native");
@@ -89,9 +90,9 @@ public class RubikDetector {
     }
 
     public void releaseResources() {
-        Log.d("CATAMEM", "RubikDetector#releaseResources.");
+        Log.d(TAG, "#releaseResources. this:" + hashCode());
         if (isActive()) {
-            Log.d("CATAMEM", "RubikDetector#releaseResources - handle not -1, calling native release.");
+            Log.d(TAG, "#releaseResources - handle not -1, calling native release.");
             nativeReleaseCubeDetector(cubeDetectorHandle);
             cubeDetectorHandle = NATIVE_DETECTOR_RELEASED;
         }
@@ -160,9 +161,9 @@ public class RubikDetector {
      * @param detectionResult
      */
     private void onFacetColorsDetected(int[] detectionResult) {
-        Log.d("RubikResult", "####Facelets discovered!!!!!!");
+        Log.d(TAG, "####Facelets discovered!!!!!!");
         RubikFacelet[][] result = decodeResult(detectionResult);
-        Log.d("RubikResult", "Colors: " + RubikDetectorUtils.getResultColorsAsString(result));
+        Log.d(TAG, "Colors: " + RubikDetectorUtils.getResultColorsAsString(result));
         if (listener != null) {
             listener.onCubeDetectionResult(result);
         }

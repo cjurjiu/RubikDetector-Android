@@ -33,7 +33,66 @@ std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorImpl::findFacelets(
         const int frameNumber) {
     if (debuggable) {
         LOG_DEBUG("RubikJniPart.cpp",
-                  "SimpleFaceletsDetectorBehavior - findFacelets. isDebuggable:%d", debuggable);
+                  "* * *** ** SimpleFaceletsDetectorBehavior - findFacelets. isDebuggable:%d, frame number: %d * * *** **",
+                  debuggable, frameNumber);
+        LOG_DEBUG("RubikMemoryInfo",
+                  "SimpleFaceletsDetectorImpl#findFacelets: frameGray: width: %d,\n"
+                          "height: %d,\n"
+                          "depth: %d,\n"
+                          "dataStart: %p,\n"
+                          "dataEnd: %p,\n"
+                          "dataLimit: %p,\n"
+                          "computedSize: %d\n"
+                          "GRAY: width: %d,\n"
+                          "height: %d,\n"
+                          "depth: %d,\n"
+                          "dataStart: %p,\n"
+                          "dataEnd: %p,\n"
+                          "dataLimit: %p,\n"
+                          "computedSize: %d\n",
+                  frameGray.cols,
+                  frameGray.rows,
+                  frameGray.depth(),
+                  (void *) frameGray.datastart,
+                  (void *) frameGray.dataend,
+                  (void *) frameGray.datalimit,
+                  frameGray.total() * frameGray.elemSize(),
+                  frameGray.cols,
+                  frameGray.rows,
+                  frameGray.depth(),
+                  (void *) frameGray.datastart,
+                  (void *) frameGray.dataend,
+                  (void *) frameGray.datalimit,
+                  frameGray.total() * frameGray.elemSize());
+        LOG_DEBUG("RubikMemoryInfo",
+                  "SimpleFaceletsDetectorImpl#findFacelets: frameRgba: width: %d,\n"
+                          "height: %d,\n"
+                          "depth: %d,\n"
+                          "dataStart: %p,\n"
+                          "dataEnd: %p,\n"
+                          "dataLimit: %p,\n"
+                          "computedSize: %d\n"
+                          "GRAY: width: %d,\n"
+                          "height: %d,\n"
+                          "depth: %d,\n"
+                          "dataStart: %p,\n"
+                          "dataEnd: %p,\n"
+                          "dataLimit: %p,\n"
+                          "computedSize: %d\n",
+                  frameRgba.cols,
+                  frameRgba.rows,
+                  frameRgba.depth(),
+                  (void *) frameRgba.datastart,
+                  (void *) frameRgba.dataend,
+                  (void *) frameRgba.datalimit,
+                  frameRgba.total() * frameRgba.elemSize(),
+                  frameRgba.cols,
+                  frameRgba.rows,
+                  frameRgba.depth(),
+                  (void *) frameRgba.datastart,
+                  (void *) frameRgba.dataend,
+                  (void *) frameRgba.datalimit,
+                  frameRgba.total() * frameRgba.elemSize());
     }
 
     std::vector<std::vector<RubikFacelet>> facelets(0);
@@ -42,8 +101,14 @@ std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorImpl::findFacelets(
 
     std::vector<cv::RotatedRect> filteredRectangles;
     std::vector<Circle> filteredRectanglesInnerCircles;
-
+//    rbdt::quickSaveImage(frameGray, "/storage/emulated/0/RubikResults",
+//                         frameNumber, 1833);
     filterContours(frameRgba, contours, filteredRectangles, filteredRectanglesInnerCircles);
+    if (debuggable) {
+        LOG_DEBUG("RubikJniPart.cpp",
+                  "SimpleFaceletsDetectorBehavior - after filter. Found %d inner circles.",
+                  filteredRectanglesInnerCircles.size());
+    }
     Circle referenceCircle;
     for (int i = 0; i < filteredRectanglesInnerCircles.size(); i++) {
         referenceCircle = filteredRectanglesInnerCircles[i];
@@ -51,8 +116,14 @@ std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorImpl::findFacelets(
         std::vector<Circle> potentialFacelets = findPotentialFacelets(referenceCircle,
                                                                       filteredRectanglesInnerCircles,
                                                                       i);
-        if (potentialFacelets.size() < 3) {
-            //if we have at most 2 other rectangles that have an area similar to the initial one, just continue, can't be a cube facet
+
+        if (potentialFacelets.size() < MIN_POTENTIAL_FACELETS_REQUIRED) {
+            if (debuggable) {
+                LOG_DEBUG("RubikJniPart.cpp",
+                          "SimpleFaceletsDetectorBehavior - didn't find at least %d other potential facelets, found: %d. Ignore.",
+                          MIN_POTENTIAL_FACELETS_REQUIRED, potentialFacelets.size());
+            }
+            //if we have at most 3 other rectangles that have an area similar to the initial one, just continue, can't be a cube facet
             continue;
         }
 
@@ -64,24 +135,6 @@ std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorImpl::findFacelets(
                 potentialFacelets, estimatedFacelets);
         facetModel[0][0] = referenceCircle;
         bool cubeFound = verifyIfCubeFound(facetModel);
-        if (debuggable && imageSaver != nullptr) {
-            saveWholeFrame(frameRgba, frameNumber * 10 + i + 1);
-            cv::Mat drawing = saveFilteredRectangles(frameRgba, filteredRectangles,
-                                                     frameNumber * 10 + i + 1);
-
-            rbdt::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80));
-            rbdt::drawCircles(drawing, facetModel, cv::Scalar(255, 0, 0));
-            rbdt::drawCircle(drawing, referenceCircle, cv::Scalar(255, 0, 0));
-            rbdt::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), 1, 2, true);
-            imageSaver->saveImage(drawing, frameNumber * 10 + i + 1, "matched_pot_est_facelets1");
-
-            ///save just the facelets which matched with the estimated ones
-            drawing = cv::Mat::zeros(frameRgba.size(), CV_8UC3);
-            rbdt::drawCircles(drawing, facetModel, cv::Scalar(0, 255, 80));
-            rbdt::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), 1, 2, true);
-            imageSaver->saveImage(drawing, frameNumber * 10 + i + 1, "matched_potential_facelets1");
-
-        }
         if (cubeFound) {
             if (debuggable) {
                 LOG_DEBUG("RubikJniPart.cpp",
@@ -109,17 +162,35 @@ std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorImpl::findFacelets(
                           frameNumber);
             //break from iteration, cube was found in current frame. no need to continue
             break;
+        } else if (debuggable) {
+            LOG_DEBUG("RubikJniPart.cpp",
+                      "SimpleFaceletsDetectorBehavior - cube not found.");
+
+            if (imageSaver != nullptr) {
+                saveWholeFrame(frameRgba, frameNumber * 10 + i + 1);
+                cv::Mat drawing = saveFilteredRectangles(frameRgba, filteredRectangles,
+                                                         frameNumber * 10 + i + 1);
+
+                rbdt::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80));
+                rbdt::drawCircles(drawing, facetModel, cv::Scalar(255, 0, 0));
+                rbdt::drawCircle(drawing, referenceCircle, cv::Scalar(255, 0, 0));
+                rbdt::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), 1, 2, true);
+                imageSaver->saveImage(drawing, frameNumber * 10 + i + 1,
+                                      "matched_pot_est_facelets1");
+
+                ///save just the facelets which matched with the estimated ones
+                drawing = cv::Mat::zeros(frameRgba.size(), CV_8UC3);
+                rbdt::drawCircles(drawing, facetModel, cv::Scalar(0, 255, 80));
+                rbdt::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), 1, 2, true);
+                imageSaver->saveImage(drawing, frameNumber * 10 + i + 1,
+                                      "matched_potential_facelets1");
+            }
         }
     }
 
     if (debuggable) {
-        if (facelets.size() == 0) {
-            LOG_DEBUG("RubikJniPart.cpp",
-                      "SimpleFaceletsDetectorBehavior - cube not found.");
-        }
-
         LOG_DEBUG("RubikJniPart.cpp",
-                  "SimpleFaceletsDetectorBehavior - end, returning facelets of size: %d",
+                  "* * **SimpleFaceletsDetectorBehavior - end, returning facelets of size: %ld",
                   facelets.size());
     }
     return facelets;
@@ -159,7 +230,8 @@ std::vector<std::vector<cv::Point>> SimpleFaceletsDetectorImpl::detectContours(
 void SimpleFaceletsDetectorImpl::filterContours(const cv::Mat &currentFrame,
                                                 const std::vector<std::vector<cv::Point>> &contours,
                                                 std::vector<cv::RotatedRect> &possibleFacelets,
-                                                std::vector<Circle> &possibleFaceletsInnerCircles) const {
+                                                std::vector<Circle> &possibleFaceletsInnerCircles,
+                                                const int frameNumber) const {
 //    cv::Mat drawing = (cv::Mat) cv::Mat::zeros(currentFrame.size(), CV_8UC3);
     /// Approximate contours to polygons + get bounding rects and circles
     for (int i = 0; i < contours.size(); i++) {
@@ -181,7 +253,10 @@ void SimpleFaceletsDetectorImpl::filterContours(const cv::Mat &currentFrame,
             possibleFaceletsInnerCircles.push_back(Circle(currentRect));
         }
     }
-//    rbdt::quickSaveImage(drawing, "/storage/emulated/0/RubikResults", frameNumber, 1811);
+//    rbdt::quickSaveImage(drawing, "/storage/emulated/0/RubikResults",
+//                         frameNumber, 1811);
+//    rbdt::quickSaveImage(currentFrame, "/storage/emulated/0/RubikResults",
+//                         frameNumber, 1822);
 }
 
 float SimpleFaceletsDetectorImpl::getSmallestMargin(Circle referenceCircle,

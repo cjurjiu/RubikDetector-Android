@@ -33,8 +33,8 @@ public class SinglePhotoActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_activity_single_photo);
-        this.imageView = (ImageView) this.findViewById(R.id.image_view_photo_display);
-        Button photoButton = (Button) this.findViewById(R.id.button_take_picture);
+        this.imageView = findViewById(R.id.image_view_photo_display);
+        Button photoButton = findViewById(R.id.button_take_picture);
         photoButton.setOnClickListener(new View.OnClickListener() {
 
             @Override

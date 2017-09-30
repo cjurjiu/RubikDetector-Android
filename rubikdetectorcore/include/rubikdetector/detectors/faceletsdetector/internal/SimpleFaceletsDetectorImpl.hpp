@@ -47,7 +47,8 @@ private:
     void filterContours(const cv::Mat &currentFrame,
                         const std::vector<std::vector<cv::Point>> &contours,
                         std::vector<cv::RotatedRect> &possibleFacelets,
-                        std::vector<Circle> &possibleFaceletsInnerCircles) const;
+                        std::vector<Circle> &possibleFaceletsInnerCircles,
+                        const int frameNumber = 0) const;
 
     float getSmallestMargin(Circle referenceCircle, std::vector<Circle> validCircles);
 
@@ -100,6 +101,8 @@ private:
     static constexpr int CANNY_THRESHOLD_RATIO = 3;
 
     static constexpr int CANNY_APERTURE_SIZE = 5;
+
+    static constexpr int MIN_POTENTIAL_FACELETS_REQUIRED = 4;
 
     std::shared_ptr<ImageSaver> imageSaver;
 
