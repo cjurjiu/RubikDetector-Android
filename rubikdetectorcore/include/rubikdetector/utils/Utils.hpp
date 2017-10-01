@@ -7,7 +7,7 @@
 
 #include "../data/geometry/internal/Circle.hpp"
 #include "../data/processing/RubikFacelet.hpp"
-#include "../detectors/faceletsdetector/FaceletsDetector.hpp"
+#include "../detectors/faceletsdetector/RubikFaceletsDetector.hpp"
 #include "../data/config/DrawConfig.hpp"
 
 namespace cv {

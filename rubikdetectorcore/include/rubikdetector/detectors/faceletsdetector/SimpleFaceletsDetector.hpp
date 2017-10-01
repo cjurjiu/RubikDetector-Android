@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <memory>
 #include "../../data/processing/RubikFacelet.hpp"
-#include "FaceletsDetector.hpp"
+#include "RubikFaceletsDetector.hpp"
 
 namespace cv {
 class Mat;
@@ -31,8 +31,7 @@ public:
 
     virtual ~SimpleFaceletsDetector();
 
-    virtual std::vector<std::vector<RubikFacelet>> findFacelets(cv::Mat &frameRgba,
-                                                                cv::Mat &frameGray,
+    virtual std::vector<std::vector<RubikFacelet>> detect(cv::Mat &frameGray,
                                                                 const int frameNumber = 0) override;
 
     void onFrameSizeSelected(int width, int height) override;

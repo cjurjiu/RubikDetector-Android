@@ -5,7 +5,7 @@
 #ifndef RUBIKDETECTOR_IMAGEPROPERTIES_HPP
 #define RUBIKDETECTOR_IMAGEPROPERTIES_HPP
 
-#include "../../processor/ImageProcessor.hpp"
+#include "../../detectors/rubikdetector/RubikProcessor.hpp"
 
 namespace rbdt {
 
@@ -13,15 +13,15 @@ class ImageProperties {
 public:
     ImageProperties(const int width,
                     const int height,
-                    const ImageProcessor::ImageFormat inputImageFormat);
+                    const RubikProcessor::ImageFormat inputImageFormat);
 
     const int width;
 
     const int height;
 
-    const ImageProcessor::ImageFormat inputImageFormat;
+    const RubikProcessor::ImageFormat inputImageFormat;
 
-    const ImageProcessor::ImageFormat outputImageFormat;
+    const RubikProcessor::ImageFormat outputImageFormat;
 };
 
 } //end namespace rbdt

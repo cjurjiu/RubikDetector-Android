@@ -9,14 +9,14 @@
 #include <memory>
 #include "../../../imagesaver/ImageSaver.hpp"
 #include "../../../data/processing/RubikFacelet.hpp"
-#include "../ColorDetector.hpp"
+#include "../RubikColorDetector.hpp"
 
 namespace cv {
 class Mat;
 }
 namespace rbdt {
 
-class HistogramColorDetectorImpl : ColorDetector {
+class HistogramColorDetectorImpl : RubikColorDetector {
 
 public:
     HistogramColorDetectorImpl();

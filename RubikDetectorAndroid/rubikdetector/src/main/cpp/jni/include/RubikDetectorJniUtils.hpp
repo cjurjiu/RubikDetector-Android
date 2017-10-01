@@ -6,8 +6,8 @@
 #define RUBIKDETECTORANDROID_RUBIKDETECTORJNIUTILS_HPP
 
 #include "../../rubikdetectorcore/include/rubikdetector/data/processing/RubikFacelet.hpp"
-#include "../../rubikdetectorcore/include/rubikdetector/processor/ImageProcessor.hpp"
 #include "../../rubikdetectorcore/include/rubikdetector/data/config/DrawConfig.hpp"
+#include "../../rubikdetectorcore/include/rubikdetector/detectors/rubikdetector/RubikProcessor.hpp"
 
 namespace rbdt_jni {
 
@@ -47,7 +47,7 @@ auto asInt(const Enumeration value)
 
 rbdt::RubikFacelet::Color colorFromInt(const int val);
 
-rbdt::ImageProcessor::ImageFormat imageFormatFromInt(const int val);
+rbdt::RubikProcessor::ImageFormat imageFormatFromInt(const int val);
 
 rbdt::DrawConfig::DrawMode drawModeFromInt(const int val);
 

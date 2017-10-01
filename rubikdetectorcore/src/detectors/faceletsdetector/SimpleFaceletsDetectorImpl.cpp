@@ -27,8 +27,7 @@ SimpleFaceletsDetectorImpl::~SimpleFaceletsDetectorImpl() {
     }
 }
 
-std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorImpl::findFacelets(
-        cv::Mat &frameRgba,
+std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorImpl::detect(
         cv::Mat &frameGray,
         const int frameNumber) {
     if (debuggable) {
@@ -64,35 +63,35 @@ std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorImpl::findFacelets(
                   (void *) frameGray.dataend,
                   (void *) frameGray.datalimit,
                   frameGray.total() * frameGray.elemSize());
-        LOG_DEBUG("RubikMemoryInfo",
-                  "SimpleFaceletsDetectorImpl#findFacelets: frameRgba: width: %d,\n"
-                          "height: %d,\n"
-                          "depth: %d,\n"
-                          "dataStart: %p,\n"
-                          "dataEnd: %p,\n"
-                          "dataLimit: %p,\n"
-                          "computedSize: %d\n"
-                          "GRAY: width: %d,\n"
-                          "height: %d,\n"
-                          "depth: %d,\n"
-                          "dataStart: %p,\n"
-                          "dataEnd: %p,\n"
-                          "dataLimit: %p,\n"
-                          "computedSize: %d\n",
-                  frameRgba.cols,
-                  frameRgba.rows,
-                  frameRgba.depth(),
-                  (void *) frameRgba.datastart,
-                  (void *) frameRgba.dataend,
-                  (void *) frameRgba.datalimit,
-                  frameRgba.total() * frameRgba.elemSize(),
-                  frameRgba.cols,
-                  frameRgba.rows,
-                  frameRgba.depth(),
-                  (void *) frameRgba.datastart,
-                  (void *) frameRgba.dataend,
-                  (void *) frameRgba.datalimit,
-                  frameRgba.total() * frameRgba.elemSize());
+//        LOG_DEBUG("RubikMemoryInfo",
+//                  "SimpleFaceletsDetectorImpl#findFacelets: frameRgba: width: %d,\n"
+//                          "height: %d,\n"
+//                          "depth: %d,\n"
+//                          "dataStart: %p,\n"
+//                          "dataEnd: %p,\n"
+//                          "dataLimit: %p,\n"
+//                          "computedSize: %d\n"
+//                          "GRAY: width: %d,\n"
+//                          "height: %d,\n"
+//                          "depth: %d,\n"
+//                          "dataStart: %p,\n"
+//                          "dataEnd: %p,\n"
+//                          "dataLimit: %p,\n"
+//                          "computedSize: %d\n",
+//                  frameRgba.cols,
+//                  frameRgba.rows,
+//                  frameRgba.depth(),
+//                  (void *) frameRgba.datastart,
+//                  (void *) frameRgba.dataend,
+//                  (void *) frameRgba.datalimit,
+//                  frameRgba.total() * frameRgba.elemSize(),
+//                  frameRgba.cols,
+//                  frameRgba.rows,
+//                  frameRgba.depth(),
+//                  (void *) frameRgba.datastart,
+//                  (void *) frameRgba.dataend,
+//                  (void *) frameRgba.datalimit,
+//                  frameRgba.total() * frameRgba.elemSize());
     }
 
     std::vector<std::vector<RubikFacelet>> facelets(0);
@@ -103,7 +102,7 @@ std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorImpl::findFacelets(
     std::vector<Circle> filteredRectanglesInnerCircles;
 //    rbdt::quickSaveImage(frameGray, "/storage/emulated/0/RubikResults",
 //                         frameNumber, 1833);
-    filterContours(frameRgba, contours, filteredRectangles, filteredRectanglesInnerCircles);
+    filterContours(contours, filteredRectangles, filteredRectanglesInnerCircles);
     if (debuggable) {
         LOG_DEBUG("RubikJniPart.cpp",
                   "SimpleFaceletsDetectorBehavior - after filter. Found %d inner circles.",
@@ -153,7 +152,7 @@ std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorImpl::findFacelets(
             //create result
             facelets = createResult(facetModel);
 
-            saveDebugData(frameRgba,
+            saveDebugData(frameGray,
                           filteredRectangles,
                           referenceCircle,
                           potentialFacelets,
@@ -167,8 +166,8 @@ std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorImpl::findFacelets(
                       "SimpleFaceletsDetectorBehavior - cube not found.");
 
             if (imageSaver != nullptr) {
-                saveWholeFrame(frameRgba, frameNumber * 10 + i + 1);
-                cv::Mat drawing = saveFilteredRectangles(frameRgba, filteredRectangles,
+                saveWholeFrame(frameGray, frameNumber * 10 + i + 1);
+                cv::Mat drawing = saveFilteredRectangles(frameGray, filteredRectangles,
                                                          frameNumber * 10 + i + 1);
 
                 rbdt::drawCircles(drawing, estimatedFacelets, cv::Scalar(0, 255, 80));
@@ -179,7 +178,7 @@ std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorImpl::findFacelets(
                                       "matched_pot_est_facelets1");
 
                 ///save just the facelets which matched with the estimated ones
-                drawing = cv::Mat::zeros(frameRgba.size(), CV_8UC3);
+                drawing = cv::Mat::zeros(frameGray.size(), CV_8UC3);
                 rbdt::drawCircles(drawing, facetModel, cv::Scalar(0, 255, 80));
                 rbdt::drawCircle(drawing, referenceCircle, cv::Scalar(0, 0, 255), 1, 2, true);
                 imageSaver->saveImage(drawing, frameNumber * 10 + i + 1,
@@ -227,8 +226,7 @@ std::vector<std::vector<cv::Point>> SimpleFaceletsDetectorImpl::detectContours(
     return contours;
 }
 
-void SimpleFaceletsDetectorImpl::filterContours(const cv::Mat &currentFrame,
-                                                const std::vector<std::vector<cv::Point>> &contours,
+void SimpleFaceletsDetectorImpl::filterContours(const std::vector<std::vector<cv::Point>> &contours,
                                                 std::vector<cv::RotatedRect> &possibleFacelets,
                                                 std::vector<Circle> &possibleFaceletsInnerCircles,
                                                 const int frameNumber) const {

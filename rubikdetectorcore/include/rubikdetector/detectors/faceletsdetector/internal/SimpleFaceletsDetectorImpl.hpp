@@ -10,7 +10,7 @@
 #include "../../../data/processing/internal/HueColorEvidence.hpp"
 #include "../../colordetector/HistogramColorDetector.hpp"
 #include "../../../imagesaver/ImageSaver.hpp"
-#include "../FaceletsDetector.hpp"
+#include "../RubikFaceletsDetector.hpp"
 #include <iostream>
 #include <memory>
 
@@ -30,8 +30,7 @@ public:
 
     virtual ~SimpleFaceletsDetectorImpl();
 
-    std::vector<std::vector<RubikFacelet>> findFacelets(cv::Mat &frameRgba,
-                                                        cv::Mat &frameGray,
+    std::vector<std::vector<RubikFacelet>> detect(cv::Mat &frameGray,
                                                         const int frameNumber = 0) override;
 
     void onFrameSizeSelected(int processingWidth, int processingHeight) override;
@@ -44,8 +43,7 @@ private:
 
     std::vector<std::vector<cv::Point>> detectContours(const cv::Mat &frameGray) const;
 
-    void filterContours(const cv::Mat &currentFrame,
-                        const std::vector<std::vector<cv::Point>> &contours,
+    void filterContours(const std::vector<std::vector<cv::Point>> &contours,
                         std::vector<cv::RotatedRect> &possibleFacelets,
                         std::vector<Circle> &possibleFaceletsInnerCircles,
                         const int frameNumber = 0) const;

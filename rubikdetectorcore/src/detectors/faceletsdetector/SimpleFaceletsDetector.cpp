@@ -20,10 +20,9 @@ SimpleFaceletsDetector::~SimpleFaceletsDetector() {
     }
 }
 
-std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetector::findFacelets(cv::Mat &frameRgba,
-                                                                            cv::Mat &frameGray,
+std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetector::detect(cv::Mat &frameGray,
                                                                             const int frameNumber) {
-    return behavior->findFacelets(frameRgba, frameGray, frameNumber);
+    return behavior->detect(frameGray, frameNumber);
 }
 
 void SimpleFaceletsDetector::onFrameSizeSelected(int width, int height) {

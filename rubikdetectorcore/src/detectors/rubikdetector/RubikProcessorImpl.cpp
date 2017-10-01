@@ -2,20 +2,22 @@
 //
 
 #include <math.h>
-#include "../../../include/rubikdetector/detectors/rubikdetector/internal/RubikDetectorImpl.hpp"
+#include "../../../include/rubikdetector/detectors/rubikdetector/internal/RubikProcessorImpl.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "../../../include/rubikdetector/utils/Utils.hpp"
 #include "../../../include/rubikdetector/utils/CrossLog.hpp"
+#include "../../../include/rubikdetector/detectors/rubikdetector/RubikProcessor.hpp"
+#include "../../../include/rubikdetector/data/config/ImageProperties.hpp"
 
 namespace rbdt {
 
 /**##### PUBLIC API #####**/
-RubikDetectorImpl::RubikDetectorImpl(const ImageProperties imageProperties,
-                                     std::unique_ptr<FaceletsDetector> faceletsDetector,
-                                     std::unique_ptr<ColorDetector> colorDetector,
-                                     std::unique_ptr<FaceletsDrawController> faceletsDrawController,
-                                     std::shared_ptr<ImageSaver> imageSaver) :
+RubikProcessorImpl::RubikProcessorImpl(const ImageProperties imageProperties,
+                                       std::unique_ptr<FaceletsDetector> faceletsDetector,
+                                       std::unique_ptr<RubikColorDetector> colorDetector,
+                                       std::unique_ptr<FaceletsDrawController> faceletsDrawController,
+                                       std::shared_ptr<ImageSaver> imageSaver) :
         faceletsDetector(std::move(faceletsDetector)),
         colorDetector(std::move(colorDetector)),
         faceletsDrawController(std::move(faceletsDrawController)),
@@ -23,23 +25,23 @@ RubikDetectorImpl::RubikDetectorImpl(const ImageProperties imageProperties,
     applyImageProperties(imageProperties);
 }
 
-RubikDetectorImpl::~RubikDetectorImpl() {
+RubikProcessorImpl::~RubikProcessorImpl() {
     if (debuggable) {
-        LOG_DEBUG("RubikJniPart.cpp", "RubikDetectorBehavior - destructor.");
+        LOG_DEBUG("RubikJniPart.cpp", "RubikProcessorBehavior - destructor.");
     }
 }
 
-std::vector<std::vector<RubikFacelet>> RubikDetectorImpl::process(
+std::vector<std::vector<RubikFacelet>> RubikProcessorImpl::process(
         const uint8_t *imageData) {
     return findCubeInternal(imageData);
 }
 
-void RubikDetectorImpl::updateImageProperties(const ImageProperties &newProperties) {
+void RubikProcessorImpl::updateImageProperties(const ImageProperties &newProperties) {
     applyImageProperties(newProperties);
 }
 
-void RubikDetectorImpl::overrideInputFrameWithResultFrame(const uint8_t *imageData) {
-    if (inputImageFormat == ImageProcessor::ImageFormat::RGBA8888) {
+void RubikProcessorImpl::overrideInputFrameWithOutputFrame(const uint8_t *imageData) {
+    if (inputImageFormat == RubikProcessor::ImageFormat::RGBA8888) {
         //input frame is equal to output frame already, this would have no effect.
         return;
     }
@@ -49,10 +51,10 @@ void RubikDetectorImpl::overrideInputFrameWithResultFrame(const uint8_t *imageDa
                                 (uchar *) imageData + outputRgbaImageOffset);
     int reverseColorConversionCode;
     switch (inputImageFormat) {
-        case ImageProcessor::ImageFormat::YUV_I420:
+        case RubikProcessor::ImageFormat::YUV_I420:
             reverseColorConversionCode = cv::COLOR_RGBA2YUV_I420;
             break;
-        case ImageProcessor::ImageFormat::YUV_YV12:
+        case RubikProcessor::ImageFormat::YUV_YV12:
             reverseColorConversionCode = cv::COLOR_RGBA2YUV_YV12;
             break;
         default:
@@ -62,15 +64,15 @@ void RubikDetectorImpl::overrideInputFrameWithResultFrame(const uint8_t *imageDa
     if (reverseColorConversionCode != NO_CONVERSION_NEEDED) {
         cv::cvtColor(rgbaFrame, yuvFrame, reverseColorConversionCode);
     } else {
-        if (inputImageFormat == ImageProcessor::ImageFormat::YUV_NV21) {
+        if (inputImageFormat == RubikProcessor::ImageFormat::YUV_NV21) {
             rbdt::encodeNV21(rgbaFrame, yuvFrame, imageWidth, imageHeight);
-        } else if (inputImageFormat == ImageProcessor::ImageFormat::YUV_NV12) {
+        } else if (inputImageFormat == RubikProcessor::ImageFormat::YUV_NV12) {
             rbdt::encodeNV12(rgbaFrame, yuvFrame, imageWidth, imageHeight);
         }
     }
 }
 
-void RubikDetectorImpl::setDebuggable(const bool isDebuggable) {
+void RubikProcessorImpl::setDebuggable(const bool isDebuggable) {
     if (debuggable) {
         LOG_DEBUG("RUBIK_JNI_PART.cpp", "setDebuggable. current:%d, new: %d, frameNumber: %d",
                   debuggable, isDebuggable, frameNumber);
@@ -84,53 +86,53 @@ void RubikDetectorImpl::setDebuggable(const bool isDebuggable) {
     faceletsDrawController->setDebuggable(isDebuggable);
 }
 
-bool RubikDetectorImpl::isDebuggable() const {
+bool RubikProcessorImpl::isDebuggable() const {
     return debuggable;
 }
 
-int RubikDetectorImpl::getRequiredMemory() {
+int RubikProcessorImpl::getRequiredMemory() {
     return totalRequiredMemory;
 }
 
-int RubikDetectorImpl::getOutputFrameBufferOffset() {
+int RubikProcessorImpl::getOutputFrameBufferOffset() {
     return outputRgbaImageOffset;
 }
 
-int RubikDetectorImpl::getOutputFrameByteCount() {
+int RubikProcessorImpl::getOutputFrameByteCount() {
     return outputRgbaImageByteCount;
 }
 
-int RubikDetectorImpl::getInputFrameByteCount() {
+int RubikProcessorImpl::getInputFrameByteCount() {
     return inputImageByteCount;
 }
 
-int RubikDetectorImpl::getInputFrameBufferOffset() {
+int RubikProcessorImpl::getInputFrameBufferOffset() {
     return inputImageOffset;
 }
 
-void RubikDetectorImpl::updateDrawConfig(DrawConfig drawConfig) {
+void RubikProcessorImpl::updateDrawConfig(DrawConfig drawConfig) {
     faceletsDrawController->updateDrawConfig(drawConfig);
 }
 /**##### END PUBLIC API #####**/
 /**##### PRIVATE MEMBERS FROM HERE #####**/
 
-void RubikDetectorImpl::applyImageProperties(const ImageProperties &properties) {
-    RubikDetectorImpl::inputImageFormat = properties.inputImageFormat;
+void RubikProcessorImpl::applyImageProperties(const ImageProperties &properties) {
+    RubikProcessorImpl::inputImageFormat = properties.inputImageFormat;
     switch (inputImageFormat) {
-        case ImageProcessor::ImageFormat::YUV_NV21:
+        case RubikProcessor::ImageFormat::YUV_NV21:
             cvColorConversionCode = cv::COLOR_YUV2RGBA_NV21;
             break;
-        case ImageProcessor::ImageFormat::YUV_NV12:
+        case RubikProcessor::ImageFormat::YUV_NV12:
             cvColorConversionCode = cv::COLOR_YUV2RGBA_NV12;
             break;
-        case ImageProcessor::ImageFormat::YUV_I420:
+        case RubikProcessor::ImageFormat::YUV_I420:
             cvColorConversionCode = cv::COLOR_YUV2RGBA_I420;
             break;
-        case ImageProcessor::ImageFormat::YUV_YV12:
+        case RubikProcessor::ImageFormat::YUV_YV12:
             cvColorConversionCode = cv::COLOR_YUV2RGBA_YV12;
             break;
-        case ImageProcessor::ImageFormat::RGBA8888:
-            cvColorConversionCode = RubikDetectorImpl::NO_CONVERSION_NEEDED;
+        case RubikProcessor::ImageFormat::RGBA8888:
+            cvColorConversionCode = RubikProcessorImpl::NO_CONVERSION_NEEDED;
             break;
     }
     imageWidth = properties.width;
@@ -161,12 +163,12 @@ void RubikDetectorImpl::applyImageProperties(const ImageProperties &properties) 
     }
     needsResize = imageHeight != processingHeight || imageWidth != processingWidth;
 
-    if (inputImageFormat != ImageProcessor::ImageFormat::RGBA8888) {
+    if (inputImageFormat != RubikProcessor::ImageFormat::RGBA8888) {
         //image is in one of the supported YUV formats
         outputRgbaImageByteCount = imageWidth * imageHeight * 4;
         outputRgbaImageOffset = imageWidth * (imageHeight + imageHeight / 2);
         inputImageByteCount = imageWidth * (imageHeight + imageHeight / 2);
-        inputImageOffset = RubikDetectorImpl::NO_OFFSET;
+        inputImageOffset = RubikProcessorImpl::NO_OFFSET;
 
         if (needsResize) {
             processingRgbaImageOffset = outputRgbaImageByteCount + inputImageByteCount;
@@ -182,7 +184,7 @@ void RubikDetectorImpl::applyImageProperties(const ImageProperties &properties) 
         }
     } else {
         inputImageByteCount = outputRgbaImageByteCount = imageWidth * imageHeight * 4;
-        inputImageOffset = outputRgbaImageOffset = RubikDetectorImpl::NO_OFFSET;
+        inputImageOffset = outputRgbaImageOffset = RubikProcessorImpl::NO_OFFSET;
 
         if (needsResize) {
             processingRgbaImageOffset = outputRgbaImageByteCount;
@@ -202,7 +204,7 @@ void RubikDetectorImpl::applyImageProperties(const ImageProperties &properties) 
     faceletsDetector->onFrameSizeSelected(processingWidth, processingHeight);
 }
 
-std::vector<std::vector<RubikFacelet>> RubikDetectorImpl::findCubeInternal(
+std::vector<std::vector<RubikFacelet>> RubikProcessorImpl::findCubeInternal(
         const uint8_t *imageData) {
 
     frameNumber++;
@@ -214,7 +216,7 @@ std::vector<std::vector<RubikFacelet>> RubikDetectorImpl::findCubeInternal(
     cv::Mat processingFrameRgba;
     cv::Mat processingFrameGrey;
 
-    if (inputImageFormat != ImageProcessor::ImageFormat::RGBA8888) {
+    if (inputImageFormat != RubikProcessor::ImageFormat::RGBA8888) {
         //YUV image, need to convert the output & processing frames to RGBA8888
         cv::Mat frameYuv(imageHeight + imageHeight / 2, imageWidth, CV_8UC1,
                          (uchar *) imageData);
@@ -569,22 +571,21 @@ std::vector<std::vector<RubikFacelet>> RubikDetectorImpl::findCubeInternal(
         LOG_DEBUG("RubikMemoryInfo", "###################END PREPARING");
     }
     if (isDebuggable()) {
-        LOG_DEBUG("RubikJniPart.cpp", "RubikDetector - Searching for facelets.");
+        LOG_DEBUG("RubikJniPart.cpp", "RubikProcessor - Searching for facelets.");
     }
-    std::vector<std::vector<RubikFacelet>> facelets = faceletsDetector->findFacelets(
-            processingFrameRgba,
+    std::vector<std::vector<RubikFacelet>> facelets = faceletsDetector->detect(
             processingFrameGrey,
             frameNumber);
     if (facelets.size() != 0) {
         if (isDebuggable()) {
-            LOG_DEBUG("RubikJniPart.cpp", "RubikDetector - Found facelets!");
+            LOG_DEBUG("RubikJniPart.cpp", "RubikProcessor - Found facelets!");
         }
         std::vector<std::vector<RubikFacelet::Color>> colors = detectFacetColors(
                 processingFrameRgba,
                 facelets);
         if (isDebuggable()) {
             LOG_DEBUG("RubikJniPart.cpp",
-                      "RubikDetector - Detected colors: {%c, %c, %c} {%c, %c, %c} {%c, %c, %c}",
+                      "RubikProcessor - Detected colors: {%c, %c, %c} {%c, %c, %c} {%c, %c, %c}",
                       rbdt::colorIntToChar(colors[0][0]),
                       rbdt::colorIntToChar(colors[0][1]),
                       rbdt::colorIntToChar(colors[0][2]),
@@ -597,28 +598,28 @@ std::vector<std::vector<RubikFacelet>> RubikDetectorImpl::findCubeInternal(
             );
         }
         if (isDebuggable()) {
-            LOG_DEBUG("RubikJniPart.cpp", "RubikDetector - Applied colors to facelets.");
+            LOG_DEBUG("RubikJniPart.cpp", "RubikProcessor - Applied colors to facelets.");
         }
         applyColorsToResult(facelets, colors);
 
         if (needsResize) {
             if (isDebuggable()) {
-                LOG_DEBUG("RubikJniPart.cpp", "RubikDetector - Rescaling result.");
+                LOG_DEBUG("RubikJniPart.cpp", "RubikProcessor - Rescaling result.");
             }
             upscaleResult(facelets);
         } else {
             if (isDebuggable()) {
-                LOG_DEBUG("RubikJniPart.cpp", "RubikDetector - No rescaling needed.");
+                LOG_DEBUG("RubikJniPart.cpp", "RubikProcessor - No rescaling needed.");
             }
         }
         if (isDebuggable()) {
             LOG_DEBUG("RubikJniPart.cpp",
-                      "RubikDetector - Drawing the result to the output frame.");
+                      "RubikProcessor - Drawing the result to the output frame.");
         }
         faceletsDrawController->drawResultToMat(outputFrameRgba, facelets);
     } else {
         if (isDebuggable()) {
-            LOG_DEBUG("RubikJniPart.cpp", "RubikDetector - No cube found.");
+            LOG_DEBUG("RubikJniPart.cpp", "RubikProcessor - No cube found.");
         }
     }
     double processingEnd = rbdt::getCurrentTimeMillis();
@@ -632,13 +633,13 @@ std::vector<std::vector<RubikFacelet>> RubikDetectorImpl::findCubeInternal(
               frameNumber, fps, frameRateAverage, fps);
     if (debuggable) {
         LOG_DEBUG("RubikJniPart.cpp",
-                  "RubikDetector - Returning the found facelets.");
+                  "RubikProcessor - Returning the found facelets.");
     }
 
     return facelets;
 }
 
-std::vector<std::vector<RubikFacelet::Color>> RubikDetectorImpl::detectFacetColors(
+std::vector<std::vector<RubikFacelet::Color>> RubikProcessorImpl::detectFacetColors(
         const cv::Mat &currentFrame,
         const std::vector<std::vector<RubikFacelet>> facetModel) {
     std::vector<std::vector<RubikFacelet::Color>> colors(3, std::vector<RubikFacelet::Color>(3));
@@ -685,8 +686,8 @@ std::vector<std::vector<RubikFacelet::Color>> RubikDetectorImpl::detectFacetColo
     return colors;
 }
 
-void RubikDetectorImpl::applyColorsToResult(std::vector<std::vector<RubikFacelet>> &facelets,
-                                            const std::vector<std::vector<RubikFacelet::Color>> colors) {
+void RubikProcessorImpl::applyColorsToResult(std::vector<std::vector<RubikFacelet>> &facelets,
+                                             const std::vector<std::vector<RubikFacelet::Color>> colors) {
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             facelets[i][j].color = colors[i][j];
@@ -694,7 +695,7 @@ void RubikDetectorImpl::applyColorsToResult(std::vector<std::vector<RubikFacelet
     }
 }
 
-void RubikDetectorImpl::upscaleResult(std::vector<std::vector<RubikFacelet>> &facelets) {
+void RubikProcessorImpl::upscaleResult(std::vector<std::vector<RubikFacelet>> &facelets) {
 
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {

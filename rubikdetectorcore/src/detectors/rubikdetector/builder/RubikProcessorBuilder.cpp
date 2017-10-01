@@ -2,13 +2,14 @@
 // Created by catalin on 06.09.2017.
 //
 
-#include "../../../../include/rubikdetector/detectors/rubikdetector/builder/RubikDetectorBuilder.hpp"
+#include "../../../../include/rubikdetector/detectors/rubikdetector/builder/RubikProcessorBuilder.hpp"
 #include "../../../../include/rubikdetector/detectors/faceletsdetector/SimpleFaceletsDetector.hpp"
 #include "../../../../include/rubikdetector/detectors/colordetector/HistogramColorDetector.hpp"
+#include "../../../../include/rubikdetector/data/config/ImageProperties.hpp"
 
 namespace rbdt {
 
-RubikDetectorBuilder::RubikDetectorBuilder() :
+RubikProcessorBuilder::RubikProcessorBuilder() :
         mFrameWidth(DEFAULT_WIDTH),
         mFrameHeight(DEFAULT_HEIGHT),
         mFrameFormat(DEFAULT_FRAME_FORMAT),
@@ -18,45 +19,45 @@ RubikDetectorBuilder::RubikDetectorBuilder() :
         mColorDetector(nullptr),
         mImageSaver(nullptr) {}
 
-RubikDetectorBuilder &RubikDetectorBuilder::inputFrameSize(int width, int height) {
+RubikProcessorBuilder &RubikProcessorBuilder::inputFrameSize(int width, int height) {
     mFrameWidth = width;
     mFrameHeight = height;
     return *this;
 }
 
-RubikDetectorBuilder &RubikDetectorBuilder::inputFrameFormat(ImageProcessor::ImageFormat format) {
+RubikProcessorBuilder &RubikProcessorBuilder::inputFrameFormat(RubikProcessor::ImageFormat format) {
     mFrameFormat = format;
     return *this;
 }
 
-RubikDetectorBuilder &RubikDetectorBuilder::drawConfig(DrawConfig drawConfig) {
+RubikProcessorBuilder &RubikProcessorBuilder::drawConfig(DrawConfig drawConfig) {
     mDrawConfig = drawConfig;
     return *this;
 }
 
-RubikDetectorBuilder &RubikDetectorBuilder::colorDetector(
-        std::unique_ptr<ColorDetector> colorDetector) {
+RubikProcessorBuilder &RubikProcessorBuilder::colorDetector(
+        std::unique_ptr<RubikColorDetector> colorDetector) {
     mColorDetector = std::move(colorDetector);
     return *this;
 }
 
-RubikDetectorBuilder &RubikDetectorBuilder::faceletsDetector(
+RubikProcessorBuilder &RubikProcessorBuilder::faceletsDetector(
         std::unique_ptr<FaceletsDetector> faceletsDetector) {
     mFaceletsDetector = std::move(faceletsDetector);
     return *this;
 }
 
-RubikDetectorBuilder &RubikDetectorBuilder::imageSaver(std::shared_ptr<ImageSaver> imageSaver) {
+RubikProcessorBuilder &RubikProcessorBuilder::imageSaver(std::shared_ptr<ImageSaver> imageSaver) {
     mImageSaver = imageSaver;
     return *this;
 }
 
-RubikDetectorBuilder &RubikDetectorBuilder::debuggable(bool debuggable) {
+RubikProcessorBuilder &RubikProcessorBuilder::debuggable(bool debuggable) {
     mDebuggable = debuggable;
     return *this;
 }
 
-RubikDetector *RubikDetectorBuilder::build() {
+RubikProcessor *RubikProcessorBuilder::build() {
 
     if (mFaceletsDetector == nullptr) {
         //create default facelets detector, if a custom one wasn't set by caller
@@ -73,7 +74,7 @@ RubikDetector *RubikDetectorBuilder::build() {
     std::unique_ptr<FaceletsDrawController> faceletsDrawController(
             new FaceletsDrawController(mDrawConfig));
 
-    RubikDetector *rubikDetector = new RubikDetector(
+    RubikProcessor *rubikDetector = new RubikProcessor(
             ImageProperties(mFrameWidth, mFrameHeight, mFrameFormat),
             std::move(mFaceletsDetector),
             std::move(mColorDetector),

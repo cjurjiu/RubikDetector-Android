@@ -8,11 +8,11 @@ namespace rbdt {
 
 ImageProperties::ImageProperties(const int width,
                                  const int height,
-                                 const ImageProcessor::ImageFormat inputImageFormat) :
+                                 const RubikProcessor::ImageFormat inputImageFormat) :
         width(width),
         height(height),
         inputImageFormat(inputImageFormat),
-        outputImageFormat(ImageProcessor::ImageFormat::RGBA8888) {
+        outputImageFormat(RubikProcessor::ImageFormat::RGBA8888) {
     //empty
 }
 

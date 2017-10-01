@@ -2,19 +2,19 @@
 // Created by catalin on 12.07.2017.
 //
 
-#ifndef RUBIKDETECTOR_RUBIKDETECTORIMPL_HPP
-#define RUBIKDETECTOR_RUBIKDETECTORIMPL_HPP
+#ifndef RUBIKDETECTOR_RUBIKPROCESSORIMPL_HPP
+#define RUBIKDETECTOR_RUBIKPROCESSORIMPL_HPP
 
 #include <opencv2/core/core.hpp>
-#include "../../../processor/ImageProcessor.hpp"
-#include "../../faceletsdetector/FaceletsDetector.hpp"
-#include "../../colordetector/ColorDetector.hpp"
+#include "../../../processing_templates/ImageProcessor.hpp"
+#include "../../faceletsdetector/RubikFaceletsDetector.hpp"
+#include "../../colordetector/RubikColorDetector.hpp"
 #include "../../../data/geometry/internal/Circle.hpp"
 #include "../../../data/processing/internal/HueColorEvidence.hpp"
 #include "../../../imagesaver/ImageSaver.hpp"
-#include "../../../data/config/ImageProperties.hpp"
 #include "../../../data/config/DrawConfig.hpp"
 #include "../../../drawing/FaceletsDrawController.hpp"
+#include "../../../detectors/rubikdetector/RubikProcessor.hpp"
 #include <iostream>
 #include <memory>
 
@@ -23,21 +23,24 @@ class OnCubeDetectionResultListener;
 
 class RubikFacelet;
 
-class RubikDetectorImpl : ImageProcessor {
-public:
-    RubikDetectorImpl(const ImageProperties imageProperties,
-                      std::unique_ptr<FaceletsDetector> faceletsDetector,
-                      std::unique_ptr<ColorDetector> colorDetector,
-                      std::unique_ptr<FaceletsDrawController> faceletsDrawController,
-                      std::shared_ptr<ImageSaver> imageSaver);
+class ImageProperties;
 
-    virtual ~RubikDetectorImpl();
+class RubikProcessorImpl
+        : public ImageProcessor<const uint8_t *, const ImageProperties &, std::vector<std::vector<RubikFacelet>>> {
+public:
+    RubikProcessorImpl(const ImageProperties imageProperties,
+                       std::unique_ptr<FaceletsDetector> faceletsDetector,
+                       std::unique_ptr<RubikColorDetector> colorDetector,
+                       std::unique_ptr<FaceletsDrawController> faceletsDrawController,
+                       std::shared_ptr<ImageSaver> imageSaver);
+
+    virtual ~RubikProcessorImpl();
 
     std::vector<std::vector<RubikFacelet>> process(const uint8_t *imageData) override;
 
     void updateImageProperties(const ImageProperties &imageProperties) override;
 
-    void overrideInputFrameWithResultFrame(const uint8_t *imageData) override;
+    void overrideInputFrameWithOutputFrame(const uint8_t *imageData) override;
 
     int getRequiredMemory() override;
 
@@ -77,7 +80,7 @@ private:
 
     std::unique_ptr<FaceletsDetector> faceletsDetector;
 
-    std::unique_ptr<ColorDetector> colorDetector;
+    std::unique_ptr<RubikColorDetector> colorDetector;
 
     std::unique_ptr<FaceletsDrawController> faceletsDrawController;
 
@@ -123,10 +126,10 @@ private:
 
     int processingGrayImageSize;
 
-    ImageProcessor::ImageFormat inputImageFormat;
+    RubikProcessor::ImageFormat inputImageFormat;
 
     int cvColorConversionCode;
 };
 
 } //namespace rbdt
-#endif //RUBIKDETECTOR_RUBIKDETECTORIMPL_HPP
+#endif //RUBIKDETECTOR_RUBIKPROCESSORIMPL_HPP

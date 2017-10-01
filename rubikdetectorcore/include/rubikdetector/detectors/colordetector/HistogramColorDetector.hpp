@@ -6,7 +6,7 @@
 #define RUBIKDETECTOR_HISTOGRAMCOLORDETECTOR_HPP
 
 #include <memory>
-#include "ColorDetector.hpp"
+#include "RubikColorDetector.hpp"
 
 namespace cv {
 class Mat;
@@ -18,7 +18,7 @@ class HistogramColorDetectorImpl;
 
 class ImageSaver;
 
-class HistogramColorDetector : public ColorDetector {
+class HistogramColorDetector : public RubikColorDetector {
 public:
     HistogramColorDetector();
 
