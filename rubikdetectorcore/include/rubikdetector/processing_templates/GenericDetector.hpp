@@ -10,15 +10,13 @@
 
 namespace rbdt {
 
-template<typename I, typename R>
+template<typename INPUT_TYPE, typename RESULT_TYPE>
 class GenericDetector : public Debuggable {
 public:
 
-    virtual ~GenericDetector() {
+    virtual ~GenericDetector() {}
 
-    }
-
-    virtual R detect(I frameGray,
+    virtual RESULT_TYPE detect(INPUT_TYPE inputFrame,
                      const int frameNumber = 0)=0;
 
     virtual void

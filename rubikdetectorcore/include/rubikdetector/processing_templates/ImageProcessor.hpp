@@ -56,7 +56,7 @@ public:
      * @param [in/out] imageData.
      * @return nullptr if facelets are not detected in the current frame, or a 3x3 std::vector<> of RubikFacelet which contains the found facelets.
      */
-    virtual RESULT_TYPE process(INPUT_TYPE imageData)=0;
+    virtual RESULT_TYPE process(INPUT_TYPE inputFrame)=0;
 
     /**
      * Use to notify that the frame size, or the format of the either the input or output frame has changed.

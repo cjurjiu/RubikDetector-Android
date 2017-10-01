@@ -12,15 +12,13 @@ namespace rbdt {
 /**
  * Interface which defines a component capable of extracting the strongest color in a frame.
  */
-template<typename I, typename R>
+template<typename INPUT_TYPE, typename RESULT_TYPE>
 class ColorDetector : public Debuggable {
 public:
     /**
      * Empty virtual destructor.
      */
-    virtual ~ColorDetector() {
-
-    };
+    virtual ~ColorDetector() {};
 
     /**
      * Returns the strongest color present in the frame receives as a parameter.
@@ -31,7 +29,7 @@ public:
      * @param [in] frameNr the current frame number, for logging purposes.
      * @return the detected color.
      */
-    virtual R detectColor(I image,
+    virtual RESULT_TYPE detectColor(INPUT_TYPE inputFrame,
                           const float whiteRatio = 0.5,
                           const int regionInfo = -1,
                           const int frameNr = -1) = 0;
