@@ -35,24 +35,25 @@ RubikFacelet::Color HistogramColorDetectorImpl::detectColor(const cv::Mat &image
                                                             const int frameNr) {
 
     std::vector<cv::Mat> hsvChannels;
+    //split the HSV into 3 other Mat, one for each color channel
     split(image, hsvChannels);
 
-    int saturationHistogram[256];
-    int nrNonWhiteNonGrayPixels = 0;
-    computeSaturationHistogram(hsvChannels, saturationHistogram, nrNonWhiteNonGrayPixels);
+    int saturationHistogram[SATURATION_HISTOGRAM_SIZE];
+    int nrNonGrayPixels = 0;
+    computeSaturationHistogram(hsvChannels, saturationHistogram, nrNonGrayPixels);
 
     int nrWhitePixels = 0;
     for (int i = 0; i <= SATURATION_THRESHOLD; i++) {
         nrWhitePixels += saturationHistogram[i];
     }
 
-    float whitePixelRatio = (float) nrWhitePixels / nrNonWhiteNonGrayPixels;
+    float whitePixelRatio = (float) nrWhitePixels / nrNonGrayPixels;
 
     if (whitePixelRatio > whiteRatio) {
         //if the majority of the saturation values are in the "almost white" range of the saturation domain, then assume color is white
         if (debuggable && imageSaver != nullptr) {
             //print saturation histogram, if in debug mode
-            printOwnHistogram(saturationHistogram, 256, frameNr, regionInfo);
+            printOwnHistogram(saturationHistogram, SATURATION_HISTOGRAM_SIZE, frameNr, regionInfo);
             cv::cvtColor(image, image, cv::COLOR_HSV2BGR);
             imageSaver->saveImage(image, frameNr, regionInfo);
         }
@@ -61,6 +62,7 @@ RubikFacelet::Color HistogramColorDetectorImpl::detectColor(const cv::Mat &image
         uchar pixelHsvHue, pixelHsvValue;
         int hueHistogram[HUE_HISTOGRAM_SIZE];
         for (int i = 0; i < HUE_HISTOGRAM_SIZE; i++) {
+            //ensure all values are 0
             hueHistogram[i] = 0;
         }
         for (int i = 0; i < image.rows; i++) {
@@ -68,46 +70,54 @@ RubikFacelet::Color HistogramColorDetectorImpl::detectColor(const cv::Mat &image
                 pixelHsvHue = hsvChannels[HUE].at<uchar>(i, j);
                 pixelHsvValue = hsvChannels[VALUE].at<uchar>(i, j);
                 if (pixelHsvValue > MIN_HSV_VALUE_NON_GRAY) {
+                    //if the pixel has just enough color to not be considered gray scale, add it to the histogram
                     hueHistogram[pixelHsvHue]++;
                 }
             }
         }
 
+        //create 5 color buckets(white is excluded)
         HueColorEvidence colorEvidence[5] = {HueColorEvidence(RubikFacelet::Color::RED),
                                              HueColorEvidence(RubikFacelet::Color::ORANGE),
                                              HueColorEvidence(RubikFacelet::Color::YELLOW),
                                              HueColorEvidence(RubikFacelet::Color::GREEN),
                                              HueColorEvidence(RubikFacelet::Color::BLUE)};
 
+        //partition the values in the 5 color buckets 
+        //add the value at each histogram position as evidence to a particular color bucket
         for (int i = 0; i < HUE_HISTOGRAM_SIZE; i++) {
-            if (i >= 4 && i <= 18) {
+            if (i >= BUCKET_ORANGE_MIN_THRESHOLD && i <= BUCKET_ORANGE_MAX_THRESHOLD) {
                 colorEvidence[rbdt::asInt(RubikFacelet::Color::ORANGE)]
                         .evidence += hueHistogram[i];
-            } else if (i > 18 && i <= 39) {
+            } else if (i > BUCKET_YELLOW_MIN_THRESHOLD && i <= BUCKET_YELLOW_MAX_THRESHOLD) {
                 colorEvidence[rbdt::asInt(RubikFacelet::Color::YELLOW)]
                         .evidence += hueHistogram[i];
-            } else if (i > 39 && i <= 76) {
+            } else if (i > BUCKET_GREEN_MIN_THRESHOLD && i <= BUCKET_GREEN_MAX_THRESHOLD) {
                 colorEvidence[rbdt::asInt(RubikFacelet::Color::GREEN)]
                         .evidence += hueHistogram[i];
-            } else if (i > 76 && i <= 136) {
+            } else if (i > BUCKET_BLUE_MIN_THRESHOLD && i <= BUCKET_BLUE_MAX_THRESHOLD) {
                 colorEvidence[rbdt::asInt(RubikFacelet::Color::BLUE)]
                         .evidence += hueHistogram[i];
-            } else if ((i >= 171 && i <= 179) || (i >= 0 && i < 4)) {
+            } else if ((i >= BUCKET_RED_MIN_THRESHOLD_1 && i <= BUCKET_RED_MAX_THRESHOLD_1) ||
+                       (i >= BUCKET_RED_MIN_THRESHOLD_2 && i < BUCKET_RED_MAX_THRESHOLD_2)) {
                 colorEvidence[rbdt::asInt(RubikFacelet::Color::RED)]
                         .evidence += hueHistogram[i];
             }
         }
 
+        //sort the colors in descending evidence order
         std::sort(colorEvidence, colorEvidence + 5,
                   [](const HueColorEvidence &firstItem, const HueColorEvidence &secondItem) {
                       return firstItem.evidence > secondItem.evidence;
                   });
+
         if (debuggable && imageSaver != nullptr) {
-            printOwnHistogram(hueHistogram, 180, frameNr, regionInfo);
+            printOwnHistogram(hueHistogram, HUE_HISTOGRAM_SIZE, frameNr, regionInfo);
             cv::cvtColor(image, image, cv::COLOR_HSV2BGR);
             imageSaver->saveImage(image, frameNr, regionInfo);
         }
-        //return the color with most evidence
+
+        //return the color with most evidence,i.e. the first in the sorted evidence array
         return colorEvidence[0].color;
     }
 }
@@ -120,9 +130,6 @@ bool HistogramColorDetectorImpl::isDebuggable() const {
     return debuggable;
 }
 
-/**
-Print the histogram and also specify the row & column of the printed sticker
-*/
 void HistogramColorDetectorImpl::printOwnHistogram(const int hist[], const int histogramSize,
                                                    const int frameNumber,
                                                    const int regionId) const {
@@ -146,10 +153,9 @@ void HistogramColorDetectorImpl::printOwnHistogram(const int hist[], const int h
     imageSaver->saveImage(histImage, frameNumber, regionId);
 }
 
-void
-HistogramColorDetectorImpl::computeSaturationHistogram(const std::vector<cv::Mat> &hsvChannels,
-                                                       int *saturationHistogram,
-                                                       int &nrNonWhiteNonGrayPixels) const {
+void HistogramColorDetectorImpl::computeSaturationHistogram(const std::vector<cv::Mat> &hsvChannels,
+                                                            int *saturationHistogram,
+                                                            int &nrNonGrayPixels) const {
     uchar pixelHsvSaturation, pixelHsvValue;
     for (int i = 0; i < SATURATION_HISTOGRAM_SIZE; i++) {
         saturationHistogram[i] = 0;
@@ -164,7 +170,7 @@ HistogramColorDetectorImpl::computeSaturationHistogram(const std::vector<cv::Mat
                 saturationHistogram[pixelHsvSaturation]++;
             }
             if (pixelHsvValue > MIN_HSV_VALUE_NON_GRAY) {
-                nrNonWhiteNonGrayPixels++;
+                nrNonGrayPixels++;
             }
         }
     }

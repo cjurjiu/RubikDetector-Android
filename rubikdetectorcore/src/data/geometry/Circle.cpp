@@ -11,8 +11,6 @@ Circle::Circle() : center(cv::Point2i(0, 0)), radius(0),
                    area(0), angle(0), originalRectWidth(0),
                    originalRectHeight(0) {}
 
-Circle::Circle(const Circle &original) : Circle(original, cv::Point(0, 0)) {}
-
 Circle::Circle(const Circle &original, const cv::Point2f &centerOffset) {
     center = original.center + centerOffset;
     radius = original.radius;

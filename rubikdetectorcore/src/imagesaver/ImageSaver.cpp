@@ -23,8 +23,9 @@ bool ImageSaver::saveImage(const cv::Mat &mat, const int frameNumber, const int 
     return saveImage(mat, frameNumber, regionIdStringStream.str());
 }
 
-bool
-ImageSaver::saveImage(const cv::Mat &mat, const int frameNumber, const std::string regionName) {
+bool ImageSaver::saveImage(const cv::Mat &mat,
+                           const int frameNumber,
+                           const std::string regionName) {
     std::stringstream frameNrStringStream;
     frameNrStringStream << frameNumber;
     std::string store_path = path + "/pic_" + frameNrStringStream.str() + "_" + regionName + ".jpg";

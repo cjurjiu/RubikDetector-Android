@@ -108,9 +108,8 @@ std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorImpl::detect(
                   "SimpleFaceletsDetectorBehavior - after filter. Found %d inner circles.",
                   filteredRectanglesInnerCircles.size());
     }
-    Circle referenceCircle;
     for (int i = 0; i < filteredRectanglesInnerCircles.size(); i++) {
-        referenceCircle = filteredRectanglesInnerCircles[i];
+        Circle referenceCircle = filteredRectanglesInnerCircles[i];
         //test each and every rectangle
         std::vector<Circle> potentialFacelets = findPotentialFacelets(referenceCircle,
                                                                       filteredRectanglesInnerCircles,
@@ -126,7 +125,7 @@ std::vector<std::vector<RubikFacelet>> SimpleFaceletsDetectorImpl::detect(
             continue;
         }
 
-        float margin = getSmallestMargin(referenceCircle, potentialFacelets);
+        float margin = computeMargin(referenceCircle, potentialFacelets);
         std::vector<Circle> estimatedFacelets = estimateRemainingFaceletsPositions(referenceCircle,
                                                                                    margin);
 
@@ -257,8 +256,8 @@ void SimpleFaceletsDetectorImpl::filterContours(const std::vector<std::vector<cv
 //                         frameNumber, 1822);
 }
 
-float SimpleFaceletsDetectorImpl::getSmallestMargin(Circle referenceCircle,
-                                                    std::vector<Circle> validCircles) {
+float SimpleFaceletsDetectorImpl::computeMargin(Circle referenceCircle,
+                                                std::vector<Circle> validCircles) {
     float margin = 320.0f;
     for (int i = 0; i < validCircles.size(); i++) {
         Circle testedCircle = validCircles[i];
@@ -269,7 +268,6 @@ float SimpleFaceletsDetectorImpl::getSmallestMargin(Circle referenceCircle,
              referenceCircle.center.y + 3 * referenceCircle.radius + CIRCLE_DISTANCE_BUFFER)) {
             //if the center of the current rectangle/circle is  within the current reference, or is either too far from
             //the current rectangle (either to the left or to the right), then just skip it
-            //TODO replace magic number 2*10(pixels)
             continue;
         }
         float currentMargin = rbdt::pointsDistance(referenceCircle.center, testedCircle.center) -
@@ -286,15 +284,14 @@ std::vector<Circle> SimpleFaceletsDetectorImpl::findPotentialFacelets(
         const Circle &referenceCircle,
         const std::vector<Circle> &innerCircles,
         int referenceCircleIndex) const {
-    //only have rectangles that have an area similar to the initial one
-    Circle testedCircle;
+
+    //only have rectangles that have an area & orientation similar to the initial one
     std::vector<Circle> foundCircles;
     for (int j = 0; j < innerCircles.size(); j++) {
-        if (referenceCircleIndex != j) {
-            testedCircle = innerCircles[j];
-        } else {
+        if (referenceCircleIndex == j) {
             continue;
         }
+        Circle testedCircle = innerCircles[j];
         float maxArea = (float) std::max(referenceCircle.area, testedCircle.area);
         int minArea = std::min(referenceCircle.area, testedCircle.area);
         float ratio = maxArea / minArea;

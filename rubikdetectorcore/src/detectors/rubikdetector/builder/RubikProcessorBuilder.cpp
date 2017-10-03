@@ -42,7 +42,7 @@ RubikProcessorBuilder &RubikProcessorBuilder::colorDetector(
 }
 
 RubikProcessorBuilder &RubikProcessorBuilder::faceletsDetector(
-        std::unique_ptr<FaceletsDetector> faceletsDetector) {
+        std::unique_ptr<RubikFaceletsDetector> faceletsDetector) {
     mFaceletsDetector = std::move(faceletsDetector);
     return *this;
 }

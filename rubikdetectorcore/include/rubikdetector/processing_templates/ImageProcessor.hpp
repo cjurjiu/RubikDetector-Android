@@ -10,21 +10,20 @@
 namespace rbdt {
 
 /**
- * Interface which defines the basic capabilities of an Image Processor capable of detecting Rubik's Cube facelets.
+ * Template which defines a generic Image Processor capable of performing general purpose image processing.
  *
- * Implementations of this processor are required to be able to support, or partially support,
- * the data formats defined in ImageProcessor::ImageFormat, as both input & output. Additionally, it needs to support changes both to the
- * data format & to the size of the processed frame, after it has been instantiated, through ImageProcessor::updateImageProperties().
+ * Implementations of this processor are required to support changes to input & output image properties,
+ * after an instance of the concrete processor has been instantiated, through ImageProcessor::updateImageProperties().
  *
  * Frames will be processed through the ImageProcessor::process() method. This processor is designed with performance in mind. Hence,
- * ImageProcessor::process() is expected to receive a pointer to an unsigned int array large enough to store:
+ * ImageProcessor::process() is expected to receive an array data container with enough memory allocated to store:
  *   - the input frame;
  *   - the output frame;
  *   - certain additional frames used internally during processing.
  *
- * Because of these stringent memory requirements, each Processor implementation needs to compute its specific memory requirements and make them available
+ * Because of these memory requirements, each Processor implementation needs to compute its specific memory requirements and make them available
  * to clients through ImageProcessor::getRequiredMemory(). Since these requirements are dependent on the size & format of the input & output frames,
- * he value returned by ImageProcessor::getRequiredMemory() is expected to change  after a call to ImageProcessor::updateImageProperties().
+ * the value returned by ImageProcessor::getRequiredMemory() is expected to change  after a call to ImageProcessor::updateImageProperties().
  *
  * How the data will be organized by the Processor, within the array passed to ImageProcessor::process(), is implementation specific. However,
  * each subclass needs to be able to provide two things regarding this data:
@@ -36,6 +35,11 @@ namespace rbdt {
  * Additionally, it the processor also exposes the capability of the input frame to be overriden by the output frame, through
  * ImageProcessor::overrideInputFrameWithOutputFrame().
  *
+ * @tparam INPUT_TYPE the type of the input frame data. This can be either a data array (e.g. <i>const uint8_t *</i>) or a data object which
+ * contains a data array holding the image data.
+ * @tparam IMAGE_PROPERTIES_TYPE type of the data class that holds the image properties of the input & output frame. This is expected to contain data such as:
+ * the input/output frame width/height, image format, color space, etc.
+ * @tparam RESULT_TYPE the type of the result
  */
 template<typename INPUT_TYPE, typename IMAGE_PROPERTIES_TYPE, typename RESULT_TYPE>
 class ImageProcessor : public Debuggable {
@@ -47,19 +51,23 @@ public:
     virtual ~ImageProcessor() {}
 
     /**
-     * Processes the data present in the byte array. It expects the input frame data to be at the offset returned by ImageProcessor::getInputFrameBufferOffset(), and
+     * Processes the data present in the input type. The input type is expected to be either an array, or contain an array of size equal to the value
+     * returned by ImageProcessor::getRequiredMemory().
+     *
+     * Within this data array, the input frame data is required to be at the offset returned by ImageProcessor::getInputFrameBufferOffset(), and
      * to have a byte length equal to ImageProcessor::getInputFrameByteCount().
      *
-     * If the input frame is modified during processing, the results of these modifications will be present as an "output frame", which will be written in the input
-     * frame data array at an offset equal to ImageProcessor::getOutputFrameBufferOffset(), and will have a byte length equal to ImageProcessor::getOutputFrameByteCount().
+     * If the input frame is modified during processing (e.g. shapes are drawn over the input frame), the results of these modifications will be
+     * present as an "output frame". This output frame will be written back in the data array at an offset equal to ImageProcessor::getOutputFrameBufferOffset(),
+     * and will have a byte length equal to ImageProcessor::getOutputFrameByteCount().
      *
      * @param [in/out] imageData.
-     * @return nullptr if facelets are not detected in the current frame, or a 3x3 std::vector<> of RubikFacelet which contains the found facelets.
+     * @return nullptr if nothing is detected in the current frame, or RESULT_TYPE if something is found.
      */
     virtual RESULT_TYPE process(INPUT_TYPE inputFrame)=0;
 
     /**
-     * Use to notify that the frame size, or the format of the either the input or output frame has changed.
+     * Notifies the Processor that the frame size, format or other image property of the either the input or output frame has changed.
      *
      * This causes the processor to recompute its required memory & update the memory layout used when ImageProcessor::process() is called. As a
      * consequence, following this call, the output of the following methods might change:
@@ -69,31 +77,33 @@ public:
      *   - ImageProcessor::getInputFrameByteCount()
      *   - ImageProcessor::getInputFrameBufferOffset()
      *
-     * @param imageProperties an instance of updated ImageProperties.
+     * @param imageProperties an implementation specific image properties data holder, IMAGE_PROPERTIES_TYPE, which contains updated values.
      */
     virtual void updateImageProperties(IMAGE_PROPERTIES_TYPE imageProperties)=0;
 
     /**
-     * Overrides the input frame data from the byte array received as a parameters, with the output frame data.
+     * Overrides the input frame data from the INPUT_TYPE received as a parameter, with the output frame data.
      *
-     * If the input & output frames are stored in different image formats, then the output frame
-     * is first converted to the format of the input frame, and only after its data is copied over the input frame data.
+     * If the input & output frames are stored in different image formats, then the output frame  is first converted to the format of the
+     * input frame, and only after its data is copied over the input frame data.
      *
-     * This allocates no new memory, i.e. the converted output frame will be written in the byte array received as a parameter at
+     * This allocates no new memory, i.e. the converted output frame will be written in the INPUT_TYPE's array received as a parameter at
      * offset ImageProcessor::getInputFrameBufferOffset() and will have ImageProcessor::getInputFrameByteCount() bytes.
      *
-     * @param imageData byte array which stores at least the input & output frame data, has a size equal to ImageProcessor::getRequiredMemory()
-     * and has the input & output frames located at the locations provided by the methods in the references
+     * @param imageData INPUT_TYPE which is expected to be either a byte array (or a data object which has a byte array) that stores at least the
+     * input & output frame data, has a size equal to ImageProcessor::getRequiredMemory() and has the input & output frames located at the locations
+     * provided by the methods in the references
      *
-     * @see ImageProcessor::getOutputFrameBufferOffset()
-     * @see ImageProcessor::getOutputFrameByteCount()
+     * @see ImageProcessor::process()
      * @see ImageProcessor::getInputFrameByteCount()
      * @see ImageProcessor::getInputFrameBufferOffset()
+     * @see ImageProcessor::getOutputFrameByteCount()
+     * @see ImageProcessor::getOutputFrameBufferOffset()
      */
     virtual void overrideInputFrameWithOutputFrame(INPUT_TYPE imageData)=0;
 
     /**
-     * Returns the required size in bytes of the array passed to ImageProcessor::process(), given the ImageProperties currently set on the Processor.
+     * Returns the total required size in bytes of the array passed to ImageProcessor::process(), given the ImageProperties currently set on the Processor.
      *
      * The value returned here is recomputed each time ImageProcessor::updateImageProperties() is called.
      *

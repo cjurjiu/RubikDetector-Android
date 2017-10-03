@@ -14,7 +14,10 @@ class Mat;
 namespace rbdt {
 
 /**
- * Interface which defines a component capable of extracting the strongest color in a frame.
+ * @brief Interface which defines a component capable of extracting the predominant RubikFacelet::Color from an image containing a Rubik's Cube facelet.
+ * The input image is expected to be passed as a cv::Mat parameter to RubikColorDetector::detectColor().
+ *
+ * The exact method of extraction is implementation specific.
  */
 class RubikColorDetector : public ColorDetector<const cv::Mat &, RubikFacelet::Color> {
 public:

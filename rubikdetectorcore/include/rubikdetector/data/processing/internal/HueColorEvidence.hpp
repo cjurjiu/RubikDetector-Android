@@ -9,6 +9,9 @@
 
 namespace rbdt {
 
+/**
+ * Simple data class which connects a certain RubikFacelet::Color to an int representing evidence towards picking that color, for a particular facelet.
+ */
 class HueColorEvidence {
 
 public:

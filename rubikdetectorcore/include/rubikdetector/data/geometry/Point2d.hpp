@@ -7,6 +7,9 @@
 
 namespace rbdt {
 
+/**
+ * Simple data class representing a 2D Point.
+ */
 class Point2d {
 public:
     Point2d();
@@ -15,8 +18,14 @@ public:
 
     ~Point2d();
 
+    /**
+     * x of the point, offset in pixels from origin
+     */
     float x;
 
+    /**
+     * y of the point, offset in pixels from origin
+     */
     float y;
 };
 

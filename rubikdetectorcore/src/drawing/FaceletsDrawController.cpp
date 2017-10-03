@@ -18,7 +18,7 @@ FaceletsDrawController::~FaceletsDrawController() {
 }
 
 void FaceletsDrawController::drawResultToMat(cv::Mat &frame,
-                                             const std::vector<std::vector<RubikFacelet>> result) const {
+                                             const std::vector<std::vector<RubikFacelet>> facelets) const {
 
     switch (drawConfig.getDrawMode()) {
         case DrawConfig::DrawMode::DO_NOT_DRAW:
@@ -28,11 +28,11 @@ void FaceletsDrawController::drawResultToMat(cv::Mat &frame,
             }
             return;
         case DrawConfig::DrawMode::DRAW_RECTANGLES:
-            drawFoundFaceletsRectangles(frame, result, drawConfig.getStrokeWidth(),
+            drawFoundFaceletsRectangles(frame, facelets, drawConfig.getStrokeWidth(),
                                         drawConfig.isFillShape());
             break;
         case DrawConfig::DrawMode::DRAW_CIRCLES:
-            drawFoundFaceletsCircles(frame, result, drawConfig.getStrokeWidth(),
+            drawFoundFaceletsCircles(frame, facelets, drawConfig.getStrokeWidth(),
                                      drawConfig.isFillShape());
             break;
     }

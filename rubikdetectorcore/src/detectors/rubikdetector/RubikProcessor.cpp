@@ -10,7 +10,7 @@
 namespace rbdt {
 
 RubikProcessor::RubikProcessor(const ImageProperties imageProperties,
-                               std::unique_ptr<FaceletsDetector> faceletsDetector,
+                               std::unique_ptr<RubikFaceletsDetector> faceletsDetector,
                                std::unique_ptr<RubikColorDetector> colorDetector,
                                std::unique_ptr<FaceletsDrawController> faceletsDrawController,
                                std::shared_ptr<ImageSaver> imageSaver)
