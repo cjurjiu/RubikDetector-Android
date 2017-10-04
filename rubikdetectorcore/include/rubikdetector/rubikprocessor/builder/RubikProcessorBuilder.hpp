@@ -8,11 +8,11 @@
 
 #include <bits/unique_ptr.h>
 #include <memory>
-#include "../../colordetector/RubikColorDetector.hpp"
-#include "../../faceletsdetector/RubikFaceletsDetector.hpp"
-#include "../../../imagesaver/ImageSaver.hpp"
+#include "../../detectors/colordetector/RubikColorDetector.hpp"
+#include "../../detectors/faceletsdetector/RubikFaceletsDetector.hpp"
+#include "../../imagesaver/ImageSaver.hpp"
 #include "../RubikProcessor.hpp"
-#include "../../../data/config/DrawConfig.hpp"
+#include "../../data/config/DrawConfig.hpp"
 
 namespace rbdt {
 /**
@@ -31,7 +31,7 @@ namespace rbdt {
  *   - ImageSaver: nullptr
  *   - debuggable: false
  *
- * See various methods customizing the properties before building the desire RubikProcessor.
+ * See various methods customizing the properties before building the desired RubikProcessor.
  *
  */
 class RubikProcessorBuilder {
@@ -114,6 +114,7 @@ public:
      * @param [in] imageSaver instance of a ImageSaver
      * @return the same RubikProcessorBuilder instance
      */
+    //TODO get string, build the ImageSaver internally. Do not expose the ImageSaver to the API.
     RubikProcessorBuilder &imageSaver(std::shared_ptr<ImageSaver> imageSaver);
 
     /**

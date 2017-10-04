@@ -7,7 +7,7 @@
 #include "../../rubikdetectorcore/include/rubikdetector/imagesaver/ImageSaver.hpp"
 #include "../../rubikdetectorcore/include/rubikdetector/utils/CrossLog.hpp"
 #include "../../rubikdetectorcore/include/rubikdetector/utils/Utils.hpp"
-#include "../../rubikdetectorcore/include/rubikdetector/detectors/rubikdetector/builder/RubikProcessorBuilder.hpp"
+#include "../../rubikdetectorcore/include/rubikdetector/rubikprocessor/builder/RubikProcessorBuilder.hpp"
 #include "../../rubikdetectorcore/include/rubikdetector/data/config/ImageProperties.hpp"
 #include "../include/RubikDetectorJniUtils.hpp"
 

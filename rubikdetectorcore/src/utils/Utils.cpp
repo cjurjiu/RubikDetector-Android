@@ -8,6 +8,7 @@
 #include "../../include/rubikdetector/utils/Utils.hpp"
 
 namespace rbdt {
+
 float pointsDistance(const cv::Point2f &firstPoint, const cv::Point2f &secondPoint) {
     return std::sqrt((firstPoint.x - secondPoint.x) * (firstPoint.x - secondPoint.x) +
                      (firstPoint.y - secondPoint.y) * (firstPoint.y - secondPoint.y));

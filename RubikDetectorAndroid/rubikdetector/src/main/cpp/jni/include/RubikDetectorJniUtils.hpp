@@ -7,7 +7,7 @@
 
 #include "../../rubikdetectorcore/include/rubikdetector/data/processing/RubikFacelet.hpp"
 #include "../../rubikdetectorcore/include/rubikdetector/data/config/DrawConfig.hpp"
-#include "../../rubikdetectorcore/include/rubikdetector/detectors/rubikdetector/RubikProcessor.hpp"
+#include "../../rubikdetectorcore/include/rubikdetector/rubikprocessor/RubikProcessor.hpp"
 
 namespace rbdt_jni {
 

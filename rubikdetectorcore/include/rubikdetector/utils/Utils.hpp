@@ -15,36 +15,54 @@ class Mat;
 }
 
 namespace rbdt {
+
 /**
- *
- * @param firstPoint
- * @param secondPoint
- * @return
+ * Computes the distance between two points, in pixels.
+ * @param [in] firstPoint
+ * @param [in] secondPoint
+ * @return the distance between the points, in pixels.
  */
 float pointsDistance(const cv::Point2f &firstPoint, const cv::Point2f &secondPoint);
 
 /**
+ * Save the image data stored in the cv::Mat parameter, as a JPEG at the specified path.
  *
- * @param mat
- * @param path
- * @param frameNumber
- * @param regionId
- * @return
+ * The saved image will have the following name:
+ * <pre>
+ * pic_<frameNumber>_<regionId>.jpg
+ * </pre>
+ *
+ * @param [in] mat the image data to save.
+ * @param [in] path the persistent storage location where the image will be saved.
+ * @param [in] frameNumber the frame number of the currently saved image, to be appended to the file name.
+ * @param [in] regionId a number used to uniquelly identify this image among others saved in the same frame. will be appended to the file name.
+ * @return true if saving was successful, false otherwise.
  */
 bool quickSaveImage(const cv::Mat &mat, const std::string path, const int frameNumber,
                     const int regionId);
 
 /**
+ * Returns an intuitive char given a RubikFacelet::Color. Useful when printing.
  *
- * @param colorInt
- * @return
+ * The matching between returned chars & RubiKFacelet::Color is the following:
+ *
+ *   - RubikFacelet::Color::RED returns: 'r';
+ *   - RubikFacelet::Color::ORANGE returns: 'o';
+ *   - RubikFacelet::Color::YELLOW returns: 'y';
+ *   - RubikFacelet::Color::GREEN returns: 'g';
+ *   - RubikFacelet::Color::BLUE returns: 'b';
+ *   - RubikFacelet::Color::WHITE returns: 'w';
+ *
+ * @param [in] colorInt
+ * @return a char representation of the RubikFacelet::Color
  */
 char colorIntToChar(const RubikFacelet::Color colorInt);
 
 /**
+ * Given the RubikFacelet::Color, return a cv::Scalar which can be used with the OpenCV drawing API.
  *
- * @param color
- * @return
+ * @param [in] color RubikFacelet::Color to be retrieved as a cv::Scalar
+ * @return a cv::Scalar representing the color
  */
 cv::Scalar getColorAsScalar(const RubikFacelet::Color color);
 
@@ -89,13 +107,13 @@ void drawCircles(cv::Mat &drawingCanvas, const std::vector<std::vector<Circle>> 
                  const bool fillArea = false);
 
 /**
- *
- * @return
+ * Computes the current time in miliseconds, since epoch.
+ * @return double
  */
 double getCurrentTimeMillis();
 
 /**
- *
+ * Encodes an ARGB frame to NV21.
  * @param inputArgb
  * @param outputNv21
  * @param width
@@ -104,7 +122,7 @@ double getCurrentTimeMillis();
 void encodeNV21(const cv::Mat &inputArgb, const cv::Mat &outputNv21, int width, int height);
 
 /**
- *
+ * Encodes an ARGB frame to NV12.
  * @param inputArgb
  * @param outputNv12
  * @param width

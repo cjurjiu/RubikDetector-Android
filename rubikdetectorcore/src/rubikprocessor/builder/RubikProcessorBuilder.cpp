@@ -2,10 +2,10 @@
 // Created by catalin on 06.09.2017.
 //
 
-#include "../../../../include/rubikdetector/detectors/rubikdetector/builder/RubikProcessorBuilder.hpp"
-#include "../../../../include/rubikdetector/detectors/faceletsdetector/SimpleFaceletsDetector.hpp"
-#include "../../../../include/rubikdetector/detectors/colordetector/HistogramColorDetector.hpp"
-#include "../../../../include/rubikdetector/data/config/ImageProperties.hpp"
+#include "../../../include/rubikdetector/rubikprocessor/builder/RubikProcessorBuilder.hpp"
+#include "../../../include/rubikdetector/detectors/faceletsdetector/SimpleFaceletsDetector.hpp"
+#include "../../../include/rubikdetector/detectors/colordetector/HistogramColorDetector.hpp"
+#include "../../../include/rubikdetector/data/config/ImageProperties.hpp"
 
 namespace rbdt {
 

@@ -2,13 +2,13 @@
 //
 
 #include <math.h>
-#include "../../../include/rubikdetector/detectors/rubikdetector/internal/RubikProcessorImpl.hpp"
+#include "../../include/rubikdetector/rubikprocessor/internal/RubikProcessorImpl.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
-#include "../../../include/rubikdetector/utils/Utils.hpp"
-#include "../../../include/rubikdetector/utils/CrossLog.hpp"
-#include "../../../include/rubikdetector/detectors/rubikdetector/RubikProcessor.hpp"
-#include "../../../include/rubikdetector/data/config/ImageProperties.hpp"
+#include "../../include/rubikdetector/utils/Utils.hpp"
+#include "../../include/rubikdetector/utils/CrossLog.hpp"
+#include "../../include/rubikdetector/rubikprocessor/RubikProcessor.hpp"
+#include "../../include/rubikdetector/data/config/ImageProperties.hpp"
 
 namespace rbdt {
 
