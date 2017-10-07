@@ -170,6 +170,7 @@ final class ProcessingThread extends HandlerThread implements Camera.PreviewCall
     private static final int SWITCH_DRAWING_TO_CPP = 4;
     private static final int SWITCH_DRAWING_TO_JAVA = 5;
     private static final int REDUNDANT_TEXTURE_ID = 13242;
+    private static final boolean IS_DEBUGGABLE = true;
 
     private final Object cleanupLock = new Object();
     private final SurfaceHolder surfaceHolder;
@@ -356,7 +357,7 @@ final class ProcessingThread extends HandlerThread implements Camera.PreviewCall
         }
 
         rubikDetector = new RubikDetector.Builder()
-                .debuggable(false)
+                .debuggable(IS_DEBUGGABLE)
                 .drawConfig(DrawConfig.FilledCircles())
                 .inputFrameSize(previewSize.width, previewSize.height)
                 .inputFrameFormat(LiveDetectionActivity.DEFAULT_IMAGE_FORMAT)
@@ -411,7 +412,7 @@ final class ProcessingThread extends HandlerThread implements Camera.PreviewCall
         RubikDetector oldRubikDetector = rubikDetector;
         rubikDetector = new RubikDetector.Builder()
                 .drawConfig(DrawConfig.DoNotDraw())
-                .debuggable(false)
+                .debuggable(IS_DEBUGGABLE)
                 .inputFrameFormat(LiveDetectionActivity.DEFAULT_IMAGE_FORMAT)
                 .inputFrameSize(previewSize.width, previewSize.height)
                 .build();
@@ -423,7 +424,7 @@ final class ProcessingThread extends HandlerThread implements Camera.PreviewCall
         RubikDetector oldRubikDetector = rubikDetector;
         rubikDetector = new RubikDetector.Builder()
                 .drawConfig(DrawConfig.FilledCircles())
-                .debuggable(false)
+                .debuggable(IS_DEBUGGABLE)
                 .inputFrameFormat(LiveDetectionActivity.DEFAULT_IMAGE_FORMAT)
                 .inputFrameSize(previewSize.width, previewSize.height)
                 .build();
@@ -455,10 +456,10 @@ final class ProcessingThread extends HandlerThread implements Camera.PreviewCall
                         rubikDetector.getFrameHeight(),
                         surfaceHolder.getSurfaceFrame().width(),
                         surfaceHolder.getSurfaceFrame().height());
-                Log.d("RubikResult", "drawing facelets!");
+                Log.d(TAG, "drawing facelets!");
                 RubikDetectorUtils.drawFaceletsAsRectangles(facelets, canvas, paint);
             } else {
-                Log.d("RubikResult", "facelets are null!");
+                Log.d(TAG, "facelets are null!");
             }
         } catch (Exception e) {
             Log.w(TAG, "Exception while rendering", e);

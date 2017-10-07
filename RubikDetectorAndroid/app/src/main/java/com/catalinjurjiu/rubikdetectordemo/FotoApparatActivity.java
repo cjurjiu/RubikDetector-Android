@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 
 import com.catalinjurjiu.rubikdetector.RubikDetector;
+import com.catalinjurjiu.rubikdetector.config.DrawConfig;
 import com.catalinjurjiu.rubikdetector.fotoapparatconnector.RubikDetectorFrameProcessor;
 import com.catalinjurjiu.rubikdetector.fotoapparatconnector.RubikDetectorSizeSelector;
 import com.catalinjurjiu.rubikdetector.fotoapparatconnector.view.RubikDetectorResultView;
@@ -23,8 +24,7 @@ public class FotoApparatActivity extends Activity {
         setContentView(R.layout.activity_foto_apparat);
 
         rubikDetector = new RubikDetector.Builder()
-                .imageSavePath(null)
-//                .imageSavePath("/storage/emulated/0/RubikResults")
+                .drawConfig(DrawConfig.FilledCircles())
                 .debuggable(true)
                 .build();
 

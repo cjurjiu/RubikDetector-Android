@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 
 import com.catalinjurjiu.rubikdetector.RubikDetector;
+import com.catalinjurjiu.rubikdetector.config.DrawConfig;
 import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
 
 import java.io.File;
@@ -28,6 +29,7 @@ public class SinglePhotoActivity extends Activity {
     private ImageView imageView;
     private RubikDetector rubikDetector;
     private String mCurrentPhotoPath;
+    private String TAG = SinglePhotoActivity.class.getSimpleName();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -51,10 +53,8 @@ public class SinglePhotoActivity extends Activity {
             }
         });
         rubikDetector = new RubikDetector.Builder()
-                .imageSavePath(null)
-//                .imageSavePath("/storage/emulated/0/RubikResults")
                 .debuggable(true)
-                .drawConfig(null)
+                .drawConfig(DrawConfig.FilledCircles())
                 .build();
     }
 
@@ -75,12 +75,13 @@ public class SinglePhotoActivity extends Activity {
 
                 ByteBuffer byteBuffer = ByteBuffer.allocateDirect(rubikDetector.getRequiredMemory());
                 photoBitmap.copyPixelsToBuffer(byteBuffer);
-                RubikFacelet[][] result = rubikDetector.findCube(byteBuffer.array());
+//                RubikFacelet[][] result = rubikDetector.findCube(byteBuffer.array());
+                RubikFacelet[][] result = rubikDetector.findCube(byteBuffer);
                 byteBuffer.rewind();
                 photoBitmap.copyPixelsFromBuffer(byteBuffer);
                 imageView.setImageBitmap(photoBitmap);
                 if (result != null) {
-                    Log.d("Cata", "Cube found!");
+                    Log.d(TAG, "Cube found!");
                 }
             }
         }

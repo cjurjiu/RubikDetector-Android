@@ -19,11 +19,11 @@
 #include <memory>
 
 namespace rbdt {
-class OnCubeDetectionResultListener;
+    class OnCubeDetectionResultListener;
 
-class RubikFacelet;
+    class RubikFacelet;
 
-class ImageProperties;
+    class ImageProperties;
 
 /**
  * Class to which a RubikProcessor delegates its work to.
@@ -61,244 +61,244 @@ class ImageProperties;
  *
  * @see RubikProcessor
  */
-class RubikProcessorImpl
-        : public ImageProcessor<const uint8_t *, const ImageProperties &, std::vector<std::vector<RubikFacelet>>> {
-public:
-    virtual ~RubikProcessorImpl();
+    class RubikProcessorImpl
+            : public ImageProcessor<const uint8_t *, const ImageProperties &, std::vector<std::vector<RubikFacelet>>> {
+    public:
+        virtual ~RubikProcessorImpl();
 
-    /**
-     * @copydoc RubikProcessor::process()
-     */
-    std::vector<std::vector<RubikFacelet>> process(const uint8_t *imageData) override;
+        /**
+         * @copydoc RubikProcessor::process()
+         */
+        std::vector<std::vector<RubikFacelet>> process(const uint8_t *imageData) override;
 
-    void updateImageProperties(const ImageProperties &imageProperties) override;
+        void updateImageProperties(const ImageProperties &imageProperties) override;
 
-    void overrideInputFrameWithOutputFrame(const uint8_t *imageData) override;
+        void overrideInputFrameWithOutputFrame(const uint8_t *imageData) override;
 
-    int getRequiredMemory() override;
+        int getRequiredMemory() override;
 
-    int getOutputFrameBufferOffset() override;
+        int getOutputFrameBufferOffset() override;
 
-    int getOutputFrameByteCount() override;
+        int getOutputFrameByteCount() override;
 
-    int getInputFrameByteCount() override;
+        int getInputFrameByteCount() override;
 
-    int getInputFrameBufferOffset() override;
+        int getInputFrameBufferOffset() override;
 
-    void setDebuggable(const bool isDebuggable) override;
+        void setDebuggable(const bool isDebuggable) override;
 
-    bool isDebuggable() const override;
+        bool isDebuggable() const override;
 
-    /**
-     * @copydoc RubikProcessor::updateDrawConfig()
-     */
-    void updateDrawConfig(DrawConfig drawConfig);
+        /**
+         * @copydoc RubikProcessor::updateDrawConfig()
+         */
+        void updateDrawConfig(DrawConfig drawConfig);
 
-private:
-    friend class RubikProcessor;
+    private:
+        friend class RubikProcessor;
 
-    /**
-     * Private constructor only called by the RubikProcessor.
-     * @param imageProperties ImageProperties object representing the initial image properties.
-     * @param faceletsDetector RubikFaceletsDetector which will be used to detect the Rubik's Cube facelets
-     * @param colorDetector RubikColorDetector used to detect the facelets colors
-     * @param drawController FaceletsDrawController used to draw the result over the image
-     * @param imageSaver ImageSaver used to save debug frames on disk, if the processor is is debug mode
-     * @return a RubikProcessorImpl
-     */
-    RubikProcessorImpl(const ImageProperties imageProperties,
-                       std::unique_ptr<RubikFaceletsDetector> faceletsDetector,
-                       std::unique_ptr<RubikColorDetector> colorDetector,
-                       std::unique_ptr<FaceletsDrawController> faceletsDrawController,
-                       std::shared_ptr<ImageSaver> imageSaver);
+        /**
+         * Private constructor only called by the RubikProcessor.
+         * @param imageProperties ImageProperties object representing the initial image properties.
+         * @param faceletsDetector RubikFaceletsDetector which will be used to detect the Rubik's Cube facelets
+         * @param colorDetector RubikColorDetector used to detect the facelets colors
+         * @param drawController FaceletsDrawController used to draw the result over the image
+         * @param imageSaver ImageSaver used to save debug frames on disk, if the processor is is debug mode
+         * @return a RubikProcessorImpl
+         */
+        RubikProcessorImpl(const ImageProperties imageProperties,
+                           std::unique_ptr<RubikFaceletsDetector> faceletsDetector,
+                           std::unique_ptr<RubikColorDetector> colorDetector,
+                           std::unique_ptr<FaceletsDrawController> faceletsDrawController,
+                           std::shared_ptr<ImageSaver> imageSaver);
 
-    std::vector<std::vector<RubikFacelet>> findCubeInternal(const uint8_t *imageData);
+        std::vector<std::vector<RubikFacelet>> findCubeInternal(const uint8_t *imageData);
 
-    /**
-     * Extracts the color of each RubikFacelet in the array, then updates its color to match its detected color.
-     *
-     * This method relies on the RubikColorDetector instance associated with this RubikProcessor to detect the colors.
-     *
-     * @param [in] currentFrame The input frame which contains the detected facelet, which will be used to extract their colors.
-     * @param [in] facetModel 3x3 std::vector of detected facelets.
-     *
-     * @return a 3x3 std::vector of RubikFacelet object with their correct colors set.
-     */
-    std::vector<std::vector<RubikFacelet::Color>> detectFacetColors(const cv::Mat &currentFrame,
-                                                                    const std::vector<std::vector<RubikFacelet>> facetModel);
+        /**
+         * Extracts the color of each RubikFacelet in the array, then updates its color to match its detected color.
+         *
+         * This method relies on the RubikColorDetector instance associated with this RubikProcessor to detect the colors.
+         *
+         * @param [in] currentFrame The input frame which contains the detected facelet, which will be used to extract their colors.
+         * @param [in] facetModel 3x3 std::vector of detected facelets.
+         *
+         * @return a 3x3 std::vector of RubikFacelet object with their correct colors set.
+         */
+        std::vector<std::vector<RubikFacelet::Color>> detectFacetColors(const cv::Mat &currentFrame,
+                                                                        const std::vector<std::vector<RubikFacelet>> facetModel);
 
-    /**
-     * Applies the colors in the color array, to the facelets in the facelets array.
-     *
-     * @param [in/out] facelets that will be updated with correct color
-     * @param colors the detected facelets color.
-     */
-    void applyColorsToResult(std::vector<std::vector<RubikFacelet>> &facelets,
-                             const std::vector<std::vector<RubikFacelet::Color>> colors);
+        /**
+         * Applies the colors in the color array, to the facelets in the facelets array.
+         *
+         * @param [in/out] facelets that will be updated with correct color
+         * @param colors the detected facelets color.
+         */
+        void applyColorsToResult(std::vector<std::vector<RubikFacelet>> &facelets,
+                                 const std::vector<std::vector<RubikFacelet::Color>> colors);
 
-    /**
-     * Upscales the detected facelets positions to match the resolution of the desired output frame.
-     *
-     * This is necessary because processing is typically performed at resolutions lower that the desired output resolution,
-     * for performance  considerations. Give this, the result is not usable, without first upscaling it to the desired
-     * resolution.
-     *
-     * @param facelets 3x3 std::vector of detected RubikFacelet objects, to be upscaled
-     */
-    void upscaleResult(std::vector<std::vector<RubikFacelet>> &facelets);
+        /**
+         * Upscales the detected facelets positions to match the resolution of the desired output frame.
+         *
+         * This is necessary because processing is typically performed at resolutions lower that the desired output resolution,
+         * for performance  considerations. Give this, the result is not usable, without first upscaling it to the desired
+         * resolution.
+         *
+         * @param facelets 3x3 std::vector of detected RubikFacelet objects, to be upscaled
+         */
+        void upscaleResult(std::vector<std::vector<RubikFacelet>> &facelets);
 
-    /**
-     * Applies updated ImageProperties to this processor. This promts the RubikProcessor to recompute its memory requirements,
-     * scaling factors, processing size, and others.
-     *
-     * @param properties updated ImageProperties
-     */
-    void applyImageProperties(const ImageProperties &properties);
+        /**
+         * Applies updated ImageProperties to this processor. This promts the RubikProcessor to recompute its memory requirements,
+         * scaling factors, processing size, and others.
+         *
+         * @param properties updated ImageProperties
+         */
+        void applyImageProperties(const ImageProperties &properties);
 
-    /**
-     * Detector used to search for facelets within the frame
-     */
-    std::unique_ptr<RubikFaceletsDetector> faceletsDetector;
+        /**
+        * Just a value representing that there is no need to perform any conversion on the current frame.
+        *
+        * The exact value of the int is not important. It just needs to differ from any of the codes used by cv::cvtColor(...)
+        */
+        static constexpr int NO_CONVERSION_NEEDED = 2504;
 
-    /**
-     * Detector used to extract facelet colors from the frame, once found
-     */
-    std::unique_ptr<RubikColorDetector> colorDetector;
+        /**
+         * Default expected largest dimension(i.e. max(width, height)) of the input frame.
+         */
+        static constexpr int DEFAULT_DIMENSION = 320;
 
-    /**
-     * Component used to draw the facelets on the output frame, if required
-     */
-    std::unique_ptr<FaceletsDrawController> faceletsDrawController;
+        static constexpr int NO_OFFSET = 0;
 
-    /**
-     * Used to save debugging frames, if present and this RubikProcessor is is debuggable mode.
-     */
-    std::shared_ptr<ImageSaver> imageSaver;
+        /**
+         * Detector used to search for facelets within the frame
+         */
+        std::unique_ptr<RubikFaceletsDetector> faceletsDetector;
 
-    /**
-     * Just a value representing that there is no need to perform any conversion on the current frame.
-     *
-     * The exact value of the int is not important. It just needs to differ from any of the codes used by cv::cvtColor(...)
-     */
-    static constexpr int NO_CONVERSION_NEEDED = 2504;
+        /**
+         * Detector used to extract facelet colors from the frame, once found
+         */
+        std::unique_ptr<RubikColorDetector> colorDetector;
 
-    /**
-     * Default expected largest dimension(i.e. max(width, height)) of the input frame.
-     */
-    static constexpr int DEFAULT_DIMENSION = 320;
+        /**
+         * Component used to draw the facelets on the output frame, if required
+         */
+        std::unique_ptr<FaceletsDrawController> faceletsDrawController;
 
-    static constexpr int NO_OFFSET = 0;
+        /**
+         * Used to save debugging frames, if present and this RubikProcessor is is debuggable mode.
+         */
+        std::shared_ptr<ImageSaver> imageSaver;
 
-    /**
-     * used to compute the processing frame rate
-     */
-    int frameNumber = 0;
+        /**
+         * used to compute the processing frame rate
+         */
+        int frameNumber = 0;
 
-    /**
-     * used to compute the processing frame rate
-     */
-    int frameRateSum = 0;
+        /**
+         * used to compute the processing frame rate
+         */
+        int frameRateSum = 0;
 
-    bool debuggable = false;
+        bool debuggable = false;
 
-    /**
-     * input & output frame height
-     */
-    int imageHeight;
+        /**
+         * input & output frame height
+         */
+        int imageHeight;
 
-    /**
-     * input & output frame width
-     */
-    int imageWidth;
+        /**
+         * input & output frame width
+         */
+        int imageWidth;
 
-    /**
-     * total required length in bytes of the input array passed to RubikProcessor::process()
-     *
-     * @see RubikProcessor::getRequiredMemory()
-     */
-    int totalRequiredMemory;
+        /**
+         * total required length in bytes of the input array passed to RubikProcessor::process()
+         *
+         * @see RubikProcessor::getRequiredMemory()
+         */
+        int totalRequiredMemory;
 
-    /**
-     * @see RubikProcessor::getOutputFrameBufferOffset()
-     */
-    int outputRgbaImageOffset;
+        /**
+         * @see RubikProcessor::getOutputFrameBufferOffset()
+         */
+        int outputRgbaImageOffset;
 
-    /**
-     * @see RubikProcessor::getOutputFrameByteCount()
-     */
-    int outputRgbaImageByteCount;
+        /**
+         * @see RubikProcessor::getOutputFrameByteCount()
+         */
+        int outputRgbaImageByteCount;
 
-    /**
-     * @see RubikProcessor::getInputFrameBufferOffset()
-     */
-    int inputImageOffset;
+        /**
+         * @see RubikProcessor::getInputFrameBufferOffset()
+         */
+        int inputImageOffset;
 
-    /**
-     * @see RubikProcessor::getInputFrameByteCount()
-     */
-    int inputImageByteCount;
+        /**
+         * @see RubikProcessor::getInputFrameByteCount()
+         */
+        int inputImageByteCount;
 
-    /**
-     * ratio used to upscale the detected facelets to the resolution of the output frame
-     */
-    float upscalingRatio;
+        /**
+         * ratio used to upscale the detected facelets to the resolution of the output frame
+         */
+        float upscalingRatio;
 
-    /**
-     * ratio used to downscale the input frame to a size fit for processing
-     */
-    float downscalingRatio;
+        /**
+         * ratio used to downscale the input frame to a size fit for processing
+         */
+        float downscalingRatio;
 
-    /**
-     * basically max(inputFrameWidth, inputFrameHeight)
-     */
-    int largestDimension;
+        /**
+         * basically max(inputFrameWidth, inputFrameHeight)
+         */
+        int largestDimension;
 
-    /**
-     * computed width of the processing frame width
-     */
-    int processingWidth;
+        /**
+         * computed width of the processing frame width
+         */
+        int processingWidth;
 
-    /**
-     * computed width of the processing frame height
-     */
-    int processingHeight;
+        /**
+         * computed width of the processing frame height
+         */
+        int processingHeight;
 
-    /**
-     * true if the given input frame is too large, and should be downscaled to a lower resolution,
-     * with lower impact on processing (i.e. the "processing size")
-     */
-    bool needsResize;
+        /**
+         * true if the given input frame is too large, and should be downscaled to a lower resolution,
+         * with lower impact on processing (i.e. the "processing size")
+         */
+        bool needsResize;
 
-    /**
-     * the offset in the input array where the processing frame (RGBA) will be saved while processing
-     */
-    int processingRgbaImageOffset;
+        /**
+         * the offset in the input array where the processing frame (RGBA) will be saved while processing
+         */
+        int processingRgbaImageOffset;
 
-    /**
-     * the size in bytes of the RGBA processing frame
-     */
-    int processingRgbaImageByteCount;
+        /**
+         * the size in bytes of the RGBA processing frame
+         */
+        int processingRgbaImageByteCount;
 
-    /**
-     * the offset in the input array where the processing frame (GRAYSCALE) will be saved while processing
-     */
-    int processingGrayImageOffset;
+        /**
+         * the offset in the input array where the processing frame (GRAYSCALE) will be saved while processing
+         */
+        int processingGrayImageOffset;
 
-    /**
-     * the size in bytes of the GRAYSCALE processing frame
-     */
-    int processingGrayImageSize;
+        /**
+         * the size in bytes of the GRAYSCALE processing frame
+         */
+        int processingGrayImageSize;
 
-    /**
-     * the image format of the input frame.
-     */
-    RubikProcessor::ImageFormat inputImageFormat;
+        /**
+         * the image format of the input frame.
+         */
+        RubikProcessor::ImageFormat inputImageFormat;
 
-    /**
-     * the opencv value passed to cv::cvtColor when changing color from the input frame format to the output frame format
-     */
-    int cvColorConversionCode;
-};
+        /**
+         * the opencv value passed to cv::cvtColor when changing color from the input frame format to the output frame format
+         */
+        int cvColorConversionCode;
+    };
 
 } //namespace rbdt
 #endif //RUBIKDETECTOR_RUBIKPROCESSORIMPL_HPP
