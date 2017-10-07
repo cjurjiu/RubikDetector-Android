@@ -43,18 +43,6 @@ public class LiveDetectionActivity extends Activity implements SurfaceHolder.Cal
     private ProcessingThread processingThread;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.layout_activity_continuous_processing);
-        setTitle(null);
-        surfaceHolder = ((SurfaceView) findViewById(R.id.camera_surface_view)).getHolder();
-        surfaceHolder.addCallback(this);
-
-        processingThread = new ProcessingThread("RubikProcessingThread", surfaceHolder);
-        processingThread.start();
-    }
-
-    @Override
     public void surfaceCreated(SurfaceHolder holder) {
         Log.w(TAG, "surfaceCreated");
     }
@@ -72,6 +60,38 @@ public class LiveDetectionActivity extends Activity implements SurfaceHolder.Cal
     public void surfaceDestroyed(SurfaceHolder holder) {
         Log.d(TAG, "surfaceDestroyed. calling stop camera and rendering");
         processingThread.performCleanup();
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.layout_activity_continuous_processing);
+        setTitle(null);
+        surfaceHolder = ((SurfaceView) findViewById(R.id.camera_surface_view)).getHolder();
+        surfaceHolder.addCallback(this);
+
+        processingThread = new ProcessingThread("RubikProcessingThread", surfaceHolder);
+        processingThread.start();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG, "onDestroy - cleanup.");
+        surfaceHolder.removeCallback(this);
+        try {
+            processingThread.performCleanup();
+            Log.d(TAG, "calling quit!");
+            //after cleanup, call quit
+            processingThread.quit();
+            Log.d(TAG, "now calling join!");
+            //then wait for the thread to finish
+            processingThread.join();
+            Log.d(TAG, "after join!");
+        } catch (InterruptedException e) {
+            Log.d(TAG, "onDestroy - exception when waiting for the processing thread to finish.", e);
+        }
+        Log.d(TAG, "calling super.onDestroy!");
+        super.onDestroy();
     }
 
     @Override
@@ -97,26 +117,6 @@ public class LiveDetectionActivity extends Activity implements SurfaceHolder.Cal
                 break;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onDestroy() {
-        Log.d(TAG, "onDestroy - cleanup.");
-        surfaceHolder.removeCallback(this);
-        try {
-            processingThread.performCleanup();
-            Log.d(TAG, "calling quit!");
-            //after cleanup, call quit
-            processingThread.quit();
-            Log.d(TAG, "now calling join!");
-            //then wait for the thread to finish
-            processingThread.join();
-            Log.d(TAG, "after join!");
-        } catch (InterruptedException e) {
-            Log.d(TAG, "onDestroy - exception when waiting for the processing thread to finish.", e);
-        }
-        Log.d(TAG, "calling super.onDestroy!");
-        super.onDestroy();
     }
 
     private void switchDrawingToJava() {
@@ -162,13 +162,14 @@ public class LiveDetectionActivity extends Activity implements SurfaceHolder.Cal
 
 final class ProcessingThread extends HandlerThread implements Camera.PreviewCallback {
 
+    private static final String TAG = ProcessingThread.class.getSimpleName();
     private static final int OPEN_CAMERA = 0;
     private static final int START_CAMERA = 1;
     private static final int PERFORM_CLEANUP = 2;
     private static final int UPDATE_PREVIEW_SIZE = 3;
     private static final int SWITCH_DRAWING_TO_CPP = 4;
     private static final int SWITCH_DRAWING_TO_JAVA = 5;
-    private static final String TAG = ProcessingThread.class.getSimpleName();
+    private static final int REDUNDANT_TEXTURE_ID = 13242;
 
     private final Object cleanupLock = new Object();
     private final SurfaceHolder surfaceHolder;
@@ -209,39 +210,6 @@ final class ProcessingThread extends HandlerThread implements Camera.PreviewCall
             renderFrameInternal(data);
         }
         camera.addCallbackBuffer(data);
-    }
-
-    @Override
-    protected void onLooperPrepared() {
-        super.onLooperPrepared();
-        this.backgroundHandler = new Handler(ProcessingThread.this.getLooper()) {
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-                switch (msg.what) {
-                    case OPEN_CAMERA:
-                        openCameraInternal();
-                        break;
-                    case START_CAMERA:
-                        startCameraInternal();
-                        break;
-                    case PERFORM_CLEANUP:
-                        performCleanupInternal();
-                        break;
-                    case UPDATE_PREVIEW_SIZE:
-                        updatePreviewSizeInternal(msg.arg1, msg.arg2);
-                        break;
-                    case SWITCH_DRAWING_TO_JAVA:
-                        switchDrawingToJavaInternal();
-                        break;
-                    case SWITCH_DRAWING_TO_CPP:
-                        switchDrawingToCppInternal();
-                        break;
-                    default:
-                        Log.d(TAG, "Handler default case:" + msg.what);
-                }
-            }
-        };
     }
 
     void openCamera() {
@@ -325,6 +293,39 @@ final class ProcessingThread extends HandlerThread implements Camera.PreviewCall
         }
     }
 
+    @Override
+    protected void onLooperPrepared() {
+        super.onLooperPrepared();
+        this.backgroundHandler = new Handler(ProcessingThread.this.getLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                switch (msg.what) {
+                    case OPEN_CAMERA:
+                        openCameraInternal();
+                        break;
+                    case START_CAMERA:
+                        startCameraInternal();
+                        break;
+                    case PERFORM_CLEANUP:
+                        performCleanupInternal();
+                        break;
+                    case UPDATE_PREVIEW_SIZE:
+                        updatePreviewSizeInternal(msg.arg1, msg.arg2);
+                        break;
+                    case SWITCH_DRAWING_TO_JAVA:
+                        switchDrawingToJavaInternal();
+                        break;
+                    case SWITCH_DRAWING_TO_CPP:
+                        switchDrawingToCppInternal();
+                        break;
+                    default:
+                        Log.d(TAG, "Handler default case:" + msg.what);
+                }
+            }
+        };
+    }
+
     private void openCameraInternal() {
         int cameraId = -1;
         Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
@@ -348,7 +349,7 @@ final class ProcessingThread extends HandlerThread implements Camera.PreviewCall
         camera.setParameters(cameraParameters);
 
         try {
-            surfaceTexture = new SurfaceTexture(13242);
+            surfaceTexture = new SurfaceTexture(REDUNDANT_TEXTURE_ID);
             camera.setPreviewTexture(surfaceTexture);
         } catch (IOException e) {
             Log.w(TAG, "error creating the texture", e);

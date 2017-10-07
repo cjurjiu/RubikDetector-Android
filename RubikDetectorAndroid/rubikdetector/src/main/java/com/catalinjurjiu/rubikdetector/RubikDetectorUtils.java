@@ -1,7 +1,6 @@
 package com.catalinjurjiu.rubikdetector;
 
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -11,12 +10,19 @@ import android.support.annotation.NonNull;
 import com.catalinjurjiu.rubikdetector.model.Point2d;
 import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
 
-/**
- * Created by catalin on 25.08.2017.
- */
 @SuppressWarnings("unused")
 public class RubikDetectorUtils {
 
+    /**
+     * Rescales the values & position of the detected facelets to match the new resolution.
+     *
+     * @param result         3x3 {@link RubikFacelet} array of previously detected facelets
+     * @param originalWidth  original image width, for which the facelets were detected
+     * @param originalHeight original image height, for which the facelets were detected
+     * @param newWidth       new image width
+     * @param newHeight      new image height
+     * @return a 3x3 array of scaled {@link RubikFacelet} objects that match the new desired image resolution.
+     */
     public static RubikFacelet[][] rescaleResults(RubikFacelet[][] result, int originalWidth, int originalHeight, int newWidth, int newHeight) {
 
         if (originalWidth > originalHeight != newWidth > newHeight) {
@@ -50,12 +56,24 @@ public class RubikDetectorUtils {
         return rescaledResults;
     }
 
+    /**
+     * Draws the facelets as empty rectangles, on the received canvas, with the specified paint.
+     * <p>
+     * For each facelet, the paint color is overwritten with the facelet's color.
+     * <p>
+     * This internally allocates a path.
+     *
+     * @param facelets a 3x3 array of {@link RubikFacelet}s which need to be drawn
+     * @param canvas   the {@link Canvas} in which the drawing will be performed
+     * @param paint    the {@link Paint} used to draw the facelets. Its color will be overwritten by each facelet,
+     *                 s.t. each facelet is drawn with its correct color.
+     */
     public static void drawFaceletsAsRectangles(RubikFacelet[][] facelets, Canvas canvas, Paint paint) {
         Path path = new Path();
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 paint.setColor(getAndroidColor(facelets[i][j]));
-                Point2d[] points = facelets[i][j].getPoints();
+                Point2d[] points = facelets[i][j].corners();
                 path.reset();
 
                 path.moveTo(points[0].x, points[0].y);
@@ -75,6 +93,18 @@ public class RubikDetectorUtils {
         }
     }
 
+    /**
+     * Draws the facelets as empty or filled circles, on the received canvas, with the specified paint. To draw the facelets
+     * as filled circles, specify {@link Paint.Style#FILL_AND_STROKE} or {@link Paint.Style#FILL} as the paint's style.
+     * <p>
+     * For each facelet, the paint color is overwritten with the facelet's color.
+     * <p>
+     *
+     * @param facelets a 3x3 array of {@link RubikFacelet}s which need to be drawn
+     * @param canvas   the {@link Canvas} in which the drawing will be performed
+     * @param paint    the {@link Paint} used to draw the facelets. Its color will be overwritten by each facelet,
+     *                 s.t. each facelet is drawn with its correct color.
+     */
     public static void drawFaceletsAsCircles(RubikFacelet[][] facelets, Canvas canvas, Paint paint) {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
@@ -85,26 +115,38 @@ public class RubikDetectorUtils {
         }
     }
 
+    /**
+     * Translates the color of a {@link RubikFacelet} to an Android {@link android.graphics.Color}.
+     *
+     * @param rubikFacelet the {@link RubikFacelet} whose color needs to be translated.
+     * @return a {@link android.graphics.Color} equivalent of the {@link RubikFacelet} color.
+     */
     @ColorInt
     public static int getAndroidColor(RubikFacelet rubikFacelet) {
         switch (rubikFacelet.color) {
-            case RubikDetector.CubeColors.WHITE:
-                return Color.WHITE;
-            case RubikDetector.CubeColors.RED:
-                return Color.RED;
-            case RubikDetector.CubeColors.GREEN:
-                return Color.GREEN;
-            case RubikDetector.CubeColors.BLUE:
-                return Color.BLUE;
-            case RubikDetector.CubeColors.YELLOW:
-                return Color.YELLOW;
-            case RubikDetector.CubeColors.ORANGE:
-                return Color.argb(255, 255, 127, 0);
+            case RubikFacelet.Color.WHITE:
+                return android.graphics.Color.WHITE;
+            case RubikFacelet.Color.RED:
+                return android.graphics.Color.RED;
+            case RubikFacelet.Color.GREEN:
+                return android.graphics.Color.GREEN;
+            case RubikFacelet.Color.BLUE:
+                return android.graphics.Color.BLUE;
+            case RubikFacelet.Color.YELLOW:
+                return android.graphics.Color.YELLOW;
+            case RubikFacelet.Color.ORANGE:
+                return android.graphics.Color.argb(255, 255, 127, 0);
             default:
-                return Color.WHITE;
+                return android.graphics.Color.WHITE;
         }
     }
 
+    /**
+     * Given an Android {@link ImageFormat}, returns a RubikDetector equivalent {@link RubikDetector.ImageFormat}.
+     *
+     * @param imageFormatAndroid an Android {@link ImageFormat}
+     * @return the equivalent {@link RubikDetector.ImageFormat}.
+     */
     @RubikDetector.ImageFormat
     public static int convertAndroidImageFormat(int imageFormatAndroid) {
         switch (imageFormatAndroid) {
@@ -121,6 +163,14 @@ public class RubikDetectorUtils {
         }
     }
 
+    /**
+     * Utility method to print the colors of the detected facelets as a formatted string.
+     * <p>
+     * Useful for printing.
+     *
+     * @param result 3x3 array of {@link RubikFacelet} objects
+     * @return a formatted {@link String} describing the colors of the found facelets.
+     */
     public static String getResultColorsAsString(@NonNull RubikFacelet[][] result) {
         StringBuilder stringBuilder = new StringBuilder("Colors: {");
         for (int i = 0; i < 3; i++) {
@@ -129,22 +179,22 @@ public class RubikDetectorUtils {
                     stringBuilder.append(" {");
                 }
                 switch (result[i][j].color) {
-                    case RubikDetector.CubeColors.WHITE:
+                    case RubikFacelet.Color.WHITE:
                         stringBuilder.append("WHITE ");
                         break;
-                    case RubikDetector.CubeColors.YELLOW:
+                    case RubikFacelet.Color.YELLOW:
                         stringBuilder.append("YELLOW ");
                         break;
-                    case RubikDetector.CubeColors.RED:
+                    case RubikFacelet.Color.RED:
                         stringBuilder.append("RED ");
                         break;
-                    case RubikDetector.CubeColors.BLUE:
+                    case RubikFacelet.Color.BLUE:
                         stringBuilder.append("BLUE ");
                         break;
-                    case RubikDetector.CubeColors.GREEN:
+                    case RubikFacelet.Color.GREEN:
                         stringBuilder.append("GREEN ");
                         break;
-                    case RubikDetector.CubeColors.ORANGE:
+                    case RubikFacelet.Color.ORANGE:
                         stringBuilder.append("ORANGE ");
                         break;
 

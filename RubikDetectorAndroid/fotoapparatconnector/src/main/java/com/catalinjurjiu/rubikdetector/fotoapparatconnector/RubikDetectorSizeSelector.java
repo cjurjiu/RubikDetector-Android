@@ -7,9 +7,6 @@ import java.util.Collection;
 import io.fotoapparat.parameter.Size;
 import io.fotoapparat.parameter.selector.SelectorFunction;
 
-/**
- * Created by catalin on 01.09.2017.
- */
 
 public class RubikDetectorSizeSelector implements SelectorFunction<Size> {
 

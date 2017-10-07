@@ -2,10 +2,6 @@ package com.catalinjurjiu.rubikdetector.fotoapparatconnector.data;
 
 import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
 
-/**
- * Created by catalin on 01.09.2017.
- */
-
 public class RubikResultWrapper {
 
     private int frameWidth;

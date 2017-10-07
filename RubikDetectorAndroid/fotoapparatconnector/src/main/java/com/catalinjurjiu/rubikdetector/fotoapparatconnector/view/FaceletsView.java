@@ -17,9 +17,6 @@ import com.catalinjurjiu.rubikdetector.fotoapparatconnector.data.RubikResultWrap
 import com.catalinjurjiu.rubikdetector.model.Point2d;
 import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
 
-/**
- * Created by catalin on 01.09.2017.
- */
 class FaceletsView extends View {
     private RubikResultWrapper detectionResult;
     private Paint paint;
@@ -117,7 +114,7 @@ class FaceletsView extends View {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 RubikFacelet facelet = detectionResult.getDetectedFacelets()[i][j];
-                Point2d[] points = detectionResult.getDetectedFacelets()[i][j].getPoints();
+                Point2d[] points = detectionResult.getDetectedFacelets()[i][j].corners();
 
                 paint.setColor(RubikDetectorUtils.getAndroidColor(facelet));
                 path.reset();

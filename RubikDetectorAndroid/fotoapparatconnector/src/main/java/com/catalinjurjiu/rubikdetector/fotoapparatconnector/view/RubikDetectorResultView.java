@@ -19,9 +19,6 @@ import com.catalinjurjiu.rubikdetector.fotoapparatconnector.data.RubikResultWrap
 
 import io.fotoapparat.view.CameraView;
 
-/**
- * Created by catalin on 29.08.2017.
- */
 public class RubikDetectorResultView extends FrameLayout implements RubikDetectorFrameProcessor.OnRubikCubeFaceletsFoundListener {
 
     public static final String FILLED_CIRCLES = "filledCircles";

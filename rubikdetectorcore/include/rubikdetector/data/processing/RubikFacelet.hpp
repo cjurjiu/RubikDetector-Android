@@ -14,7 +14,7 @@ namespace rbdt {
  *
  * This class holds the color & the location of a particular cube facelet within the input frame in which it was detected.
  *
- * The position of the facelet within the input frame is stores as a rotated rectangle, for which the centre of mass,
+ * The position of the facelet within the input frame is stored as a rotated rectangle, for which the centre of mass,
  * angle (radians), width & height are known.
  *
  * The four corners of the facelets can be obtained as an array of Point2d through RubikFacelet::corners(). Additionally the radius of its

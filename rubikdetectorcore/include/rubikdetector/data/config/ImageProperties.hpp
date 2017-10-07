@@ -27,7 +27,7 @@ public:
      * @param [in] width input & output frame width, in pixels
      * @param [in] height input & output frame width, in pixels
      * @param [in] inputImageFormat - the format of the input frame, as a RubikProcessor::ImageFormat.
-     * @return
+     * @return ImageProperties
      */
     ImageProperties(const int width,
                     const int height,

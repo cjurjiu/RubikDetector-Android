@@ -14,9 +14,6 @@ import io.fotoapparat.parameter.Size;
 import io.fotoapparat.preview.Frame;
 import io.fotoapparat.preview.FrameProcessor;
 
-/**
- * Created by catalin on 28.08.2017.
- */
 
 public class RubikDetectorFrameProcessor implements FrameProcessor, RubikDetectorSizeSelector.SizeSelectionListener {
 
