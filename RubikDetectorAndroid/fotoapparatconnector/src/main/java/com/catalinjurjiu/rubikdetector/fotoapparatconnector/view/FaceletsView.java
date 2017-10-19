@@ -5,7 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
@@ -13,12 +12,17 @@ import android.view.View;
 
 import com.catalinjurjiu.rubikdetector.RubikDetectorUtils;
 import com.catalinjurjiu.rubikdetector.config.DrawConfig;
-import com.catalinjurjiu.rubikdetector.fotoapparatconnector.data.RubikResultWrapper;
+import com.catalinjurjiu.rubikdetector.fotoapparatconnector.data.RubikFaceletsWrapper;
 import com.catalinjurjiu.rubikdetector.model.Point2d;
 import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
 
+/**
+ * View internally used by the {@link RubikFaceletsWrapper} to draw a set of facelets contained in a {@link RubikFaceletsWrapper}.
+ * <p>
+ * This is not in the public API. Anything here can change in future versions.
+ */
 class FaceletsView extends View {
-    private RubikResultWrapper detectionResult;
+    private RubikFaceletsWrapper rubikFaceletsWrapper;
     private Paint paint;
     private DrawConfig drawConfig;
     private int resultFrameWidth;
@@ -26,25 +30,42 @@ class FaceletsView extends View {
     private int resultFrameSmallSide;
     private Path path;
 
+    public FaceletsView(Context context) {
+        super(context);
+        setDrawConfig(DrawConfig.Default());
+    }
+
     public FaceletsView(Context context, DrawConfig drawConfig) {
         super(context);
-        init(drawConfig);
+        setDrawConfig(drawConfig);
     }
 
     public FaceletsView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        init(DrawConfig.Default());
+        setDrawConfig(DrawConfig.Default());
     }
 
     public FaceletsView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(DrawConfig.Default());
+        setDrawConfig(DrawConfig.Default());
     }
 
-    private void init(DrawConfig drawConfig) {
+    void drawFacelets(@NonNull RubikFaceletsWrapper rubikFaceletsWrapper) {
+        if (drawConfig.getDrawMode() == DrawConfig.DrawMode.DO_NOT_DRAW) {
+            //do nothing if the user doesn't want to draw the result
+            return;
+        }
+
+        this.rubikFaceletsWrapper = rubikFaceletsWrapper;
+        invalidate();
+    }
+
+    void setDrawConfig(DrawConfig drawConfig) {
         this.drawConfig = drawConfig;
         if (drawConfig.getDrawMode() == DrawConfig.DrawMode.DRAW_RECTANGLES) {
             path = new Path();
+        } else {
+            path = null;
         }
         paint = new Paint();
         paint.setAntiAlias(true);
@@ -53,26 +74,10 @@ class FaceletsView extends View {
         paint.setColor(Color.DKGRAY);
     }
 
-    public void displayFacelets(@NonNull RubikResultWrapper rubikResult) {
-
-        if (Looper.getMainLooper() != Looper.myLooper()) {
-            throw new IllegalThreadStateException("This method must be called from the main thread");
-        }
-
-        if (drawConfig.getDrawMode() == DrawConfig.DrawMode.DO_NOT_DRAW) {
-            //do nothing if the user doesn't want to draw the result
-            return;
-        }
-
-        this.detectionResult = rubikResult;
-        invalidate();
-    }
-
-
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (detectionResult == null || detectionResult.getDetectedFacelets() == null || drawConfig.getDrawMode() == DrawConfig.DrawMode.DO_NOT_DRAW) {
+        if (rubikFaceletsWrapper == null || rubikFaceletsWrapper.getDetectedFacelets() == null || drawConfig.getDrawMode() == DrawConfig.DrawMode.DO_NOT_DRAW) {
             return;
         }
         if (drawConfig.getDrawMode() == DrawConfig.DrawMode.DRAW_RECTANGLES) {
@@ -82,16 +87,17 @@ class FaceletsView extends View {
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void drawFaceletsAsCircles(Canvas canvas) {
-        if (resultFrameWidth != detectionResult.getFrameWidth() || resultFrameHeight != detectionResult.getFrameHeight()) {
-            resultFrameWidth = detectionResult.getFrameWidth();
-            resultFrameHeight = detectionResult.getFrameHeight();
+        if (resultFrameWidth != rubikFaceletsWrapper.getFrameWidth() || resultFrameHeight != rubikFaceletsWrapper.getFrameHeight()) {
+            resultFrameWidth = rubikFaceletsWrapper.getFrameWidth();
+            resultFrameHeight = rubikFaceletsWrapper.getFrameHeight();
             resultFrameSmallSide = Math.min(resultFrameWidth, resultFrameHeight);
         }
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                RubikFacelet facelet = detectionResult.getDetectedFacelets()[i][j];
+                RubikFacelet facelet = rubikFaceletsWrapper.getDetectedFacelets()[i][j];
                 paint.setColor(RubikDetectorUtils.getAndroidColor(facelet));
                 float radiusRatio = Math.min(facelet.width, facelet.height) / resultFrameSmallSide;
 
@@ -104,17 +110,18 @@ class FaceletsView extends View {
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void drawFaceletsAsRectangles(Canvas canvas) {
-        if (resultFrameWidth != detectionResult.getFrameWidth() || resultFrameHeight != detectionResult.getFrameHeight()) {
-            resultFrameWidth = detectionResult.getFrameWidth();
-            resultFrameHeight = detectionResult.getFrameHeight();
+        if (resultFrameWidth != rubikFaceletsWrapper.getFrameWidth() || resultFrameHeight != rubikFaceletsWrapper.getFrameHeight()) {
+            resultFrameWidth = rubikFaceletsWrapper.getFrameWidth();
+            resultFrameHeight = rubikFaceletsWrapper.getFrameHeight();
             resultFrameSmallSide = Math.min(resultFrameWidth, resultFrameHeight);
         }
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                RubikFacelet facelet = detectionResult.getDetectedFacelets()[i][j];
-                Point2d[] points = detectionResult.getDetectedFacelets()[i][j].corners();
+                RubikFacelet facelet = rubikFaceletsWrapper.getDetectedFacelets()[i][j];
+                Point2d[] points = rubikFaceletsWrapper.getDetectedFacelets()[i][j].corners();
 
                 paint.setColor(RubikDetectorUtils.getAndroidColor(facelet));
                 path.reset();

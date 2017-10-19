@@ -34,8 +34,8 @@ import java.nio.ByteBuffer;
  * Effectively, this means that after a call to one of the {@code findCube(...)} methods, the byte[] or ByteBuffer parameter
  * will contain:
  * <ul>
- * <li>the <i>input frame</i>, format one of {@link ImageFormat} -  on which detection occurred;</li>
- * <li>the <i>result</i>, or <i>output</i> frame - converted to {@link ImageFormat#ARGB_8888} format.</li>
+ * <li>the <i>input frame</i>, data format one of {@link ImageFormat} -  on which detection occurred;</li>
+ * <li>the <i>result</i>, or <i>output</i> frame - converted to the {@link ImageFormat#ARGB_8888} format. This can then be easily converted to a {@link android.graphics.Bitmap}, and displayed.</li>
  * </ul>
  * If the set {@link DrawConfig} differs from {@link DrawConfig#DoNotDraw()}, then the <i>output frame</i> will also have the
  * drawn facelets.
@@ -52,9 +52,9 @@ import java.nio.ByteBuffer;
  * To know how much to allocate for the <i>image data array</i>, use {@link #getRequiredMemory()}. The detector will ignore a call to {@code findCube(...)} with an
  * <i>image data array</i> having a capacity smaller than the value returned by {@link #getRequiredMemory()}.
  * <p>
- * To know where to store the input frame in the image data array, use {@link #getInputFrameBufferOffset()} and {@link #inputFrameByteCount}. To know
- * from where to read the output frame, from the image data array, after the call to {@code findCube(...)}, use {@link #resultFrameBufferOffset} and
- * {@link #resultFrameByteCount}.
+ * To know where to store the input frame in the image data array, use {@link #getInputFrameBufferOffset()} and {@link #getInputFrameByteCount()}. To know
+ * from where to read the output frame, from the image data array, after the call to {@code findCube(...)}, use {@link #getResultFrameBufferOffset()} and
+ * {@link #getResultFrameByteCount()}.
  * <p>
  * A highly simplified {@code findCube(...)} usage might look similar to the example, using the {@link android.hardware.Camera} api.
  * <p>
@@ -88,7 +88,7 @@ import java.nio.ByteBuffer;
  *                                                             rubikDetector.getResultFrameByteCount());
  *
  *          //draw the output frame, irrespective whether it contains facelets or not,
- *          to update the live preview image on screen
+ *          //to update the live preview image on screen
  *          drawToCanvas(resultFrame);
  *
  *          //add the array back as a camera buffer

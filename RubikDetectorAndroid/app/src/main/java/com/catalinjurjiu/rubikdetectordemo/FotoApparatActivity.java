@@ -2,21 +2,32 @@ package com.catalinjurjiu.rubikdetectordemo;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.catalinjurjiu.rubikdetector.RubikDetector;
+import com.catalinjurjiu.rubikdetector.RubikDetectorUtils;
 import com.catalinjurjiu.rubikdetector.config.DrawConfig;
-import com.catalinjurjiu.rubikdetector.fotoapparatconnector.RubikDetectorFrameProcessor;
-import com.catalinjurjiu.rubikdetector.fotoapparatconnector.RubikDetectorSizeSelector;
+import com.catalinjurjiu.rubikdetector.fotoapparatconnector.FotoApparatConnector;
+import com.catalinjurjiu.rubikdetector.fotoapparatconnector.OnRubikCubeDetectionResultListener;
+import com.catalinjurjiu.rubikdetector.fotoapparatconnector.data.RubikFaceletsWrapper;
 import com.catalinjurjiu.rubikdetector.fotoapparatconnector.view.RubikDetectorResultView;
+import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
 
 import io.fotoapparat.Fotoapparat;
 
-import static io.fotoapparat.parameter.selector.SizeSelectors.biggestSize;
+public class FotoApparatActivity extends Activity implements OnRubikCubeDetectionResultListener {
 
-public class FotoApparatActivity extends Activity {
-
+    private static final String TAG = FotoApparatActivity.class.getSimpleName();
     private Fotoapparat fotoapparat;
     private RubikDetector rubikDetector;
+
+    @Override
+    public void onRubikCubeDetectionResult(RubikFaceletsWrapper rubikResult) {
+        RubikFacelet[][] facelets = rubikResult.getDetectedFacelets();
+        if (facelets != null) {
+            Log.d(TAG, "Detected: " + RubikDetectorUtils.getResultColorsAsString(rubikResult.getDetectedFacelets()));
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,15 +38,9 @@ public class FotoApparatActivity extends Activity {
                 .drawConfig(DrawConfig.FilledCircles())
                 .debuggable(true)
                 .build();
-
         RubikDetectorResultView rubikDetectorResultView = findViewById(R.id.rubik_results_view);
-        RubikDetectorFrameProcessor rubikFrameProcessor = new RubikDetectorFrameProcessor(rubikDetector, rubikDetectorResultView);
-        RubikDetectorSizeSelector rubikDetectorSizeSelector = new RubikDetectorSizeSelector(biggestSize(), rubikFrameProcessor);
 
-        fotoapparat = Fotoapparat.with(this.getBaseContext())
-                .into(rubikDetectorResultView.getCameraView())
-                .previewSize(rubikDetectorSizeSelector)
-                .frameProcessor(rubikFrameProcessor)
+        fotoapparat = FotoApparatConnector.configure(Fotoapparat.with(this.getBaseContext()), rubikDetector, rubikDetectorResultView, this)
                 .build();
     }
 
