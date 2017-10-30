@@ -7,10 +7,10 @@ import android.util.Log;
 import com.catalinjurjiu.rubikdetector.RubikDetector;
 import com.catalinjurjiu.rubikdetector.RubikDetectorUtils;
 import com.catalinjurjiu.rubikdetector.config.DrawConfig;
-import com.catalinjurjiu.rubikdetector.fotoapparatconnector.FotoApparatConnector;
-import com.catalinjurjiu.rubikdetector.fotoapparatconnector.OnRubikCubeDetectionResultListener;
-import com.catalinjurjiu.rubikdetector.fotoapparatconnector.data.RubikFaceletsWrapper;
-import com.catalinjurjiu.rubikdetector.fotoapparatconnector.view.RubikDetectorResultView;
+import com.catalinjurjiu.rubikdetectorfotoapparatconnector.FotoApparatConnector;
+import com.catalinjurjiu.rubikdetectorfotoapparatconnector.OnRubikCubeDetectionResultListener;
+import com.catalinjurjiu.rubikdetectorfotoapparatconnector.data.RubikFaceletsWrapper;
+import com.catalinjurjiu.rubikdetectorfotoapparatconnector.view.RubikDetectorResultView;
 import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
 
 import io.fotoapparat.Fotoapparat;

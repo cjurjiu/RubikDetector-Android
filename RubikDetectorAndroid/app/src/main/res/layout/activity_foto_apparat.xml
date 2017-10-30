@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     tools:context="com.catalinjurjiu.rubikdetectordemo.FotoApparatActivity">
 
-    <com.catalinjurjiu.rubikdetector.fotoapparatconnector.view.RubikDetectorResultView
+    <com.catalinjurjiu.rubikdetectorfotoapparatconnector.view.RubikDetectorResultView
         android:id="@+id/rubik_results_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

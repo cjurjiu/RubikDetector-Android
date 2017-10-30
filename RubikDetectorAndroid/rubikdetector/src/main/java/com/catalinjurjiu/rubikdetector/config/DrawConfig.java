@@ -2,6 +2,9 @@ package com.catalinjurjiu.rubikdetector.config;
 
 import android.support.annotation.IntDef;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 /**
  * Immutable class which specifies how the facelets will be drawn by the {@link com.catalinjurjiu.rubikdetector.RubikDetector}.
  * <p>
@@ -142,6 +145,7 @@ public class DrawConfig {
      * Specifies the currently available DrawModes.
      */
     @IntDef
+    @Retention(RetentionPolicy.SOURCE)
     public @interface DrawMode {
         /**
          * Disables drawing, even if facelets are found.

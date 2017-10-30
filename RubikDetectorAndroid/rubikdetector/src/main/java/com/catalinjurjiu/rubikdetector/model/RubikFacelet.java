@@ -3,6 +3,9 @@ package com.catalinjurjiu.rubikdetector.model;
 
 import android.support.annotation.IntDef;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 /**
  * Data class representing a detected Rubik's Cube facelet.
  * <p>
@@ -118,6 +121,7 @@ public class RubikFacelet {
      * Defines the possible colors a RubikFacelet can take.
      */
     @IntDef
+    @Retention(RetentionPolicy.SOURCE)
     public @interface Color {
         int RED = 0,
                 ORANGE = 1,

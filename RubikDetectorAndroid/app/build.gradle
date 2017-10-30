@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion "26.0.1"
+    buildToolsVersion "27.0.0"
     defaultConfig {
         applicationId "com.catalinjurjiu.rubikdetectordemo"
         minSdkVersion 19
@@ -18,9 +18,21 @@ android {
                     'x86_64'
         }
     }
+
+    signingConfigs {
+        defaultConfig {
+            //use debug keystore on all build variants, in order to be able to test release builds
+            storeFile file("/home/catalin/.android/debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled true
+            signingConfig signingConfigs.defaultConfig
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
 
@@ -32,16 +44,16 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
+
+    compile 'com.android.support:appcompat-v7:26.1.0'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+
+    compile ('com.catalinjurjiu:rubikdetector-android:1.0.0-beta2') { changing = true }
+    compile ('com.catalinjurjiu:rubikdetector-fotoapparat-connector:1.0.0-beta2') { changing = true }
+    compile 'io.fotoapparat.fotoapparat:library:1.4.1'
+
+    testCompile 'junit:junit:4.12'
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:26.0.2'
-
-    compile project(path: ':rubikdetector', configuration: 'debug')
-    compile(project(':fotoapparatconnector')) {
-        exclude module: "rubikdetector"
-    }
-    compile 'io.fotoapparat.fotoapparat:library:1.4.1'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    testCompile 'junit:junit:4.12'
 }
