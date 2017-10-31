@@ -48,8 +48,8 @@ dependencies {
     compile 'com.android.support:appcompat-v7:26.1.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
 
-    compile ('com.catalinjurjiu:rubikdetector-android:1.0.0-beta2') { changing = true }
-    compile ('com.catalinjurjiu:rubikdetector-fotoapparat-connector:1.0.0-beta2') { changing = true }
+    compile 'com.catalinjurjiu:rubikdetector-android:1.0.0-beta2'
+    compile 'com.catalinjurjiu:rubikdetector-fotoapparat-connector:1.0.0-beta2'
     compile 'io.fotoapparat.fotoapparat:library:1.4.1'
 
     testCompile 'junit:junit:4.12'
