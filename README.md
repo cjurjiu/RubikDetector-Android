@@ -1,20 +1,21 @@
-# RubikDetector
-Image Processing library capable of detecing a Rubik's Cube in an input frame.
+# RubikDetector [ ![Download](https://api.bintray.com/packages/cjurjiu/cjurjiu-opensource/rubikdetector-android/images/download.svg) ](https://bintray.com/cjurjiu/cjurjiu-opensource/rubikdetector-android/_latestVersion) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://tldrlegal.com/license/apache-license-2.0-(apache-2.0))
+
+Image Processing library capable of detecing a Rubik's Cube in an input frame. Developed for mobile, but 100% portable.
 
 ## Folder Structure:
 
 <pre>
 .
-├── rubikdetectorcore			C++ image processing library
-├── RubikDetectorAndroid		Android Library, FotoApparat Connector, Demo Project
-├── RubikDetectorLinux			Desktop, Linux sample
+├── RubikDetectorCore       ->     C++ image processing library (the core)
+├── RubikDetectorAndroid    ->     Android Library, FotoApparat Connector, Demo Project
+├── RubikDetectorLinux      ->     Desktop CMake project, demo for usage on UNIX systems
 ├── LICENSE
 └── README.md
 </pre>
 
 ## Support
 
-The image processing algorithm is written in C++ and should be fully portable to other platforms (incl. iOS). 
+The image processing algorithm is written in C++ and is fully portable to other platforms (incl. iOS). 
 
 Currently, samples exist for desktop (linux, OSX) and Android. 
 

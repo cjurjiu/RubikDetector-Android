@@ -160,6 +160,7 @@ public class LiveDetectionActivity extends Activity implements SurfaceHolder.Cal
     }
 }
 
+@SuppressWarnings("deprecation")
 final class ProcessingThread extends HandlerThread implements Camera.PreviewCallback {
 
     private static final String TAG = ProcessingThread.class.getSimpleName();
@@ -343,6 +344,7 @@ final class ProcessingThread extends HandlerThread implements Camera.PreviewCall
         }
         camera = Camera.open(cameraId);
         Camera.Parameters cameraParameters = camera.getParameters();
+        cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
         validPreviewFormatSizes = cameraParameters.getSupportedPreviewSizes();
         previewSize = findHighResValidPreviewSize(camera);
         cameraParameters.setPreviewSize(previewSize.width, previewSize.height);
