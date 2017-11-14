@@ -25,20 +25,39 @@ namespace rbdt {
 float pointsDistance(const cv::Point2f &firstPoint, const cv::Point2f &secondPoint);
 
 /**
- * Save the image data stored in the cv::Mat parameter, as a JPEG at the specified path.
+ * Save the image data stored in the RGBA cv::Mat parameter, as a JPEG at the specified path.
+ *
+ * This method will perform a copy+converstion of the RGBA Mat, as it needs to convert it to BGR, before saving it to disk.
  *
  * The saved image will have the following name:
  * <pre>
  * pic_<frameNumber>_<regionId>.jpg
  * </pre>
  *
- * @param [in] mat the image data to save.
+ * @param [in] mat the RGBA image data to save.
  * @param [in] path the persistent storage location where the image will be saved.
  * @param [in] frameNumber the frame number of the currently saved image, to be appended to the file name.
  * @param [in] regionId a number used to uniquelly identify this image among others saved in the same frame. will be appended to the file name.
  * @return true if saving was successful, false otherwise.
  */
-bool quickSaveImage(const cv::Mat &mat, const std::string path, const int frameNumber,
+bool quickSaveRGBAImage(const cv::Mat &mat, const std::string path, const int frameNumber,
+                            const int regionId);
+
+/**
+ * Save the image data stored in the BGR cv::Mat parameter, as a JPEG at the specified path.
+ *
+ * The saved image will have the following name:
+ * <pre>
+ * pic_<frameNumber>_<regionId>.jpg
+ * </pre>
+ *
+ * @param [in] mat the BGR image data to save.
+ * @param [in] path the persistent storage location where the image will be saved.
+ * @param [in] frameNumber the frame number of the currently saved image, to be appended to the file name.
+ * @param [in] regionId a number used to uniquelly identify this image among others saved in the same frame. will be appended to the file name.
+ * @return true if saving was successful, false otherwise.
+ */
+bool quickSaveBGRImage(const cv::Mat &mat, const std::string path, const int frameNumber,
                     const int regionId);
 
 /**

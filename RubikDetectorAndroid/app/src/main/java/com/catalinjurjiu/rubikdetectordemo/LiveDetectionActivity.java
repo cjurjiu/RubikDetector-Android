@@ -362,7 +362,7 @@ final class ProcessingThread extends HandlerThread implements Camera.PreviewCall
                 .debuggable(IS_DEBUGGABLE)
                 .drawConfig(DrawConfig.FilledCircles())
                 .inputFrameSize(previewSize.width, previewSize.height)
-                .inputFrameFormat(LiveDetectionActivity.DEFAULT_IMAGE_FORMAT)
+                .inputFrameFormat(RubikDetectorUtils.convertAndroidImageFormat(LiveDetectionActivity.DEFAULT_IMAGE_FORMAT))
                 .build();
         allocateAndSetBuffers();
     }
@@ -380,7 +380,7 @@ final class ProcessingThread extends HandlerThread implements Camera.PreviewCall
         camera.setParameters(params);
         previewSize = camera.new Size(newWidth, newHeight);
 
-        rubikDetector.updateImageProperties(new RubikDetector.ImageProperties(newWidth, newHeight, LiveDetectionActivity.DEFAULT_IMAGE_FORMAT));
+        rubikDetector.updateImageProperties(new RubikDetector.ImageProperties(newWidth, newHeight, RubikDetectorUtils.convertAndroidImageFormat(LiveDetectionActivity.DEFAULT_IMAGE_FORMAT)));
         //clear the previous buffer queue
         camera.setPreviewCallbackWithBuffer(null);
         camera.setPreviewCallback(null);
@@ -415,7 +415,7 @@ final class ProcessingThread extends HandlerThread implements Camera.PreviewCall
         rubikDetector = new RubikDetector.Builder()
                 .drawConfig(DrawConfig.DoNotDraw())
                 .debuggable(IS_DEBUGGABLE)
-                .inputFrameFormat(LiveDetectionActivity.DEFAULT_IMAGE_FORMAT)
+                .inputFrameFormat(RubikDetectorUtils.convertAndroidImageFormat(LiveDetectionActivity.DEFAULT_IMAGE_FORMAT))
                 .inputFrameSize(previewSize.width, previewSize.height)
                 .build();
         oldRubikDetector.releaseResources();
@@ -427,7 +427,7 @@ final class ProcessingThread extends HandlerThread implements Camera.PreviewCall
         rubikDetector = new RubikDetector.Builder()
                 .drawConfig(DrawConfig.FilledCircles())
                 .debuggable(IS_DEBUGGABLE)
-                .inputFrameFormat(LiveDetectionActivity.DEFAULT_IMAGE_FORMAT)
+                .inputFrameFormat(RubikDetectorUtils.convertAndroidImageFormat(LiveDetectionActivity.DEFAULT_IMAGE_FORMAT))
                 .inputFrameSize(previewSize.width, previewSize.height)
                 .build();
         oldRubikDetector.releaseResources();

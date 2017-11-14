@@ -44,7 +44,11 @@ artifacts {
 dependencies {
     compile 'com.android.support:support-annotations:26.1.0'
     compile 'io.fotoapparat.fotoapparat:library:1.4.1'
+    //online dependency
     compile 'com.catalinjurjiu:rubikdetector-android:1.0.0-beta2'
+
+    //local module dependency
+//    compile project(':rubikdetector')
 }
 
 apply from: "uploadToBintray.gradle"

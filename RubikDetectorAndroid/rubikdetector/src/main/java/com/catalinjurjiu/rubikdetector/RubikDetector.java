@@ -814,7 +814,7 @@ public class RubikDetector {
          * @param height           input & output frame width, in pixels
          * @param inputImageFormat - the format of the input frame, as a {@link RubikDetector.ImageFormat}.
          */
-        public ImageProperties(int width, int height, int inputImageFormat) {
+        public ImageProperties(int width, int height, @ImageFormat int inputImageFormat) {
             this.width = width;
             this.height = height;
             this.inputImageFormat = inputImageFormat;

@@ -14,7 +14,22 @@ float pointsDistance(const cv::Point2f &firstPoint, const cv::Point2f &secondPoi
                      (firstPoint.y - secondPoint.y) * (firstPoint.y - secondPoint.y));
 }
 
-bool quickSaveImage(const cv::Mat &mat, const std::string path, const int frameNumber,
+bool quickSaveRGBAImage(const cv::Mat &mat, const std::string path, const int frameNumber,
+                    const int regionId) {
+
+    cv::Mat bgrMat = cv::Mat(mat.rows, mat.cols, CV_8UC3);
+    cv::cvtColor(mat, bgrMat, CV_RGBA2BGR);
+
+    std::stringstream stringStream, stringStream2;
+    stringStream << frameNumber;
+    stringStream2 << regionId;
+
+    std::string store_path = path + "/pic_"
+                                 + stringStream.str() + "_" + stringStream2.str() + ".jpg";
+    return cv::imwrite(store_path, bgrMat);\
+}
+
+bool quickSaveBGRImage(const cv::Mat &mat, const std::string path, const int frameNumber,
                     const int regionId) {
 
     std::stringstream stringStream, stringStream2;
