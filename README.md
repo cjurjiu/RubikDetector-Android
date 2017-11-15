@@ -64,8 +64,7 @@ If you want to specify the image format as an `android.graphics.ImageFormat`, yo
 ```java
 @RubikDetector.ImageFormat int detectorImageFormat = RubikDetectorUtils.convertAndroidImageFormat(android.graphics.ImageFormat.NV21);
 ```                 
-The detector expects a `byte[]` of a specific size, which will contain the input frame. The input frame data is expected
-to be placed at the beggining of the `byte[]`.
+The detector expects a `byte[]` of a specific size (see [memory layout](#memory-layout)), which will contain the input frame. The input frame data is expected to be placed at the beggining of the `byte[]`.
 
 To perform the detection, just call:
 
@@ -202,14 +201,33 @@ These methods expect, among others, a canvas to which to draw the facelets. When
 
 Regardless whether drawing is performed in C++ or Java, the original image frame on which the detection ocurred, is left untouched. 
 
-## Memory Layout
-
-TBD
- 
 ## Fotoapparat Connector
 
 TBD
- 
+
+## Memory Layout
+
+When calling `RubikDetector#findCube(...)`, a byte array which contains the input frame is required as a parameter. 
+
+However, the byte array needs to have the capacity returned by `RubikDetector#getRequiredMemory()`. This is necessary because the `byte[]` parameter passed to `RubikDetector#findCube(...)` acts as an `inout` parameter, and will also contain the output frame, after `RubikDetector#findCube(...)` returns.
+
+
+| <p align="center"> <img src="https://github.com/cjurjiu/RubikDetector-Android/blob/master/images/memory_model.png" align="center" width="800px"/> </p> |
+| :---: |
+| Contents of the `byte[]` after `findCube(...)` returns. |
+
+To know where to write the input frame in the `byte[]`, use:
+  - `RubikDetector#getInputFrameBufferOffset()` -> returns the index in the `byte[]` at which the input frame bytes need to start. 
+  - `RubikDetector#getInputFrameByteCount()` -> returns the size of the input frame, in bytes.
+  
+To know at what offset the output frame is written, after `findCube(...)` has returned, use:
+  - `RubikDetector#getResultFrameBufferOffset()` -> returns the index in the `byte[]` at which the output frame bytes start.
+  - `RubikDetector#getResultFrameByteCount()` -> returns the size of the output frame, in bytes.
+  
+`RubikDetector#getRequiredMemory()` returns the total required size of the inout `byte[]`. Passing a `byte[]` of a smaller capacity to `findCube(...)` will result in a crash.
+
+The values returned by the `get...` methods mentioned here are recomputed after every call to `RubikDetector#updateImageProperties(...)`.
+    
 ## How to build
 
 TBD
