@@ -203,7 +203,90 @@ Regardless whether drawing is performed in C++ or Java, the original image frame
 
 ## Fotoapparat Connector
 
-TBD
+Using the RubikDetector via the Fotoapparat Connector makes the setup significantly simpler, but comes at a performance cost.
+
+| Detection with the FotoApparat Connector | Detection with RubikDetector directly, no FotoApparat Connector|
+| :--: | :--: |
+| <img src="https://github.com/cjurjiu/RubikDetector-Android/blob/master/images/gifs/3.gif"/> | <img src="https://github.com/cjurjiu/RubikDetector-Android/blob/master/images/gifs/1.gif" /> |
+
+
+To use the connector first you need to place a `RubikDetectorResultView` in your layout file (let's call it `activity_foto_apparat.xml`):
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:rubik="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.catalinjurjiu.rubikdetectorfotoapparatconnector.view.RubikDetectorResultView
+        android:id="@+id/rubik_results_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        rubik:faceletsDrawMode="filledCircles"
+        rubik:strokeWidth="3dp"/>
+</FrameLayout>
+```
+The `RubikDetectorResultView` is just a custom view which contains an `io.fotoapparat.view.CameraView`, and knows how to render the facelets over the camera preview.
+
+Then, in your activity:
+
+```java
+public class FotoApparatActivity extends Activity {
+
+    private static final String TAG = FotoApparatActivity.class.getSimpleName();
+    private Fotoapparat fotoapparat;
+    private RubikDetector rubikDetector;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_foto_apparat);
+
+        rubikDetector = new RubikDetector.Builder()
+                .drawConfig(DrawConfig.FilledCircles())
+                .debuggable(true)
+                .build();
+                
+        RubikDetectorResultView rubikDetectorResultView = findViewById(R.id.rubik_results_view);
+
+        fotoapparat = FotoApparatConnector.configure(Fotoapparat.with(this.getBaseContext()), rubikDetector, rubikDetectorResultView)
+                .build();
+    }
+    ...
+}
+```
+Then, in `onStart()`,`onStop()` and `onDestroy()`:
+
+```java
+@Override
+protected void onStart() {
+    super.onStart();
+    fotoapparat.start();
+}
+
+@Override
+protected void onStop() {
+    super.onStop();
+    fotoapparat.stop();
+}
+
+@Override
+protected void onDestroy() {
+    super.onDestroy();
+    rubikDetector.releaseResources();
+}
+```
+
+And you're done!
+
+The `FotoapparatConnector` class is just a utility that configures the `RubikDetector` and `FotoApparat` to talk with each other. It achieves this through with the following classes:
+  - `RubikDetectorFrameProcessor` - a subclass of `io.fotoapparat.preview.FrameProcessor` which internally uses a `RubikDetector` instance to find the cube in the camera frames.
+  - `RubikDetectorSizeSelectorWrapper` - a subclass of `io.fotoapparat.parameter.selector.SelectorFunction` which allows you to specify the desired resolution at which the processing will take place, and which will also notify the `RubikDetectorFrameProcessor` of the selected resolution.
+  - `RubikDetectorResultView` - a custom view which knows how to draw the detection result.
+  
+The 3 classes mentioned above can be extended to tweak their behavior, and they can be used outside of the `FotoapparatConnector`, if some custom binding logic is needed.
 
 ## Memory Layout
 
@@ -248,7 +331,7 @@ In development. Project is currently in open beta.
 
 ### Performance
 
-~45-~55 Average FPS at 1080p, while processing frames.
+~45-~55 (depending on device) average FPS at 1080p, while processing frames, for RubikDetector. When using the Fotoapparat connector, the framerate is lower.
 
 ## Binaries
 
