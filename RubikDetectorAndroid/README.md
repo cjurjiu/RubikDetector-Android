@@ -1,10 +1,9 @@
 ## Structure
 <pre>
 .
-└── RubikDetectorAndroid
-   ├── app                   ->     Android demo project
-   ├── rubikdetector         ->     RubikDetector Android library
-   └── fotoapparatconnector  ->     Fotoapparat Connector for the RubikDetector Android library
+├── app                   ->     Android demo project
+├── rubikdetector         ->     RubikDetector Android library
+└── fotoapparatconnector  ->     Fotoapparat Connector for the RubikDetector Android library
 </pre>
 
 Since the `rubikdetector` module relies on C++ code, you require the following tools to be able to build it:
@@ -26,7 +25,7 @@ And you're done! Now you should be able to build the library as well.
 
 ## Demo app
 
-The Demo app uses by default the binaries stored on jcenter for the `rubikdetector` & `fotoapparatconnector`.
+The Demo app uses by default the binaries stored on JCenter for the `rubikdetector` & `fotoapparatconnector`.
  
 If you however modify locally either `rubikdetector` or `fotoapparatconnector`, just uncomment the following lines, from `./app/build.gradle`:
 
@@ -36,6 +35,7 @@ If you however modify locally either `rubikdetector` or `fotoapparatconnector`, 
  //    compile project(':fotoapparatconnector')
  ```
  
+ Hope this helps!
  
 
 

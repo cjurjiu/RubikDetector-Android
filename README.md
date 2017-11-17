@@ -313,7 +313,8 @@ The values returned by the `get...` methods mentioned here are recomputed after 
     
 ## How to build
 
-TBD
+  * [Android library](https://github.com/cjurjiu/RubikDetector-Android/tree/master/RubikDetectorAndroid)
+  * [Desktop sample/library](https://github.com/cjurjiu/RubikDetector-Android/tree/master/RubikDetectorLinux)
    
 ## Misc
 
