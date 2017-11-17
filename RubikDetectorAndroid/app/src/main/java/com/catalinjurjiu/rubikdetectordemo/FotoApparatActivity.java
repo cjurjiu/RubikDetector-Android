@@ -39,7 +39,6 @@ public class FotoApparatActivity extends Activity implements OnRubikCubeDetectio
                 .debuggable(true)
                 .build();
         RubikDetectorResultView rubikDetectorResultView = findViewById(R.id.rubik_results_view);
-
         fotoapparat = FotoApparatConnector.configure(Fotoapparat.with(this.getBaseContext()), rubikDetector, rubikDetectorResultView, this)
                 .build();
     }

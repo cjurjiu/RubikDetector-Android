@@ -16,8 +16,9 @@ The information available here relates to the Android library version of RubikDe
   * [Folder Structure](#folder-structure)
   * [RubikDetector Usage](#rubikdetector-usage)
   * [Showing things on screen](#showing-things-on-screen)
-  * [Memory layout](#memory-layout) 
   * [Fotoapparat Connector](#fotoapparat-connector)
+  * [Memory layout](#memory-layout) 
+  * [RubikDetector as a learning tool/Debug mode](#rubikdetector-as-a-learning-tooldebug-mode)
   * [How to build](#how-to-build)
   * [Misc](#misc) 
   * [Binaries](#binaries)
@@ -288,6 +289,23 @@ The `FotoapparatConnector` class is just a utility that configures the `RubikDet
   
 The 3 classes mentioned above can be extended to tweak their behavior, and they can be used outside of the `FotoapparatConnector`, if some custom binding logic is needed.
 
+### Additional notes
+<b>TL;DR:</b>
+
+When performing the setup with the `FotoapparatConnector` class, the image size and `DrawConfig` you set on your `RubikDetector` instance will be overwritten or ignored. 
+
+To control drawing, use `RubikDetectorResultView` XML attributes, and setters (see the class's javadoc). To control the resolution at which processing takes place, use a `Fotoapparat` `SelectorFunction<Collection<Size>, Size>`.
+
+<b>Long version</b>
+
+The image size will be overwritten by the `RubikDetectorFrameProcessor` class, when it will be notified by the size selector of the selected frame size. 
+
+The `DrawConfig` you set on the `RubikDetector` also has no effect when using the `FotoApparat` library. When using a `DrawConfig`, you're telling the `RubikDetector` how to draw the found facelets in the native code. The results of this drawing will be visible in the "output frame" (see [memory layout](#memory-layout)) created by the `RubikDetector`. 
+
+However, the `io.fotoapparat.view.CameraView` used internally by `RubikDetectorResultView` does not know how to access this "output frame". Because of this, if any drawing ocurrs in the native code, it is ignored by the class rendering the preview.
+
+The solution here is to draw the found facelets in Java, using an overlay view. This is performed by the `RubikDetectorResultView`, which has no access to the `DrawConfig` set on the `RubikDetector`. Instead, the `RubikDetectorResultView`'s XML attributes and setter methods can be used to control how the facelets need to be drawn.
+
 ## Memory Layout
 
 When calling `RubikDetector#findCube(...)`, a byte array which contains the input frame is required as a parameter. 
@@ -311,6 +329,24 @@ To know at what offset the output frame is written, after `findCube(...)` has re
 
 The values returned by the `get...` methods mentioned here are recomputed after every call to `RubikDetector#updateImageProperties(...)`.
     
+## RubikDetector as a learning tool/Debug mode
+
+RubikDetector is considered to be in equal measure a learning tool, and a practical library - despite the problem it tries to solve is quite niche.
+
+Because of this, first, it offers a debuggable mode. When enabled, the `RubikDetector` prints to the standard output additional logs which offer insight into its inner workings.
+
+Additionally, when a path to a location with write access is provided to `RubikDetector`, through `RubikDetector.Builder#.imageSavePath(<enter path here)`, <b>and</b> debuggable mode is <b>enabled</b>, then additional internal processing frames will be saved at that location to be inspected later.
+
+Internal frame showing edge detection | Internal frame showing the found rectangles 
+:--: | :--: 
+<img src="https://github.com/cjurjiu/RubikDetector-Android/blob/master/images/pic_12_detected_edges.jpg"/> | <img src="https://github.com/cjurjiu/RubikDetector-Android/blob/master/images/pic_12_filtered_rectangles.jpg"/>
+
+When debugging is disabled no images will be saved on disk, even if a valid path is provided. When images will be saved on disk, expect to have abysmal performance (below 10 fps), since writing to persistent storage is very slow.
+
+Saving those images has no actual practical purpose, but it offers insight for the curious on the various stages of processing.
+
+Improvement and suggestions on what to additionally save are welcomed.
+
 ## How to build
 
   * [Android library](https://github.com/cjurjiu/RubikDetector-Android/tree/master/RubikDetectorAndroid)
