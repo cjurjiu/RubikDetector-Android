@@ -13,7 +13,7 @@ FIND_LIBRARY(android-log-lib log)
 FILE(GLOB_RECURSE JNI_SOURCES FOLLOW_SYMLINKS "src/main/cpp/*")
 
 #Define the rubikdetector library as a shared lib, with the sources selected earlier
-ADD_LIBRARY( rubikdetector_native  SHARED ${JNI_SOURCES} )
+ADD_LIBRARY( rubikdetector_native SHARED ${JNI_SOURCES} )
 
 #link opencv & the android logging lib against the rubikdetector native library
 TARGET_LINK_LIBRARIES ( rubikdetector_native
