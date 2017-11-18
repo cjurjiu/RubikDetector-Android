@@ -16,10 +16,11 @@ The information available here relates to the Android library version of RubikDe
   * [Folder Structure](#folder-structure)
   * [RubikDetector Usage](#rubikdetector-usage)
   * [Showing things on screen](#showing-things-on-screen)
-  * [Fotoapparat Connector](#fotoapparat-connector)
+  * [Fotoapparat Connector](#fotoapparat-connector-)
   * [Memory layout](#memory-layout) 
   * [RubikDetector as a learning tool/Debug mode](#rubikdetector-as-a-learning-tooldebug-mode)
   * [How to build](#how-to-build)
+  * [Known issues](#known-issues)
   * [Misc](#misc) 
   * [Binaries](#binaries)
     * [RubikDetector](#rubikdetector-binaries)
@@ -202,7 +203,7 @@ These methods expect, among others, a canvas to which to draw the facelets. When
 
 Regardless whether drawing is performed in C++ or Java, the original image frame on which the detection ocurred, is left untouched. 
 
-## Fotoapparat Connector
+## Fotoapparat Connector <img src="https://github.com/cjurjiu/RubikDetector-Android/blob/master/images/icons/fotoapparat_connector_icon.png" width="40px"/>
 
 Using the RubikDetector via the Fotoapparat Connector makes the setup significantly simpler, but comes at a performance cost.
 
@@ -351,7 +352,15 @@ Improvement and suggestions on what to additionally save are welcomed.
 
   * [Android library](https://github.com/cjurjiu/RubikDetector-Android/tree/master/RubikDetectorAndroid)
   * [Desktop sample/library](https://github.com/cjurjiu/RubikDetector-Android/tree/master/RubikDetectorLinux)
-   
+
+## Known issues
+
+RubikDetector has a few known issues. You can see them [here](https://github.com/cjurjiu/RubikDetector-Android/issues).
+
+The most annoying issue would be the [one related to color detection](https://github.com/cjurjiu/RubikDetector-Android/issues/2). More specifically, in low light conditions there is a tendency to mistake green facelets for blue facelets, and sometimes orange facelets for red facelets.
+
+Any help would be appreciated.
+
 ## Misc
 
 ### Support
