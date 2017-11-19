@@ -1,5 +1,8 @@
 package com.catalinjurjiu.rubikdetectorfotoapparatconnector;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import com.catalinjurjiu.rubikdetector.RubikDetector;
 import com.catalinjurjiu.rubikdetector.config.DrawConfig;
 import com.catalinjurjiu.rubikdetectorfotoapparatconnector.view.RubikDetectorResultView;
@@ -76,9 +79,10 @@ public class FotoApparatConnector {
      * @return a {@link FotoapparatBuilder} configured to detect Rubik's Cube facelets and to draw them on screen.
      * @see FotoApparatConnector
      */
-    public static FotoapparatBuilder configure(FotoapparatBuilder fotoApparatBuilder,
-                                               RubikDetector rubikDetector,
-                                               RubikDetectorResultView rubikDetectorResultView) {
+    @NonNull
+    public static FotoapparatBuilder configure(@NonNull FotoapparatBuilder fotoApparatBuilder,
+                                               @NonNull RubikDetector rubikDetector,
+                                               @NonNull RubikDetectorResultView rubikDetectorResultView) {
 
         return configure(fotoApparatBuilder, rubikDetector, rubikDetectorResultView, SizeSelectors.biggestSize());
     }
@@ -102,10 +106,11 @@ public class FotoApparatConnector {
      * @return a {@link FotoapparatBuilder} configured to detect Rubik's Cube facelets and to draw them on screen.
      * @see FotoApparatConnector
      */
-    public static FotoapparatBuilder configure(FotoapparatBuilder fotoApparatBuilder,
-                                               RubikDetector rubikDetector,
-                                               RubikDetectorResultView rubikDetectorResultView,
-                                               SelectorFunction<Collection<Size>, Size> sizeSelectorFunction) {
+    @NonNull
+    public static FotoapparatBuilder configure(@NonNull FotoapparatBuilder fotoApparatBuilder,
+                                               @NonNull RubikDetector rubikDetector,
+                                               @NonNull RubikDetectorResultView rubikDetectorResultView,
+                                               @Nullable SelectorFunction<Collection<Size>, Size> sizeSelectorFunction) {
 
         return configure(fotoApparatBuilder, rubikDetector, rubikDetectorResultView, sizeSelectorFunction, null);
     }
@@ -126,10 +131,11 @@ public class FotoApparatConnector {
      * @return a {@link FotoapparatBuilder} configured to detect Rubik's Cube facelets and to draw them on screen.
      * @see FotoApparatConnector
      */
-    public static FotoapparatBuilder configure(FotoapparatBuilder fotoApparatBuilder,
-                                               RubikDetector rubikDetector,
-                                               RubikDetectorResultView rubikDetectorResultView,
-                                               OnRubikCubeDetectionResultListener listener) {
+    @NonNull
+    public static FotoapparatBuilder configure(@NonNull FotoapparatBuilder fotoApparatBuilder,
+                                               @NonNull RubikDetector rubikDetector,
+                                               @NonNull RubikDetectorResultView rubikDetectorResultView,
+                                               @Nullable OnRubikCubeDetectionResultListener listener) {
 
         return configure(fotoApparatBuilder, rubikDetector, rubikDetectorResultView, SizeSelectors.biggestSize(), listener);
     }
@@ -154,11 +160,12 @@ public class FotoApparatConnector {
      * @return a {@link FotoapparatBuilder} configured to detect Rubik's Cube facelets and to draw them on screen.
      * @see FotoApparatConnector
      */
-    public static FotoapparatBuilder configure(FotoapparatBuilder fotoApparatBuilder,
-                                               RubikDetector rubikDetector,
-                                               RubikDetectorResultView rubikDetectorResultView,
-                                               SelectorFunction<Collection<Size>, Size> sizeSelectorFunction,
-                                               OnRubikCubeDetectionResultListener listener) {
+    @NonNull
+    public static FotoapparatBuilder configure(@NonNull FotoapparatBuilder fotoApparatBuilder,
+                                               @NonNull RubikDetector rubikDetector,
+                                               @NonNull RubikDetectorResultView rubikDetectorResultView,
+                                               @Nullable SelectorFunction<Collection<Size>, Size> sizeSelectorFunction,
+                                               @Nullable OnRubikCubeDetectionResultListener listener) {
 
         RubikDetectorFrameProcessor rubikFrameProcessor = new RubikDetectorFrameProcessor(rubikDetector);
         rubikFrameProcessor.addOnRubikCubeFaceletsFoundListener(rubikDetectorResultView);
@@ -169,6 +176,10 @@ public class FotoApparatConnector {
 
         if (listener != null) {
             rubikFrameProcessor.addOnRubikCubeFaceletsFoundListener(listener);
+        }
+
+        if (sizeSelectorFunction == null) {
+            sizeSelectorFunction = SizeSelectors.biggestSize();
         }
 
         RubikDetectorSizeSelectorWrapper rubikDetectorSizeSelectorWrapper = new RubikDetectorSizeSelectorWrapper(sizeSelectorFunction, rubikFrameProcessor);

@@ -2,6 +2,7 @@ package com.catalinjurjiu.rubikdetector.model;
 
 
 import android.support.annotation.IntDef;
+import android.support.annotation.NonNull;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -65,7 +66,7 @@ public class RubikFacelet {
      * @param height Height of the RubikFacelet in pixels;
      * @param angle  Angle of the RubikFacelet in radians;
      */
-    public RubikFacelet(@RubikFacelet.Color int color, Point2d center, float width, float height, float angle) {
+    public RubikFacelet(@RubikFacelet.Color int color, @NonNull Point2d center, float width, float height, float angle) {
         this.color = color;
         this.center = center;
         this.width = width;
@@ -78,7 +79,7 @@ public class RubikFacelet {
      *
      * @param rubikFacelet a {@link RubikFacelet} which will be copied.
      */
-    public RubikFacelet(RubikFacelet rubikFacelet) {
+    public RubikFacelet(@NonNull RubikFacelet rubikFacelet) {
         this.color = rubikFacelet.color;
         this.center = rubikFacelet.center;
         this.width = rubikFacelet.width;
@@ -91,6 +92,7 @@ public class RubikFacelet {
      *
      * @return a 4 element {@link Point2d} array containing, which represents the 4 corners of the facelet.
      */
+    @NonNull
     public Point2d[] corners() {
         Point2d[] result = new Point2d[4];
         double angleSinHalf = Math.sin(angle) * 0.5f;

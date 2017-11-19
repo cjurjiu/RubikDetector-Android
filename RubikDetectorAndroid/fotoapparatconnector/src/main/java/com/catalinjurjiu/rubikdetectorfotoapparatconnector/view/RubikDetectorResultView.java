@@ -41,6 +41,7 @@ import io.fotoapparat.view.CameraView;
  * <li>{@code faceletsDrawMode}, valid values: {@code filledCircles}, {@code circles}, {@code rectangles} and {@code doNotDraw};</li>
  * <li>{@code strokeWidth}, valid values are Android dimension values, and XML references to dimension values.</li>
  * </ul>
+ *
  * @see RubikDetector
  * @see DrawConfig
  */
@@ -77,6 +78,7 @@ public class RubikDetectorResultView extends FrameLayout implements OnRubikCubeD
      *
      * @return the child {@link CameraView} of this view.
      */
+    @NonNull
     public CameraView getCameraView() {
         return cameraView;
     }
@@ -86,7 +88,7 @@ public class RubikDetectorResultView extends FrameLayout implements OnRubikCubeD
      *
      * @param drawConfig the desired {@link DrawConfig}
      */
-    public void setDrawConfig(final DrawConfig drawConfig) {
+    public void setDrawConfig(@NonNull final DrawConfig drawConfig) {
         if (isOnMainThread()) {
             updateFaceletsViewDrawConfig(drawConfig);
         } else {
@@ -112,7 +114,7 @@ public class RubikDetectorResultView extends FrameLayout implements OnRubikCubeD
     }
 
     @Override
-    public void onRubikCubeDetectionResult(final RubikFaceletsWrapper rubikResult) {
+    public void onRubikCubeDetectionResult(@Nullable final RubikFaceletsWrapper rubikResult) {
         drawFaceletsInternal(rubikResult);
     }
 
@@ -144,7 +146,7 @@ public class RubikDetectorResultView extends FrameLayout implements OnRubikCubeD
     }
 
     @NonNull
-    private DrawConfig createDrawConfig(TypedArray attributes) {
+    private DrawConfig createDrawConfig(@NonNull TypedArray attributes) {
         String faceletsDrawMode = attributes.getString(R.styleable.RubikDetectorResultView_faceletsDrawMode);
         int strokeWidthInPixels = attributes.getDimensionPixelSize(R.styleable.RubikDetectorResultView_strokeWidth, STROKE_NOT_SET);
 
@@ -172,7 +174,7 @@ public class RubikDetectorResultView extends FrameLayout implements OnRubikCubeD
         return drawConfig;
     }
 
-    private void drawFaceletsInternal(final RubikFaceletsWrapper rubikResult) {
+    private void drawFaceletsInternal(@Nullable final RubikFaceletsWrapper rubikResult) {
         if (isOnMainThread()) {
             faceletsView.drawFacelets(rubikResult);
         } else {
@@ -185,7 +187,7 @@ public class RubikDetectorResultView extends FrameLayout implements OnRubikCubeD
         }
     }
 
-    private void updateFaceletsViewDrawConfig(final DrawConfig drawConfig) {
+    private void updateFaceletsViewDrawConfig(@NonNull final DrawConfig drawConfig) {
         faceletsView.setDrawConfig(drawConfig);
         faceletsView.invalidate();
     }
@@ -194,7 +196,7 @@ public class RubikDetectorResultView extends FrameLayout implements OnRubikCubeD
         return Looper.getMainLooper() != Looper.myLooper();
     }
 
-    private View findTextureView(View view) {
+    private View findTextureView(@NonNull View view) {
         View queryView = view;
         while (queryView instanceof ViewGroup) {
             queryView = ((ViewGroup) queryView).getChildAt(0);

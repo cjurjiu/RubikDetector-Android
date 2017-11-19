@@ -1,6 +1,7 @@
 package com.catalinjurjiu.rubikdetector.config;
 
 import android.support.annotation.IntDef;
+import android.support.annotation.NonNull;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -68,6 +69,7 @@ public class DrawConfig {
      *
      * @return a {@link DrawConfig} with default values.
      */
+    @NonNull
     public static DrawConfig Default() {
         return new DrawConfig(DrawMode.DRAW_CIRCLES, 2, false);
     }
@@ -77,6 +79,7 @@ public class DrawConfig {
      *
      * @return a {@link DrawConfig} that does not draw.
      */
+    @NonNull
     public static DrawConfig DoNotDraw() {
         return new DrawConfig();
     }
@@ -89,6 +92,7 @@ public class DrawConfig {
      * @param strokeWidth the desired stroke width, in pixels.
      * @return a {@link DrawConfig} that draws facelets as circles.
      */
+    @NonNull
     public static DrawConfig Circles(int strokeWidth) {
         return new DrawConfig(DrawMode.DRAW_CIRCLES, strokeWidth, false);
     }
@@ -98,6 +102,7 @@ public class DrawConfig {
      *
      * @return a {@link DrawConfig} that draws facelets as filled circles.
      */
+    @NonNull
     public static DrawConfig FilledCircles() {
         return new DrawConfig(DrawMode.DRAW_CIRCLES, 0, true);
     }
@@ -110,6 +115,7 @@ public class DrawConfig {
      * @param strokeWidth the desired stroke width, in pixels.
      * @return a {@link DrawConfig} that draws facelets as rectangles.
      */
+    @NonNull
     public static DrawConfig Rectangles(int strokeWidth) {
         return new DrawConfig(DrawMode.DRAW_RECTANGLES, strokeWidth, false);
     }

@@ -23,7 +23,8 @@ public class RubikDetectorUtils {
      * @param newHeight      new image height
      * @return a 3x3 array of scaled {@link RubikFacelet} objects that match the new desired image resolution.
      */
-    public static RubikFacelet[][] rescaleResults(RubikFacelet[][] result, int originalWidth, int originalHeight, int newWidth, int newHeight) {
+    @NonNull
+    public static RubikFacelet[][] rescaleResults(@NonNull RubikFacelet[][] result, int originalWidth, int originalHeight, int newWidth, int newHeight) {
 
         if (originalWidth > originalHeight != newWidth > newHeight) {
             throw new IllegalArgumentException("Largest side cannot differ between original frame size, and new frame size. In original: " +
@@ -68,7 +69,7 @@ public class RubikDetectorUtils {
      * @param paint    the {@link Paint} used to draw the facelets. Its color will be overwritten by each facelet,
      *                 s.t. each facelet is drawn with its correct color.
      */
-    public static void drawFaceletsAsRectangles(RubikFacelet[][] facelets, Canvas canvas, Paint paint) {
+    public static void drawFaceletsAsRectangles(@NonNull RubikFacelet[][] facelets, @NonNull Canvas canvas, @NonNull Paint paint) {
         Path path = new Path();
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
@@ -105,7 +106,7 @@ public class RubikDetectorUtils {
      * @param paint    the {@link Paint} used to draw the facelets. Its color will be overwritten by each facelet,
      *                 s.t. each facelet is drawn with its correct color.
      */
-    public static void drawFaceletsAsCircles(RubikFacelet[][] facelets, Canvas canvas, Paint paint) {
+    public static void drawFaceletsAsCircles(@NonNull RubikFacelet[][] facelets, @NonNull Canvas canvas, @NonNull Paint paint) {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 RubikFacelet facelet = facelets[i][j];
@@ -122,7 +123,7 @@ public class RubikDetectorUtils {
      * @return a {@link android.graphics.Color} equivalent of the {@link RubikFacelet} color.
      */
     @ColorInt
-    public static int getAndroidColor(RubikFacelet rubikFacelet) {
+    public static int getAndroidColor(@NonNull RubikFacelet rubikFacelet) {
         switch (rubikFacelet.color) {
             case RubikFacelet.Color.WHITE:
                 return android.graphics.Color.WHITE;
@@ -171,6 +172,7 @@ public class RubikDetectorUtils {
      * @param result 3x3 array of {@link RubikFacelet} objects
      * @return a formatted {@link String} describing the colors of the found facelets.
      */
+    @NonNull
     public static String getResultColorsAsString(@NonNull RubikFacelet[][] result) {
         StringBuilder stringBuilder = new StringBuilder("Colors: {");
         for (int i = 0; i < 3; i++) {

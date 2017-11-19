@@ -322,6 +322,7 @@ public class RubikDetector {
      * @return a 3x3 {@link RubikFacelet} array, representing the found facelets, if a Rubik's Cube is detected in the current frame,
      * or {@code null} if a cube is not detected.
      */
+    @Nullable
     public RubikFacelet[][] findCube(@NonNull byte[] imageData) {
         if (isActive() && imageData.length >= requiredMemory) {
             int[] nativeResult = nativeFindCube(nativeProcessorRef, imageData);
@@ -370,6 +371,7 @@ public class RubikDetector {
      * @return a 3x3 {@link RubikFacelet} array, representing the found facelets, if a Rubik's Cube is detected in the current frame,
      * or {@code null} if a cube is not detected.
      */
+    @Nullable
     public RubikFacelet[][] findCube(@NonNull ByteBuffer imageDataBuffer) {
         if (!imageDataBuffer.isDirect()) {
             throw new IllegalArgumentException("The image data buffer needs to be a direct buffer.");
@@ -571,6 +573,7 @@ public class RubikDetector {
      * @param detectionResult an int[] which contains marshaled data, regarding the found facelets. typically returned by the c++ detector
      * @return a 3x3 {@link RubikFacelet}[][], representing the parsed data in the int[] parameter.
      */
+    @Nullable
     private RubikFacelet[][] decodeResult(int[] detectionResult) {
         if (detectionResult == null) {
             return null;

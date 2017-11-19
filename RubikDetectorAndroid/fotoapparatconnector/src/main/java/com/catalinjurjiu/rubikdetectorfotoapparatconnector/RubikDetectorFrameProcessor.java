@@ -40,7 +40,6 @@ import io.fotoapparat.preview.FrameProcessor;
  * The call to {@link #onSizeSelected(Size)} is necessary in order for this processor to notify its {@link RubikDetector} of  the size of the frames
  * to be processed. Another reason is that this processor needs to pre allocate certain image buffers before processing begins.  To preallocate buffers
  * of the correct capacity, the size of the frames to be processed needs to be known.
- *
  */
 @SuppressWarnings({"unused", "SuspiciousNameCombination"})
 public class RubikDetectorFrameProcessor implements FrameProcessor, RubikDetectorSizeSelectorWrapper.SizeSelectionListener {
@@ -107,7 +106,7 @@ public class RubikDetectorFrameProcessor implements FrameProcessor, RubikDetecto
      *
      * @param listener a {@link OnRubikCubeDetectionResultListener} which will be notified when processing completes for each frame
      */
-    public void addOnRubikCubeFaceletsFoundListener(OnRubikCubeDetectionResultListener listener) {
+    public void addOnRubikCubeFaceletsFoundListener(@NonNull OnRubikCubeDetectionResultListener listener) {
         synchronized (listeners) {
             listeners.add(listener);
         }
@@ -121,7 +120,7 @@ public class RubikDetectorFrameProcessor implements FrameProcessor, RubikDetecto
      * @param listener a listener previously registered with {@link #addOnRubikCubeFaceletsFoundListener(OnRubikCubeDetectionResultListener)},
      *                 which now needs to be removed.
      */
-    public void removeOnRubikCubeFaceletsFoundListener(OnRubikCubeDetectionResultListener listener) {
+    public void removeOnRubikCubeFaceletsFoundListener(@NonNull OnRubikCubeDetectionResultListener listener) {
         synchronized (listeners) {
             listeners.remove(listener);
         }
@@ -144,6 +143,7 @@ public class RubikDetectorFrameProcessor implements FrameProcessor, RubikDetecto
      * @param rotation the current rotation, in degrees. 0 would be landscape, 90 portrait, 180 reverse landscape, etc..
      * @return a {@link RubikFaceletsWrapper} with the facelets postitions updates to match the current rotation of the screen.
      */
+    @NonNull
     private RubikFaceletsWrapper wrapResult(@Nullable RubikFacelet[][] result, @NonNull Size size, int rotation) {
         int width = size.width;
         int height = size.height;
@@ -198,7 +198,7 @@ public class RubikDetectorFrameProcessor implements FrameProcessor, RubikDetecto
      *
      * @param rubikFaceletsWrapper the {@link RubikFaceletsWrapper} to deliver to the listeners.
      */
-    private void notifyListenersOfResult(final RubikFaceletsWrapper rubikFaceletsWrapper) {
+    private void notifyListenersOfResult(@Nullable final RubikFaceletsWrapper rubikFaceletsWrapper) {
         resultHandler.post(new Runnable() {
             @Override
             public void run() {

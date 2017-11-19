@@ -12,9 +12,9 @@ import android.view.View;
 
 import com.catalinjurjiu.rubikdetector.RubikDetectorUtils;
 import com.catalinjurjiu.rubikdetector.config.DrawConfig;
-import com.catalinjurjiu.rubikdetectorfotoapparatconnector.data.RubikFaceletsWrapper;
 import com.catalinjurjiu.rubikdetector.model.Point2d;
 import com.catalinjurjiu.rubikdetector.model.RubikFacelet;
+import com.catalinjurjiu.rubikdetectorfotoapparatconnector.data.RubikFaceletsWrapper;
 
 /**
  * View internally used by the {@link RubikFaceletsWrapper} to draw a set of facelets contained in a {@link RubikFaceletsWrapper}.
@@ -30,27 +30,27 @@ class FaceletsView extends View {
     private int resultFrameSmallSide;
     private Path path;
 
-    public FaceletsView(Context context) {
+    public FaceletsView(@NonNull Context context) {
         super(context);
         setDrawConfig(DrawConfig.Default());
     }
 
-    public FaceletsView(Context context, DrawConfig drawConfig) {
+    public FaceletsView(@NonNull Context context, @NonNull DrawConfig drawConfig) {
         super(context);
         setDrawConfig(drawConfig);
     }
 
-    public FaceletsView(Context context, @Nullable AttributeSet attrs) {
+    public FaceletsView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         setDrawConfig(DrawConfig.Default());
     }
 
-    public FaceletsView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public FaceletsView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setDrawConfig(DrawConfig.Default());
     }
 
-    void drawFacelets(@NonNull RubikFaceletsWrapper rubikFaceletsWrapper) {
+    void drawFacelets(@Nullable final RubikFaceletsWrapper rubikFaceletsWrapper) {
         if (drawConfig.getDrawMode() == DrawConfig.DrawMode.DO_NOT_DRAW) {
             //do nothing if the user doesn't want to draw the result
             return;
@@ -60,7 +60,7 @@ class FaceletsView extends View {
         invalidate();
     }
 
-    void setDrawConfig(DrawConfig drawConfig) {
+    void setDrawConfig(@NonNull DrawConfig drawConfig) {
         this.drawConfig = drawConfig;
         if (drawConfig.getDrawMode() == DrawConfig.DrawMode.DRAW_RECTANGLES) {
             path = new Path();
@@ -88,7 +88,7 @@ class FaceletsView extends View {
     }
 
     @SuppressWarnings("ConstantConditions")
-    private void drawFaceletsAsCircles(Canvas canvas) {
+    private void drawFaceletsAsCircles(@NonNull Canvas canvas) {
         if (resultFrameWidth != rubikFaceletsWrapper.getFrameWidth() || resultFrameHeight != rubikFaceletsWrapper.getFrameHeight()) {
             resultFrameWidth = rubikFaceletsWrapper.getFrameWidth();
             resultFrameHeight = rubikFaceletsWrapper.getFrameHeight();
@@ -111,7 +111,7 @@ class FaceletsView extends View {
     }
 
     @SuppressWarnings("ConstantConditions")
-    private void drawFaceletsAsRectangles(Canvas canvas) {
+    private void drawFaceletsAsRectangles(@NonNull Canvas canvas) {
         if (resultFrameWidth != rubikFaceletsWrapper.getFrameWidth() || resultFrameHeight != rubikFaceletsWrapper.getFrameHeight()) {
             resultFrameWidth = rubikFaceletsWrapper.getFrameWidth();
             resultFrameHeight = rubikFaceletsWrapper.getFrameHeight();
