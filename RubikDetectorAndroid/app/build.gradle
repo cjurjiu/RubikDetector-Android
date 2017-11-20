@@ -48,8 +48,8 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
 
     //online dependencies
-    compile 'com.catalinjurjiu:rubikdetector-android:1.0.0-beta2'
-    compile 'com.catalinjurjiu:rubikdetector-fotoapparat-connector:1.0.0-beta2'
+    compile 'com.catalinjurjiu:rubikdetector-android:1.0.0'
+    compile 'com.catalinjurjiu:rubikdetector-fotoapparat-connector:1.0.0'
 
     //local module dependencies
 //    compile project(':rubikdetector')

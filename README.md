@@ -373,7 +373,7 @@ The Android library also has a connector to the popular FotoApparat camera libra
 
 ### Current state
 
-In development. Project is currently in open beta.
+Stable release v1.0.0.
 
 ### Performance
 
@@ -387,7 +387,7 @@ Binaries and dependency information for Maven, Ivy, Gradle and others can be fou
 Example for Gradle:
 
 ```groovy
-compile 'com.catalinjurjiu:rubikdetector-android:1.0.0-beta2'
+compile 'com.catalinjurjiu:rubikdetector-android:1.0.0'
 ```
 
 and for Maven:
@@ -396,14 +396,14 @@ and for Maven:
 <dependency>
   <groupId>com.catalinjurjiu</groupId>
   <artifactId>rubikdetector-android</artifactId>
-  <version>1.0.0-beta2</version>
+  <version>1.0.0</version>
   <type>pom</type>
 </dependency>
 ```
 and for Ivy:
 
 ```xml
-<dependency org='com.catalinjurjiu' name='rubikdetector-android' rev='1.0.0-beta2'>
+<dependency org='com.catalinjurjiu' name='rubikdetector-android' rev='1.0.0'>
   <artifact name='rubikdetector-android' ext='pom' ></artifact>
 </dependency>
 ```
@@ -414,7 +414,7 @@ Complete details available on [jcenter](https://bintray.com/cjurjiu/cjurjiu-open
 Example for Gradle:
 
 ```groovy
-compile 'com.catalinjurjiu:rubikdetector-fotoapparat-connector:1.0.0-beta2'
+compile 'com.catalinjurjiu:rubikdetector-fotoapparat-connector:1.0.0'
 ```
 
 and for Maven:
@@ -423,14 +423,14 @@ and for Maven:
 <dependency>
   <groupId>com.catalinjurjiu</groupId>
   <artifactId>rubikdetector-fotoapparat-connector</artifactId>
-  <version>1.0.0-beta2</version>
+  <version>1.0.0</version>
   <type>pom</type>
 </dependency>
 ```
 and for Ivy:
 
 ```xml
-<dependency org='com.catalinjurjiu' name='rubikdetector-fotoapparat-connector' rev='1.0.0-beta2'>
+<dependency org='com.catalinjurjiu' name='rubikdetector-fotoapparat-connector' rev='1.0.0'>
   <artifact name='rubikdetector-fotoapparat-connector' ext='pom' ></artifact>
 </dependency>
 ```
