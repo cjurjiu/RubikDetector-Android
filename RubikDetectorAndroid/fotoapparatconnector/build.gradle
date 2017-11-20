@@ -7,8 +7,8 @@ android {
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 26
-        versionCode 2
-        versionName "1.0.0 Beta2"
+        versionCode 3
+        versionName "1.0.0"
         consumerProguardFiles 'proguard-consumer-rules.pro'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
@@ -44,10 +44,10 @@ artifacts {
 dependencies {
     compile 'com.android.support:support-annotations:26.1.0'
     compile 'io.fotoapparat.fotoapparat:library:1.4.1'
-    //online dependency
-    compile 'com.catalinjurjiu:rubikdetector-android:1.0.0-beta2'
+//    online dependency
+    compile 'com.catalinjurjiu:rubikdetector-android:1.0.0'
 
-    //local module dependency
+//    local module dependency
 //    compile project(':rubikdetector')
 }
 
